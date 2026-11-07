@@ -104,6 +104,11 @@ export interface DatabaseOrder {
     quantity: number;
     unit_price: number;
   }[];
+  status_history: {
+    previous_status: string | null;
+    status: string;
+    created_at: string;
+  }[];
 }
 export async function loadAdminOrders(): Promise<DatabaseOrder[] | null> {
   if (!supabase) return null;
@@ -132,6 +137,33 @@ export async function loadAdminOrders(): Promise<DatabaseOrder[] | null> {
     orders.push(...((data || []) as unknown as DatabaseOrder[]));
     if (!data || data.length < 500) break;
   }
+  if (!orders.length) return orders;
+  const historyByOrder = new Map<string, DatabaseOrder['status_history']>();
+  const orderIds = orders.map((order) => order.id);
+  for (let start = 0; start < orderIds.length; start += 200) {
+    const batch = orderIds.slice(start, start + 200);
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await supabase
+        .from('order_status_history')
+        .select('order_id,previous_status,status,created_at')
+        .in('order_id', batch)
+        .order('created_at')
+        .order('id')
+        .range(offset, offset + 999);
+      if (error) throw new Error(`Historique des commandes inaccessible (${error.message})`);
+      for (const event of data || []) {
+        const entries = historyByOrder.get(event.order_id) || [];
+        entries.push({
+          previous_status: event.previous_status,
+          status: event.status,
+          created_at: event.created_at,
+        });
+        historyByOrder.set(event.order_id, entries);
+      }
+      if (!data || data.length < 1000) break;
+    }
+  }
+  for (const order of orders) order.status_history = historyByOrder.get(order.id) || [];
   return orders;
 }
 export async function loadCategories(): Promise<Category[]> {

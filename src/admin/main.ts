@@ -168,7 +168,14 @@ async function refreshRemoteOrders() {
       qty: item.quantity,
       price: Number(item.unit_price),
     })),
-    history: [{ label: 'Demande reçue', date: order.created_at }],
+    history: order.status_history.length
+      ? order.status_history.map((event) => ({
+          label: event.previous_status
+            ? `${event.previous_status} → ${event.status}`
+            : `Demande reçue · ${event.status}`,
+          date: event.created_at,
+        }))
+      : [{ label: `Demande enregistrée · ${order.status}`, date: order.created_at }],
   }));
   remoteOrdersActive = true;
   return true;
@@ -369,7 +376,7 @@ function orderEditor(id: string) {
       .reverse()
       .map(
         (h) =>
-          `<div class="activity-item"><p>${esc(h.label)}</p><small>${fmt(h.date)}</small></div>`,
+          `<div class="activity-item"><p>${esc(h.label)}</p><small>${new Date(h.date).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>`,
       )
       .join('')}</div>`,
   );
@@ -392,7 +399,10 @@ function orderEditor(id: string) {
       }
     }
     if (o.status !== nextStatus)
-      o.history.push({ label: nextStatus, date: new Date().toISOString() });
+      o.history.push({
+        label: o.remote ? `${o.status} → ${nextStatus}` : nextStatus,
+        date: new Date().toISOString(),
+      });
     Object.assign(o, {
       status: nextStatus,
       tracking: nextTracking,
