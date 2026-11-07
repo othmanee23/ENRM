@@ -1,0 +1,306 @@
+html {
+  scroll-padding-top: 80px;
+}
+header,
+body[data-page='home'] header {
+  height: 68px;
+}
+.logo {
+  width: 130px;
+}
+nav {
+  gap: 32px;
+}
+nav a,
+.cart-button {
+  font-size: 16px;
+}
+.mobile-nav {
+  top: 68px;
+}
+.button,
+.outline,
+.footer-pill,
+.film-control,
+.video-toggle,
+.volume-options a,
+.gallery-buttons button,
+.quick-add,
+.collection-controls button,
+.close,
+.footer-return,
+.image-arrow {
+  border-radius: 10px !important;
+}
+.product-image,
+.detail-visual,
+.format-story,
+.info-image img,
+dialog,
+.filters select,
+input,
+select,
+textarea {
+  border-radius: 10px;
+}
+.hero-brands .marquee {
+  margin-right: 0;
+  padding-right: 5%;
+}
+footer.footer-v5 {
+  background: #091b29;
+}
+.cinematic-showcase {
+  height: 165svh;
+  min-height: 1050px;
+  display: block;
+  padding: 0;
+  overflow: visible;
+  background: #fff;
+  --scene-progress: 0;
+}
+.showcase-stage {
+  position: sticky;
+  top: 78px;
+  height: calc(100svh - 100px);
+  min-height: 580px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fff;
+}
+.cinematic-showcase .showcase-copy {
+  top: 28%;
+  left: 5%;
+  z-index: 4;
+}
+.cinematic-showcase .hero-oils {
+  top: 12%;
+  bottom: 14%;
+  left: 47%;
+  right: 4%;
+  perspective: 1100px;
+}
+.cinematic-showcase .hero-oil-item {
+  animation: none !important;
+  opacity: 1;
+  will-change: transform;
+  transform-origin: 50% 85%;
+  transform: translate3d(
+      calc((1 - var(--scene-progress)) * -120px),
+      calc((1 - var(--scene-progress)) * 120px),
+      0
+    )
+    rotate(calc(-22deg + var(--scene-progress) * 17deg))
+    scale(calc(0.78 + var(--scene-progress) * 0.22));
+}
+.cinematic-showcase .hero-oil-item:nth-child(2) {
+  transform: translate3d(0, calc((1 - var(--scene-progress)) * 200px), 0)
+    rotate(calc(10deg - var(--scene-progress) * 10deg))
+    scale(calc(0.72 + var(--scene-progress) * 0.28));
+}
+.cinematic-showcase .hero-oil-item:nth-child(3) {
+  transform: translate3d(
+      calc((1 - var(--scene-progress)) * 140px),
+      calc((1 - var(--scene-progress)) * 140px),
+      0
+    )
+    rotate(calc(28deg - var(--scene-progress) * 21deg))
+    scale(calc(0.78 + var(--scene-progress) * 0.22));
+}
+.cinematic-showcase .hero-oil-item img {
+  transform: none !important;
+}
+.cinematic-showcase .showcase-copy h2 {
+  transform: translateY(calc(var(--scene-progress) * -35px));
+  will-change: transform;
+}
+.cinematic-showcase .showcase-copy .button {
+  transform: translateY(calc(var(--scene-progress) * -20px));
+}
+.cinematic-detail {
+  height: 180svh;
+  min-height: 1100px;
+  padding: 0;
+  display: block;
+  overflow: visible;
+  background: #fff;
+  --detail-progress: 0;
+}
+.cinematic-detail:after {
+  display: none;
+}
+.cinematic-detail > .detail-cinema {
+  position: sticky;
+  top: 78px;
+  height: calc(100svh - 100px);
+  min-height: 580px;
+  max-width: none;
+  margin: 0 2%;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  isolation: isolate;
+  clip-path: inset(0 calc((1 - var(--detail-progress)) * 4%) round 10px);
+}
+.detail-cinema > img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: 60% center;
+  transform-origin: 65% 52%;
+  transform: translateY(calc((var(--detail-progress) - 0.5) * 65px))
+    scale(calc(1.42 - var(--detail-progress) * 0.3));
+  will-change: transform;
+}
+.detail-cinema:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #03131a95, transparent 85%);
+  z-index: 1;
+  pointer-events: none;
+}
+.detail-cinema > div {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 30%;
+  z-index: 3;
+  max-width: 650px;
+  opacity: 1 !important;
+  transform: translateY(calc((var(--detail-progress) - 0.5) * -75px)) !important;
+}
+.detail-cinema h2 {
+  font-size: clamp(80px, 8vw, 125px);
+  line-height: 0.94;
+}
+.detail-cinema .button {
+  margin-top: 35px;
+}
+.detail-light-pass {
+  position: absolute;
+  inset: -30%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, #ffe3a52b 48%, transparent 60%);
+  transform: translateX(calc(-65% + var(--detail-progress) * 130%));
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+@media (max-width: 760px) {
+  header,
+  body[data-page='home'] header {
+    height: 64px;
+  }
+  .logo {
+    width: 110px;
+  }
+  .mobile-nav {
+    top: 64px;
+  }
+  html {
+    scroll-padding-top: 74px;
+  }
+  .cinematic-showcase {
+    height: 145svh;
+    min-height: 950px;
+  }
+  .showcase-stage {
+    top: 74px;
+    height: calc(100svh - 90px);
+    min-height: 610px;
+  }
+  .cinematic-showcase .showcase-copy {
+    top: 45px;
+    left: 6%;
+    right: 6%;
+  }
+  .cinematic-showcase .showcase-copy h2 {
+    font-size: 51px;
+  }
+  .cinematic-showcase .hero-oils {
+    left: 8%;
+    right: 8%;
+    top: 310px;
+    bottom: 65px;
+  }
+  .cinematic-showcase .hero-oil-item {
+    transform: translate3d(
+        calc((1 - var(--scene-progress)) * -35px),
+        calc((1 - var(--scene-progress)) * 50px),
+        0
+      )
+      rotate(calc(-18deg + var(--scene-progress) * 13deg))
+      scale(calc(0.8 + var(--scene-progress) * 0.2));
+  }
+  .cinematic-showcase .hero-oil-item:nth-child(2) {
+    transform: translateY(calc((1 - var(--scene-progress)) * 80px))
+      scale(calc(0.78 + var(--scene-progress) * 0.22));
+  }
+  .cinematic-showcase .hero-oil-item:nth-child(3) {
+    transform: translate3d(
+        calc((1 - var(--scene-progress)) * 35px),
+        calc((1 - var(--scene-progress)) * 60px),
+        0
+      )
+      rotate(calc(20deg - var(--scene-progress) * 13deg))
+      scale(calc(0.8 + var(--scene-progress) * 0.2));
+  }
+  .cinematic-detail {
+    height: 150svh;
+    min-height: 950px;
+  }
+  .cinematic-detail > .detail-cinema {
+    top: 74px;
+    height: calc(100svh - 90px);
+    min-height: 590px;
+    margin: 0 3%;
+  }
+  .detail-cinema > div {
+    left: 7%;
+    top: 33%;
+  }
+  .detail-cinema h2 {
+    font-size: 72px;
+  }
+  .detail-cinema > img {
+    object-position: 62% center;
+  }
+  .hero-brands .marquee {
+    margin-right: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-showcase,
+  .cinematic-detail {
+    height: auto;
+    min-height: 0;
+  }
+  .showcase-stage,
+  .cinematic-detail > .detail-cinema {
+    position: relative;
+    top: 0;
+    height: 760px;
+    clip-path: none;
+  }
+  .cinematic-showcase .hero-oil-item,
+  .cinematic-showcase .hero-oil-item:nth-child(2),
+  .cinematic-showcase .hero-oil-item:nth-child(3),
+  .cinematic-showcase .showcase-copy h2,
+  .cinematic-showcase .showcase-copy .button,
+  .detail-cinema > img,
+  .detail-cinema > div {
+    transform: none !important;
+  }
+  .detail-light-pass {
+    display: none;
+  }
+  @media (max-width: 760px) {
+    .showcase-stage,
+    .cinematic-detail > .detail-cinema {
+      height: 680px;
+    }
+  }
+}

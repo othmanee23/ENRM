@@ -1,0 +1,31 @@
+.extra-collection {
+  background: #fff;
+  border-top: 1px solid #edf0f1;
+}
+.extra-collection .product-image {
+  background: #f5f6f7;
+}
+.extra-collection .section-heading {
+  margin-bottom: 22px;
+}
+.extra-collection .collection-controls {
+  margin-bottom: 22px;
+}
+.extra-collection .product-rail {
+  padding-bottom: 16px;
+}
+@media (max-width: 760px) {
+  .extra-collection .section-heading {
+    align-items: flex-start;
+    gap: 25px;
+  }
+  .extra-collection .section-heading h2 {
+    font-size: 39px;
+  }
+  .extra-collection .text-link {
+    font-size: 15px;
+  }
+  .extra-collection {
+    padding-block: 65px;
+  }
+}

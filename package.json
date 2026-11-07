@@ -1,0 +1,26 @@
+{
+  "name": "enrm-storefront",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4173",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build && node scripts/check-build.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test": "vitest run",
+    "format": "prettier --write src scripts tests *.html *.json *.ts README.md",
+    "format:check": "prettier --check src scripts tests *.html *.json *.ts README.md"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "jsdom": "^31.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

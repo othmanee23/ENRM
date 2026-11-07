@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="ENRM — Huiles moteur au Maroc. Explorez les références et les formats. Démonstration sans achat réel."
+    />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Le mouvement commence ici — ENRM</title>
+    <link
+      rel="preload"
+      href="/assets/fonts/inter-tight-1.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/assets/fonts/inter-tight.css" />
+    <script type="module" src="/src/storefront/main.ts"></script>
+  </head>
+  <body data-page="home">
+    <!-- layout:header -->
+    <main id="main">
+      <section class="cinema-hero single-hero" id="hero" aria-label="L’univers ENRM">
+        <div class="hero-film">
+          <video
+            id="hero-video"
+            data-ambient-video
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster="assets/media/hero-oil-poster.jpg"
+            aria-label="De l’huile dorée est versée dans un moteur"
+          >
+            <source src="assets/media/hero-oil.mp4" type="video/mp4" />
+          </video>
+          <div class="cinema-shade"></div>
+          <div class="hero-slide-copy">
+            <h1>Le mouvement.<br />À l’état pur.</h1>
+            <a class="button light" href="catalogue.html">Explorer les huiles <span>↗</span></a>
+          </div>
+          <div class="hero-bottom">
+            <button
+              id="video-toggle"
+              class="film-control"
+              data-video-control="hero-video"
+              aria-label="Mettre la vidéo en pause"
+            >
+              Ⅱ <span>Vidéo</span>
+            </button>
+          </div>
+          <span class="video-fallback" id="video-fallback" hidden
+            >Le soin du moteur, en image.</span
+          >
+        </div>
+        <svg class="brand-filter" width="0" height="0" aria-hidden="true" focusable="false">
+          <defs>
+            <filter id="hero-brand-ink" color-interpolation-filters="sRGB">
+              <feColorMatrix
+                type="matrix"
+                values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -0.6378 -2.1456 -0.2166 3 0"
+              />
+            </filter>
+          </defs>
+        </svg>
+        <section
+          id="marques"
+          class="brand-section hero-brands"
+          aria-label="Les marques du catalogue"
+        >
+          <div class="marquee" id="marquee"><div class="logo-track" id="logo-track"></div></div>
+        </section>
+      </section>
+      <section
+        class="oil-showcase motion-scene cinematic-showcase"
+        id="selection-story"
+        aria-label="La sélection ENRM"
+      >
+        <div class="showcase-stage">
+          <div class="showcase-copy">
+            <h2><span>La précision.</span><span>Dans le détail.</span></h2>
+            <a class="button primary" href="catalogue.html"
+              >Découvrir la sélection <span>↗</span></a
+            >
+          </div>
+          <div id="hero-oils" class="hero-oils" aria-label="Huiles moteur en format 5 litres"></div>
+        </div>
+      </section>
+      <section class="collection section" id="selection">
+        <div class="section-heading">
+          <div>
+            <h2>De belles références.<br />Un choix précis.</h2>
+          </div>
+          <a class="text-link" href="catalogue.html">Explorer les 210 variantes <span>↗</span></a>
+        </div>
+        <div class="collection-controls">
+          <p></p>
+          <div>
+            <button
+              data-scroll="featured-products"
+              data-direction="-1"
+              aria-label="Produits précédents"
+            >
+              ←</button
+            ><button
+              data-scroll="featured-products"
+              data-direction="1"
+              aria-label="Produits suivants"
+            >
+              →
+            </button>
+          </div>
+        </div>
+        <div id="featured-products" class="product-rail" aria-label="Sélection de produits"></div>
+        <div class="rail-foot">
+          <span>Prix de démonstration par conditionnement.</span
+          ><a href="catalogue.html">Tout le catalogue ↗</a>
+        </div>
+      </section>
+      <section class="editorial-drive cinematic-detail" id="detail">
+        <div class="detail-cinema">
+          <img
+            src="assets/media/engine-closeup.jpg"
+            alt="Gros plan sur l’huile dorée versée dans un moteur"
+            loading="lazy"
+            width="1800"
+            height="1130"
+          />
+          <div>
+            <h2>Le goût<br />du détail.</h2>
+            <a class="button light" href="conseil.html">Trouver ma référence <span>↗</span></a>
+          </div>
+          <span class="detail-light-pass" aria-hidden="true"></span>
+        </div>
+      </section>
+      <section class="collection section extra-collection" id="grade-530-section">
+        <div class="section-heading">
+          <h2>Le grade 5W-30.<br />Des références à explorer.</h2>
+          <a class="text-link" href="catalogue.html?viscosity=5W-30&amp;volume=5+L"
+            >Voir les huiles 5W-30 <span>↗</span></a
+          >
+        </div>
+        <div class="collection-controls">
+          <div>
+            <button
+              data-scroll="grade-530"
+              data-direction="-1"
+              aria-label="Voir les huiles 5W-30 : produits précédents"
+            >
+              ←</button
+            ><button
+              data-scroll="grade-530"
+              data-direction="1"
+              aria-label="Voir les huiles 5W-30 : produits suivants"
+            >
+              →
+            </button>
+          </div>
+        </div>
+        <div id="grade-530" class="product-rail" aria-label="Voir les huiles 5W-30"></div>
+      </section>
+      <section class="collection section atelier">
+        <div class="section-heading">
+          <div>
+            <h2>À votre rythme.<br />À votre format.</h2>
+          </div>
+          <p>
+            Pour les conducteurs et les professionnels.<br />Chaque contenance garde sa référence.
+          </p>
+        </div>
+        <div class="atelier-layout">
+          <div class="format-story video-story" id="atelier-film">
+            <video
+              id="workshop-video"
+              data-ambient-video
+              muted
+              loop
+              playsinline
+              preload="metadata"
+              poster="assets/media/golden-oil-poster.jpg"
+              aria-label="De l’huile dorée est versée dans un moteur"
+            >
+              <source src="assets/media/golden-oil.mp4" type="video/mp4" /></video
+            ><button
+              class="film-control story-control"
+              data-video-control="workshop-video"
+              aria-label="Mettre la vidéo d’entretien en pause"
+            >
+              Ⅱ
+            </button>
+            <div>
+              <span>LES FORMATS DU QUOTIDIEN</span>
+              <h3>Le prochain départ<br />se prépare ici.</h3>
+              <a class="story-link" href="catalogue.html?volume=5+L">Explorer les bidons 5 L ↗</a>
+            </div>
+          </div>
+          <div class="atelier-products">
+            <div class="collection-controls">
+              <p></p>
+              <div>
+                <button
+                  data-scroll="atelier-rail"
+                  data-direction="-1"
+                  aria-label="Formats précédents"
+                >
+                  ←</button
+                ><button
+                  data-scroll="atelier-rail"
+                  data-direction="1"
+                  aria-label="Formats suivants"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+            <div id="atelier-rail" class="product-rail compact-rail"></div>
+            <a class="text-link" href="catalogue.html?volume=20+L">Voir les grands formats ↗</a>
+          </div>
+        </div>
+      </section>
+      <section class="collection section extra-collection" id="litre-products-section">
+        <div class="section-heading">
+          <h2>Le format 1 litre.<br />Tout aussi précis.</h2>
+          <a class="text-link" href="catalogue.html?volume=1+L"
+            >Explorer les formats 1 L <span>↗</span></a
+          >
+        </div>
+        <div class="collection-controls">
+          <div>
+            <button
+              data-scroll="litre-products"
+              data-direction="-1"
+              aria-label="Explorer les formats 1 L : produits précédents"
+            >
+              ←</button
+            ><button
+              data-scroll="litre-products"
+              data-direction="1"
+              aria-label="Explorer les formats 1 L : produits suivants"
+            >
+              →
+            </button>
+          </div>
+        </div>
+        <div id="litre-products" class="product-rail" aria-label="Explorer les formats 1 L"></div>
+      </section>
+      <section class="collection section extra-collection" id="grade-540-section">
+        <div class="section-heading">
+          <h2>Le choix du 5W-40.<br />Dans chaque détail.</h2>
+          <a class="text-link" href="catalogue.html?viscosity=5W-40&amp;volume=5+L"
+            >Voir les huiles 5W-40 <span>↗</span></a
+          >
+        </div>
+        <div class="collection-controls">
+          <div>
+            <button
+              data-scroll="grade-540"
+              data-direction="-1"
+              aria-label="Voir les huiles 5W-40 : produits précédents"
+            >
+              ←</button
+            ><button
+              data-scroll="grade-540"
+              data-direction="1"
+              aria-label="Voir les huiles 5W-40 : produits suivants"
+            >
+              →
+            </button>
+          </div>
+        </div>
+        <div id="grade-540" class="product-rail" aria-label="Voir les huiles 5W-40"></div>
+      </section>
+      <section class="choice-section section">
+        <div>
+          <h2>Trois repères.<br />Une référence à vous.</h2>
+        </div>
+        <div class="choice-list">
+          <a href="catalogue.html"
+            ><span>01</span>
+            <div>
+              <h3>La formulation avant tout.</h3>
+              <p>Comparez la sous-référence et vérifiez les normes prévues par le constructeur.</p>
+            </div>
+            <span>↗</span></a
+          ><a href="catalogue.html"
+            ><span>02</span>
+            <div>
+              <h3>Le grade, avec précision.</h3>
+              <p>5W-30, 5W-40… La viscosité est un repère, pas une preuve de compatibilité.</p>
+            </div>
+            <span>↗</span></a
+          ><a href="conseil.html"
+            ><span>03</span>
+            <div>
+              <h3>Un doute ? Parlons moteur.</h3>
+              <p>Préparez votre véhicule, sa motorisation et votre question.</p>
+            </div>
+            <span>↗</span></a
+          >
+        </div>
+      </section>
+    </main>
+    <!-- layout:footer --><!-- layout:dialogs -->
+  </body>
+</html>

@@ -1,0 +1,630 @@
+:root {
+  --paper: #fff;
+  --soft: #fff;
+  --line: #e4e6e5;
+  --muted: #687171;
+}
+body,
+header,
+.mobile-nav,
+dialog,
+.product-specs,
+.info-page,
+footer {
+  background: #fff;
+}
+.product-image {
+  background: #fff;
+  border: 1px solid #eceeed;
+}
+.detail-visual {
+  background: #fff;
+  border: 1px solid #eceeed;
+}
+.product-specs {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+body[data-page='home'].header-scrolled header,
+body[data-page='home'].menu-open header {
+  background: #ffffffed;
+}
+.logo-dark {
+  filter: none;
+}
+body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-light {
+  display: block;
+}
+body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
+  display: none;
+}
+.single-hero {
+  height: 100svh;
+  min-height: 740px;
+  max-height: none !important;
+  display: block;
+  position: relative;
+  background: #fff;
+  color: white;
+  overflow: hidden;
+  isolation: isolate;
+  --brand-height: 155px;
+  --hero-drift: 0px;
+  --hero-copy-drift: 0px;
+}
+.hero-film {
+  position: absolute;
+  inset: 0 0 var(--brand-height);
+  overflow: hidden;
+  background: var(--ink);
+}
+.hero-film video {
+  position: absolute;
+  inset: -40px 0;
+  width: 100%;
+  height: calc(100% + 80px);
+  object-fit: cover;
+  object-position: center;
+  transform: translateY(var(--hero-drift)) scale(1.04);
+}
+.hero-film .cinema-shade {
+  background: linear-gradient(0deg, #03131ac7, transparent 75%, #03131a77);
+}
+.single-hero .hero-slide-copy {
+  bottom: 22%;
+  left: 5%;
+  right: 5%;
+  max-width: 1100px;
+}
+.single-hero .hero-slide-copy .eyebrow {
+  animation: hero-word-in 0.8s 0.15s var(--ease) both;
+}
+.single-hero .hero-slide-copy h1 {
+  animation: hero-word-in 1.1s 0.25s var(--ease) both;
+}
+.single-hero .hero-slide-copy .button {
+  animation: hero-word-in 0.85s 0.5s var(--ease) both;
+}
+.single-hero .hero-bottom {
+  bottom: 42px;
+  left: 5%;
+  right: 5%;
+}
+.film-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: auto;
+  min-width: 46px;
+  height: 46px;
+  border: 1px solid #ffffff88;
+  border-radius: 30px;
+  color: white;
+  background: #091e291a;
+  backdrop-filter: blur(8px);
+  padding: 0 15px;
+  font-size: 18px;
+  z-index: 5;
+}
+.film-control span {
+  font-size: 13px;
+}
+.film-control[hidden] {
+  display: none;
+}
+.single-hero .video-fallback {
+  position: absolute;
+  top: 125px;
+  right: 5%;
+  left: auto;
+  background: #091e2988;
+  max-width: 85%;
+  color: white;
+}
+.hero-brands {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--brand-height);
+  padding: 12px 0 0;
+  color: var(--ink);
+  background: #fff;
+  z-index: 6;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+.hero-brands .marquee {
+  margin-top: 0;
+}
+.hero-brands .logo-group {
+  gap: 45px;
+  padding-right: 45px;
+}
+.hero-brands .brand-tile {
+  height: 92px;
+  width: 135px;
+  gap: 0;
+}
+.hero-brands .brand-tile img {
+  width: 130px;
+  height: 44px;
+  max-height: 44px;
+}
+.hero-brands .brand-tile[href*='Shell'] img {
+  width: 48px;
+  height: 48px;
+  max-height: 48px;
+}
+.hero-brands .brand-tile span {
+  bottom: 0;
+  font-size: 11px;
+}
+.hero-brands .logo-track {
+  animation-duration: 40s;
+}
+.oil-showcase {
+  position: relative;
+  height: 850px;
+  min-height: 80svh;
+  background: #fff;
+  color: var(--ink);
+  overflow: hidden;
+  isolation: isolate;
+  --scene-progress: 0.5;
+}
+.showcase-copy {
+  position: absolute;
+  left: 5%;
+  top: 26%;
+  width: 43%;
+  max-width: 800px;
+  z-index: 3;
+}
+.showcase-copy h2 {
+  font-size: clamp(60px, 6vw, 98px);
+  line-height: 1.01;
+  letter-spacing: -0.055em;
+}
+.showcase-copy h2 > span {
+  display: block;
+  clip-path: inset(0 0 100% 0);
+  transform: translateY(35px);
+  opacity: 0;
+}
+.showcase-copy .button {
+  margin-top: 35px;
+}
+.oil-showcase .hero-oils {
+  top: 16%;
+  bottom: 19%;
+  left: 46%;
+  right: 3%;
+}
+.oil-showcase .hero-oil-item {
+  opacity: 0;
+  transform: translateY(100px);
+}
+.oil-showcase .hero-oil-item img {
+  transform: translateY(calc((var(--scene-progress) - 0.5) * -75px));
+  will-change: transform;
+}
+.oil-showcase .hero-oil-item:nth-child(1) img {
+  transform: translateY(calc((var(--scene-progress) - 0.5) * -40px));
+}
+.oil-showcase .hero-oil-item:nth-child(3) img {
+  transform: translateY(calc((var(--scene-progress) - 0.5) * -100px));
+}
+.oil-showcase.is-visible .hero-oil-item {
+  animation: oil-bottle-in 1.25s 0.1s var(--ease) both;
+}
+.oil-showcase.is-visible .hero-oil-item:nth-child(2) {
+  animation-name: oil-center-in;
+  animation-delay: 0.22s;
+}
+.oil-showcase.is-visible .hero-oil-item:nth-child(3) {
+  animation-name: oil-right-in;
+  animation-delay: 0.34s;
+}
+.oil-showcase.is-visible h2 > span {
+  animation: showcase-line-in 1s 0.15s var(--ease) both;
+}
+.oil-showcase.is-visible h2 > span:nth-child(2) {
+  animation-delay: 0.3s;
+}
+.motion-scene.reveal {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+.editorial-drive {
+  background: var(--ink);
+}
+.editorial-drive > img {
+  animation: none !important;
+  transform: scale(1.08) translateY(var(--image-drift, 0px));
+  object-position: 55% center;
+  will-change: transform;
+}
+.editorial-drive h2 {
+  font-size: clamp(70px, 7.5vw, 115px);
+}
+.editorial-drive:after {
+  background: linear-gradient(90deg, #03131ab3, transparent 85%);
+}
+.video-story {
+  display: block;
+  position: relative;
+  min-height: 630px;
+  margin-right: 40px;
+  color: white;
+  background: var(--ink);
+  overflow: hidden;
+}
+.video-story > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.video-story .story-control {
+  position: absolute;
+  right: 22px;
+  top: 22px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  z-index: 4;
+}
+.video-story > div {
+  pointer-events: none;
+}
+.video-story .story-link {
+  pointer-events: auto;
+  display: inline-block;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.video-story .story-link:hover {
+  border-color: var(--gold);
+  color: #ffd878;
+}
+.video-story > video.media-failed {
+  background: #091e29 url('/assets/media/golden-oil-poster.jpg') center/cover no-repeat;
+}
+.advice-studio {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 9%;
+  padding: 110px 5% 100px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+  --scene-progress: 0.5;
+}
+.advice-studio-heading h2 {
+  font-size: clamp(60px, 6.5vw, 100px);
+  line-height: 1.01;
+  letter-spacing: -0.055em;
+}
+.advice-studio-heading h2 em {
+  font-style: normal;
+  position: relative;
+  display: inline-block;
+}
+.advice-studio-heading h2 em:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 5px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.1s 0.35s var(--ease);
+}
+.advice-studio.is-visible h2 em:after {
+  transform: scaleX(1);
+}
+.advice-studio-form {
+  padding-top: 4px;
+  transform: translateY(30px);
+  opacity: 0;
+  transition:
+    opacity 0.9s 0.2s var(--ease),
+    transform 0.9s 0.2s var(--ease);
+}
+.advice-studio.is-visible .advice-studio-form {
+  opacity: 1;
+  transform: none;
+}
+.advice-studio-form h3 {
+  font-size: 34px;
+  line-height: 1.15;
+  margin: 30px 0 28px;
+}
+.advice-studio-form label {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+}
+.advice-studio-form input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 0 16px;
+  border: 0;
+  border-bottom: 1px solid #c4cbc8;
+  background: #fff;
+  border-radius: 0;
+  font-size: 23px;
+  color: var(--ink);
+  transition: border-color 0.35s;
+}
+.advice-studio-form input:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+.advice-mini-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 30px;
+  margin-top: 24px;
+}
+.advice-studio-form .button {
+  margin-top: 35px;
+  width: 100%;
+}
+.advice-studio-form .muted {
+  margin-top: 15px;
+  font-size: 13px;
+}
+.footer-return {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  font-size: 25px;
+}
+.footer-return:hover {
+  background: var(--ink);
+  color: #fff;
+  transform: translateY(-4px);
+}
+@keyframes showcase-line-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(35px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+    transform: none;
+  }
+}
+@media (min-width: 1700px) {
+  .oil-showcase {
+    height: 950px;
+  }
+  .single-hero .hero-slide-copy {
+    bottom: 20%;
+  }
+  .single-hero .hero-slide-copy h1 {
+    font-size: 115px;
+  }
+  .advice-studio {
+    gap: 12%;
+  }
+}
+@media (max-width: 1100px) {
+  .single-hero .hero-slide-copy h1 {
+    font-size: 80px;
+  }
+  .oil-showcase {
+    height: 760px;
+  }
+  .showcase-copy {
+    width: 45%;
+    top: 27%;
+  }
+  .showcase-copy h2 {
+    font-size: 65px;
+  }
+  .oil-showcase .hero-oils {
+    left: 47%;
+    top: 22%;
+    bottom: 22%;
+    right: 1%;
+  }
+  .advice-studio {
+    gap: 6%;
+    grid-template-columns: 1fr 1fr;
+  }
+  .advice-studio-heading h2 {
+    font-size: 64px;
+  }
+  .video-story {
+    margin-right: 25px;
+  }
+}
+@media (max-width: 760px) {
+  .single-hero {
+    height: 100svh;
+    min-height: 700px;
+    --brand-height: 140px;
+  }
+  .hero-film video {
+    object-position: 57% center;
+  }
+  .single-hero .hero-slide-copy {
+    bottom: 24%;
+    left: 6%;
+    right: 6%;
+  }
+  .single-hero .hero-slide-copy h1 {
+    font-size: clamp(48px, 12.8vw, 58px);
+  }
+  .single-hero .hero-slide-copy .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.7px;
+    max-width: none;
+  }
+  .single-hero .hero-slide-copy .button {
+    min-height: 54px;
+    font-size: 16px;
+    margin-top: 25px;
+  }
+  .single-hero .hero-bottom {
+    bottom: 35px;
+    left: 6%;
+    right: 6%;
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  .film-control {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 12px;
+  }
+  .hero-brands {
+    padding-top: 10px;
+  }
+  .hero-brands .logo-group {
+    gap: 30px;
+    padding-right: 30px;
+  }
+  .hero-brands .brand-tile {
+    width: 105px;
+    height: 80px;
+  }
+  .hero-brands .brand-tile img {
+    width: 100px;
+    height: 35px;
+    max-height: 35px;
+  }
+  .hero-brands .brand-tile[href*='Shell'] img {
+    height: 40px;
+    width: 40px;
+    max-height: 40px;
+  }
+  .hero-brands .brand-tile span {
+    font-size: 10px;
+  }
+  .oil-showcase {
+    height: 760px;
+    min-height: 0;
+  }
+  .showcase-copy {
+    top: 65px;
+    left: 6%;
+    right: 6%;
+    width: auto;
+    max-width: none;
+  }
+  .showcase-copy .eyebrow {
+    font-size: 12px;
+    margin-bottom: 19px;
+  }
+  .showcase-copy h2 {
+    font-size: 51px;
+    line-height: 1.02;
+  }
+  .showcase-copy .button {
+    margin-top: 24px;
+    font-size: 16px;
+  }
+  .oil-showcase .hero-oils {
+    top: 350px;
+    bottom: 15%;
+    left: 2%;
+    right: 2%;
+  }
+  .editorial-drive > img {
+    object-position: 57% center;
+  }
+  .editorial-drive {
+    min-height: 620px;
+  }
+  .editorial-drive h2 {
+    font-size: 74px;
+  }
+  .video-story {
+    height: 500px;
+    min-height: 0;
+    margin: 0 0 35px;
+  }
+  .video-story > video {
+    object-position: 50% center;
+  }
+  .video-story > div {
+    left: 25px;
+    right: 25px;
+    bottom: 30px;
+  }
+  .advice-studio {
+    display: block;
+    padding: 65px 6%;
+  }
+  .advice-studio-heading h2 {
+    font-size: 58px;
+    line-height: 1.02;
+  }
+  .advice-studio-heading h2 em:after {
+    height: 3px;
+    bottom: -5px;
+  }
+  .advice-studio-form {
+    margin-top: 45px;
+  }
+  .advice-studio-form h3 {
+    font-size: 30px;
+    margin: 25px 0;
+  }
+  .advice-studio-form input {
+    font-size: 22px;
+  }
+  .advice-mini-row {
+    gap: 22px;
+  }
+  .advice-studio-form .button {
+    margin-top: 30px;
+  }
+  .advice-studio-form .muted {
+    font-size: 12px;
+  }
+  .footer-return {
+    width: 48px;
+    height: 48px;
+  }
+  .single-hero .video-fallback {
+    top: 95px;
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .single-hero .hero-slide-copy .eyebrow,
+  .single-hero .hero-slide-copy h1,
+  .single-hero .hero-slide-copy .button,
+  .showcase-copy h2 > span,
+  .oil-showcase .hero-oil-item,
+  .advice-studio-form {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
+  .hero-film video,
+  .oil-showcase .hero-oil-item img,
+  .editorial-drive > img {
+    transform: none;
+  }
+  .advice-studio-heading h2 em:after {
+    transform: scaleX(1);
+  }
+}

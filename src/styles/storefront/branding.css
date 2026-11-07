@@ -1,0 +1,521 @@
+body {
+  font-family: 'Inter Tight', Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+h1,
+h2,
+h3 {
+  font-family: 'Inter Tight', Arial, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+.button {
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.single-hero {
+  --brand-height: 0px;
+}
+.single-hero .hero-film {
+  inset: 0;
+}
+.single-hero .hero-film .cinema-shade {
+  background:
+    linear-gradient(90deg, #03131a8c, transparent 85%),
+    linear-gradient(0deg, #020b10e0 0%, #03131a05 65%, #03131a88 100%);
+}
+.single-hero .hero-slide-copy {
+  bottom: 30%;
+  max-width: 1000px;
+}
+.single-hero .hero-slide-copy h1 {
+  font-size: clamp(70px, 6.8vw, 110px);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+}
+.single-hero .hero-slide-copy .button {
+  margin-top: 35px;
+}
+.single-hero .hero-bottom {
+  justify-content: flex-end;
+  bottom: 155px;
+}
+.single-hero .hero-bottom .film-control {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  padding: 0;
+}
+.single-hero .hero-bottom .film-control span {
+  display: none;
+}
+.brand-filter {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-brands {
+  height: 110px;
+  bottom: 20px;
+  background: transparent;
+  color: #fff;
+  border: 0;
+  overflow: hidden;
+  padding: 0;
+}
+.hero-brands .marquee {
+  margin: 0 110px 0 0;
+  padding-left: 5%;
+  height: 110px;
+}
+.hero-brands .brand-tile {
+  height: 110px;
+  width: 145px;
+}
+.hero-brands .logo-group {
+  gap: 50px;
+  padding-right: 50px;
+}
+.hero-brands .brand-tile img {
+  filter: url(#hero-brand-ink);
+  width: 140px;
+  height: 48px;
+  max-height: 48px;
+  opacity: 0.95;
+}
+.hero-brands .brand-tile[href*='Shell'] img {
+  width: 52px;
+  height: 52px;
+  max-height: 52px;
+}
+.hero-brands .brand-tile span {
+  display: none;
+}
+.hero-brands .brand-tile:hover img {
+  opacity: 1;
+}
+.showcase-copy {
+  top: 30%;
+}
+.showcase-copy h2 {
+  font-size: clamp(65px, 6.2vw, 100px);
+  line-height: 1.01;
+  font-weight: 500;
+}
+.oil-showcase .hero-oils {
+  top: 14%;
+  bottom: 18%;
+}
+.collection .section-heading .eyebrow,
+.collection-controls > p:empty {
+  display: none;
+}
+.collection-controls {
+  justify-content: flex-end;
+}
+.collection-controls:has(p:not(:empty)) {
+  justify-content: space-between;
+}
+.section-heading > p {
+  font-size: 19px;
+}
+.product-card h3 {
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: -0.025em;
+}
+.product-brand {
+  font-size: 15px;
+}
+.product-meta {
+  font-size: 17px;
+}
+.muted {
+  font-size: 15px;
+}
+.rail-foot {
+  font-size: 15px;
+}
+.editorial-drive > img {
+  transform: translateY(var(--image-drift, 0px)) scale(var(--image-zoom, 1.08));
+  transform-origin: 61% 52%;
+  will-change: transform;
+  object-position: 57% center;
+}
+.editorial-drive h2 {
+  font-size: clamp(80px, 8vw, 125px);
+  line-height: 0.94;
+  font-weight: 500;
+}
+.advice-studio-heading h2 {
+  font-size: clamp(65px, 6.4vw, 100px);
+  font-weight: 500;
+}
+.advice-studio-form h3 {
+  font-size: 35px;
+  margin-top: 0;
+}
+.advice-studio-form label {
+  font-size: 16px;
+}
+.advice-studio-form .muted {
+  font-size: 14px;
+}
+.advice-studio {
+  padding-top: 100px;
+  padding-bottom: 100px;
+}
+.advice-studio-heading {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: center;
+}
+footer.footer-v5 {
+  padding: 85px 4% 40px;
+  background: #111512;
+  color: #f4f5ef;
+  border: 0;
+  overflow: hidden;
+}
+.footer-directory {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr 1fr 1.2fr;
+  gap: 50px;
+}
+.footer-column {
+  border-left: 1px solid #ffffff17;
+  padding-left: 25px;
+}
+.footer-column h2 {
+  font-size: 15px;
+  letter-spacing: 0.015em;
+  color: #9ca49d;
+  margin-bottom: 24px;
+  font-weight: 400;
+}
+.footer-column > a:not(.footer-pill):not(.footer-return) {
+  display: block;
+  font-size: 22px;
+  line-height: 1.35;
+  min-height: 40px;
+  margin-bottom: 6px;
+  letter-spacing: -0.025em;
+  color: #ebeee7;
+}
+.footer-column > a:hover {
+  color: #e9a716;
+}
+.footer-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.footer-pill {
+  display: inline-flex;
+  gap: 30px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 49px;
+  padding: 12px 22px;
+  border: 1px solid #f1f3e7;
+  border-radius: 30px;
+  font-size: 16px;
+  background: #f1f3e7;
+  color: #131a15;
+  min-width: 230px;
+}
+.footer-pill.outline-pill {
+  background: transparent;
+  border-color: #ffffff4d;
+  color: #f3f5ed;
+}
+.footer-pill:hover {
+  background: #e7a715;
+  border-color: #e7a715;
+  color: #0a1d24 !important;
+  transform: translateY(-2px);
+}
+.footer-actions .footer-return {
+  margin-top: 13px;
+  border-color: #ffffff3b;
+  color: #f3f5ed;
+  width: 46px;
+  height: 46px;
+}
+.footer-actions .footer-return:hover {
+  background: #f1f3e7;
+  color: #131a15;
+}
+.footer-signature-row {
+  display: grid;
+  grid-template-columns: 3.8fr 1fr;
+  gap: 60px;
+  align-items: end;
+  margin-top: 80px;
+}
+.footer-signature {
+  display: block;
+  overflow: hidden;
+  padding-right: 15px;
+}
+.footer-signature > img {
+  width: 100%;
+  height: auto;
+  max-width: 1200px;
+}
+.footer-legal {
+  border-left: 1px solid #ffffff17;
+  padding-left: 25px;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 25px;
+  font-size: 14px;
+  color: #b6bdb5;
+}
+.footer-legal > p {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.footer-signature.reveal {
+  transform: translateY(35px);
+  clip-path: inset(0 0 15% 0);
+  transition:
+    transform 1.2s var(--ease),
+    opacity 1.2s var(--ease),
+    clip-path 1.2s var(--ease);
+}
+.footer-signature.reveal.is-visible {
+  transform: none;
+  clip-path: inset(0);
+}
+@media (max-width: 1100px) {
+  .footer-directory {
+    gap: 25px;
+    grid-template-columns: 1fr 1.15fr 0.85fr 1.25fr;
+  }
+  .footer-column {
+    padding-left: 18px;
+  }
+  .footer-column > a:not(.footer-pill):not(.footer-return) {
+    font-size: 19px;
+  }
+  .footer-pill {
+    min-width: 190px;
+    font-size: 15px;
+    gap: 20px;
+    padding: 12px 18px;
+  }
+  .footer-signature-row {
+    gap: 35px;
+    grid-template-columns: 3fr 1fr;
+  }
+  .footer-legal {
+    padding-left: 18px;
+  }
+  .single-hero .hero-slide-copy h1 {
+    font-size: 80px;
+  }
+  .hero-brands .logo-group {
+    gap: 40px;
+    padding-right: 40px;
+  }
+  .hero-brands .brand-tile {
+    width: 130px;
+  }
+  .hero-brands .brand-tile img {
+    width: 125px;
+    height: 44px;
+  }
+}
+@media (max-width: 760px) {
+  .single-hero {
+    min-height: 700px;
+    --brand-height: 0px;
+  }
+  .single-hero .hero-slide-copy {
+    left: 6%;
+    right: 6%;
+    bottom: 34%;
+  }
+  .single-hero .hero-slide-copy h1 {
+    font-size: clamp(49px, 13vw, 63px);
+    line-height: 0.98;
+  }
+  .single-hero .hero-slide-copy .button {
+    margin-top: 28px;
+    font-size: 17px;
+  }
+  .single-hero .hero-bottom {
+    bottom: 140px;
+    left: 6%;
+    right: 6%;
+  }
+  .single-hero .hero-bottom .film-control {
+    height: 44px;
+    min-width: 44px;
+    width: 44px;
+  }
+  .hero-brands {
+    height: 100px;
+    bottom: 15px;
+  }
+  .hero-brands .marquee {
+    height: 100px;
+    margin-right: 70px;
+    padding-left: 6%;
+  }
+  .hero-brands .brand-tile {
+    height: 100px;
+    width: 110px;
+  }
+  .hero-brands .brand-tile img {
+    width: 105px;
+    height: 37px;
+    max-height: 37px;
+  }
+  .hero-brands .brand-tile[href*='Shell'] img {
+    height: 42px;
+    width: 42px;
+    max-height: 42px;
+  }
+  .hero-brands .logo-group {
+    gap: 35px;
+    padding-right: 35px;
+  }
+  .showcase-copy {
+    top: 75px;
+  }
+  .showcase-copy h2 {
+    font-size: 51px;
+  }
+  .oil-showcase .hero-oils {
+    top: 310px;
+    bottom: 12%;
+  }
+  .oil-showcase {
+    height: 700px;
+  }
+  .section-heading > p {
+    font-size: 18px;
+  }
+  .product-grid .product-card h3 {
+    font-size: 21px;
+  }
+  .product-grid .product-brand {
+    font-size: 14px;
+  }
+  .product-grid .product-meta {
+    font-size: 15px;
+  }
+  .product-brand {
+    font-size: 15px;
+  }
+  .editorial-drive h2 {
+    font-size: 78px;
+  }
+  .editorial-drive > img {
+    transform-origin: 61% 50%;
+  }
+  .advice-studio {
+    padding: 65px 6%;
+  }
+  .advice-studio-heading h2 {
+    font-size: 58px;
+  }
+  .advice-studio-form {
+    margin-top: 35px;
+  }
+  .advice-studio-form h3 {
+    font-size: 31px;
+  }
+  .advice-studio-form .muted {
+    font-size: 14px;
+  }
+  footer.footer-v5 {
+    padding: 55px 6% 30px;
+  }
+  .footer-directory {
+    grid-template-columns: 1fr 1fr;
+    gap: 35px 20px;
+  }
+  .footer-column {
+    padding-left: 17px;
+  }
+  .footer-column h2 {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .footer-column > a:not(.footer-pill):not(.footer-return) {
+    font-size: 18px;
+    min-height: 40px;
+    margin-bottom: 6px;
+  }
+  .footer-pill {
+    font-size: 14px;
+    min-width: 0;
+    width: 100%;
+    gap: 12px;
+    padding: 12px 15px;
+    line-height: 1.3;
+    min-height: 46px;
+  }
+  .footer-actions {
+    gap: 12px;
+  }
+  .footer-actions .footer-return {
+    margin-top: 7px;
+  }
+  .footer-signature-row {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    margin-top: 55px;
+  }
+  .footer-signature {
+    padding: 0;
+  }
+  .footer-legal {
+    padding: 25px 0 0;
+    border-left: 0;
+    border-top: 1px solid #ffffff20;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 13px;
+  }
+  .footer-legal > p {
+    font-size: 13px;
+    max-width: 200px;
+    line-height: 1.5;
+  }
+  .footer-signature > img {
+    width: 100%;
+  }
+  .rail-foot {
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editorial-drive > img {
+    transform: none;
+  }
+  .footer-signature.reveal {
+    transform: none;
+    clip-path: none;
+  }
+  .hero-brands .logo-track {
+    transform: none;
+  }
+  .hero-brands .logo-group[aria-hidden='true'] {
+    display: none;
+  }
+}
