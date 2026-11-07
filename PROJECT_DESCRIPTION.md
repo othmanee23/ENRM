@@ -106,7 +106,7 @@ The current admin form manages top-level category records; although the schema h
 - **Cloudflare config:** `wrangler.jsonc` serves `dist/` as Worker static assets.
 - **Hosted backend:** Supabase project, with production URL and anon key configured as Cloudflare build variables.
 - **Temporary public URL:** `https://enrm.othmane-dev.workers.dev`
-- **Custom domain:** `enrm.ma` has been added as a Cloudflare zone. The assigned Cloudflare nameservers are `charles.ns.cloudflare.com` and `desi.ns.cloudflare.com`. The zone was still shown as pending at last check, so the custom domain is not yet attached to the Worker. After Cloudflare detects the registrar nameserver change and activates the zone, attach `enrm.ma` to the `enrm` Worker and update Supabase’s Site URL to the final domain.
+- **Custom domain:** `enrm.ma` is an active Cloudflare zone and is attached to the `enrm` Worker. The assigned Cloudflare nameservers are `charles.ns.cloudflare.com` and `desi.ns.cloudflare.com`. Supabase’s Site URL is set to `https://enrm.ma`. At the last browser check, the custom domain TLS handshake was still failing, so allow Cloudflare certificate provisioning to finish before considering the hostname fully verified.
 
 Cloudflare builds the connected GitHub project and runs the configured production build/deploy commands. Do not commit local `.env` files or credentials. The `VITE_` values are included in the browser bundle by design; only public Supabase URL and anon key belong there.
 
