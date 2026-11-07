@@ -55,6 +55,11 @@ export function createAdminViews({
       pending = state.orders.filter((o) =>
         ['À confirmer', 'À préparer', 'En préparation'].includes(o.status),
       );
+    if (remoteOrdersActive) {
+      const awaitingContact = state.orders.filter((o) => o.status === 'À confirmer').length;
+      const outOfStock = lowStock().filter((p) => p.stock === 0).length;
+      return `<section class="stats" aria-label="Indicateurs">${stat('Demandes reçues', os.length, '', [`${pending.length} à suivre`, 'sur la période'], 'bag')}${stat('À confirmer', awaitingContact, '', ['Contacter le client', 'puis mettre à jour le statut'], 'users', true)}${stat('Sous-total indicatif', money(rev), 'MAD', ['Hors demandes annulées', 'prix à confirmer'], 'wallet')}${stat('Références en rupture', outOfStock, '', [`${lowStock().length} sous le seuil`, 'stock actuel'], 'alert')}</section>`;
+    }
     return `<section class="stats" aria-label="Indicateurs">${stat('Chiffre d’affaires', money(rev), 'MAD', [`${active.length} commandes`, 'sur la période'], 'wallet')}${stat('Commandes', os.length, '', [`${pending.length} à traiter`, 'dans la boutique'], 'bag', true)}${stat('Panier moyen', money(active.length ? rev / active.length : 0), 'MAD', ['Hors annulations', 'sur la période'], 'trend')}${stat('Clients', new Set(os.map((o) => o.customerId)).size, '', [`${state.customers.length} au total`, 'dans votre fichier'], 'users')}</section>`;
   }
   function chart() {
@@ -75,7 +80,7 @@ export function createAdminViews({
       h = 150;
     const pts = vals.map((v, i) => [45 + (i * (w - 60)) / 6, h - (v / max) * (h - 15)]);
     const line = pts.map((p, i) => (i ? 'L' : 'M') + p.join(',')).join(' ');
-    return `<div class="chart-wrap" role="img" aria-label="Ventes sur ${days} jours : ${currency(revenue(selectedOrders()))}"><svg viewBox="0 0 660 195" preserveAspectRatio="none"><defs><linearGradient id="chartfill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e8ad33" stop-opacity=".16"/><stop offset="1" stop-color="#e8ad33" stop-opacity="0"/></linearGradient></defs>${[
+    return `<div class="chart-wrap" role="img" aria-label="${remoteOrdersActive ? 'Sous-total indicatif des demandes' : 'Ventes'} sur ${days} jours : ${currency(revenue(selectedOrders()))}"><svg viewBox="0 0 660 195" preserveAspectRatio="none"><defs><linearGradient id="chartfill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e8ad33" stop-opacity=".16"/><stop offset="1" stop-color="#e8ad33" stop-opacity="0"/></linearGradient></defs>${[
       0, 1, 2, 3,
     ]
       .map((i) => {
@@ -87,25 +92,32 @@ export function createAdminViews({
       )}<path d="${line}L635,157L45,157Z" fill="url(#chartfill)"/><path class="chart-line" d="${line}" fill="none" stroke="#dba234" stroke-width="2.4" stroke-linejoin="round"/>${pts.map((p, i) => `<circle class="chart-point" cx="${p[0]}" cy="${p[1]}" r="4" fill="#dba234"><title>${currency(vals[i])}</title></circle><text x="${p[0]}" y="184" text-anchor="middle">${fmt(new Date(today.getTime() - (((6 - i) * days) / 7) * 864e5))}</text>`).join('')}</svg></div>`;
   }
   function salesPanel() {
-    return `<section class="panel"><div class="panel-head"><div><h2>Évolution des ventes</h2><p class="panel-sub">Un regard sur votre activité</p></div><div class="chart-legend"><span><i class="legend-dot"></i>Ventes · MAD</span></div></div><div class="revenue-summary"><strong>${currency(revenue(selectedOrders()))}</strong><span>${period} derniers jours</span></div>${chart()}</section>`;
+    return `<section class="panel"><div class="panel-head"><div><h2>${remoteOrdersActive ? 'Demandes reçues' : 'Évolution des ventes'}</h2><p class="panel-sub">${remoteOrdersActive ? 'Sous-total indicatif des demandes, hors annulations.' : 'Un regard sur votre activité'}</p></div><div class="chart-legend"><span><i class="legend-dot"></i>${remoteOrdersActive ? 'Sous-total indicatif · MAD' : 'Ventes · MAD'}</span></div></div><div class="revenue-summary"><strong>${currency(revenue(selectedOrders()))}</strong><span>${period} derniers jours</span></div>${chart()}</section>`;
   }
   function bestSellers() {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, { quantity: number; subtotal: number }> = {};
     selectedOrders()
       .filter((o) => o.status !== 'Annulée')
-      .forEach((o) => o.items.forEach((i) => (counts[i.id] = (counts[i.id] || 0) + i.qty)));
+      .forEach((o) =>
+        o.items.forEach((i) => {
+          const item = (counts[i.id] ||= { quantity: 0, subtotal: 0 });
+          item.quantity += i.qty;
+          item.subtotal += i.qty * i.price;
+        }),
+      );
     return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1].quantity - a[1].quantity)
       .slice(0, 4);
   }
   function bestPanel() {
-    return `<section class="panel"><div class="panel-head"><div><h2>Les meilleures références</h2><p class="panel-sub">Vos produits les plus commandés</p></div><button class="text-action" data-nav="products" aria-label="Voir tous les produits">${icon('arrow')}</button></div><div class="performance-list">${
+    return `<section class="panel"><div class="panel-head"><div><h2>${remoteOrdersActive ? 'Articles les plus demandés' : 'Les meilleures références'}</h2><p class="panel-sub">${remoteOrdersActive ? 'Quantités demandées, hors demandes annulées.' : 'Vos produits les plus commandés'}</p></div><button class="text-action" data-nav="products" aria-label="Voir tous les produits">${icon('arrow')}</button></div><div class="performance-list">${
       bestSellers()
-        .map(([id, n]) => {
+        .map(([id, stats]) => {
           const p = product(id);
-          return `<button class="best-product" data-edit-product="${id}" style="width:100%;text-align:left">${thumb(p)}<span class="best-copy"><strong>${esc(p.marque.replace('_', ' '))} ${esc(p.sous_reference)}</strong><small>${esc(p.viscosite)} · ${esc(p.litrage)}</small></span><span class="best-count"><strong>${n} vendus</strong><small>${currency(n * p.price)}</small></span></button>`;
+          return `<button class="best-product" data-edit-product="${id}" style="width:100%;text-align:left">${thumb(p)}<span class="best-copy"><strong>${esc(p.marque.replace('_', ' '))} ${esc(p.sous_reference)}</strong><small>${esc(p.viscosite)} · ${esc(p.litrage)}</small></span><span class="best-count"><strong>${stats.quantity} ${remoteOrdersActive ? 'demandés' : 'vendus'}</strong><small>${currency(stats.subtotal)}</small></span></button>`;
         })
-        .join('') || '<div class="empty-state">Aucune vente sur cette période.</div>'
+        .join('') ||
+      `<div class="empty-state">${remoteOrdersActive ? 'Aucune demande sur cette période.' : 'Aucune vente sur cette période.'}</div>`
     }</div></section>`;
   }
   function orderRows(os: Order[]) {
@@ -133,7 +145,7 @@ export function createAdminViews({
           `<button class="btn primary" data-action="new-product">${icon('plus')} Ajouter un produit</button>`,
       ) +
       metrics() +
-      `<div class="dashboard-grid">${salesPanel()}${bestPanel()}</div><section class="panel orders-panel"><div class="panel-head"><div><h2>Dernières commandes</h2><p class="panel-sub">Les prochains départs se préparent ici.</p></div><button class="text-action" data-nav="orders">Tout voir ${icon('arrow')}</button></div>${orderTable(state.orders.slice(0, 5))}<div class="table-foot"><span>${state.orders.length} commandes dans votre boutique</span><button class="text-action" data-action="new-order">Créer une commande ${icon('plus')}</button></div></section><div class="bottom-grid"><section class="panel"><div class="panel-head"><h2>À surveiller en stock <span class="badge amber">${lowStock().length}</span></h2><button class="text-action" data-nav="inventory">Gérer le stock ${icon('arrow')}</button></div><div class="stock-list">${
+      `<div class="dashboard-grid">${salesPanel()}${bestPanel()}</div><section class="panel orders-panel"><div class="panel-head"><div><h2>${remoteOrdersActive ? 'Demandes récentes' : 'Dernières commandes'}</h2><p class="panel-sub">${remoteOrdersActive ? 'Contactez le client puis mettez à jour le statut.' : 'Les prochains départs se préparent ici.'}</p></div><button class="text-action" data-nav="orders">${remoteOrdersActive ? 'Toutes les demandes' : 'Tout voir'} ${icon('arrow')}</button></div>${orderTable(state.orders.slice(0, 5))}<div class="table-foot"><span>${state.orders.length} ${remoteOrdersActive ? 'demandes enregistrées' : 'commandes dans votre boutique'}</span>${remoteOrdersActive ? '' : `<button class="text-action" data-action="new-order">Créer une commande ${icon('plus')}</button>`}</div></section><div class="bottom-grid"><section class="panel"><div class="panel-head"><h2>À surveiller en stock <span class="badge amber">${lowStock().length}</span></h2><button class="text-action" data-nav="inventory">Gérer le stock ${icon('arrow')}</button></div><div class="stock-list">${
         lowStock()
           .slice(0, 3)
           .map(
@@ -145,10 +157,15 @@ export function createAdminViews({
     );
   }
   function activityPanel() {
-    const items = state.activity.length
-      ? state.activity.slice(0, 3)
-      : state.orders.slice(0, 3).map((o) => ({ text: `Commande #${o.id} reçue`, date: o.date }));
-    return `<section class="panel"><div class="panel-head"><h2>Le fil de votre activité</h2><span class="badge">Démo</span></div><div class="activity-list">${items.map((a) => `<div class="activity-item"><p>${esc(a.text)}</p><small>${fmt(a.date)} · ${new Date(a.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</small></div>`).join('')}</div></section>`;
+    const items = remoteOrdersActive
+      ? state.orders.slice(0, 3).map((o) => ({
+          text: `#${o.id} · ${o.history[o.history.length - 1]?.label || o.status}`,
+          date: o.history[o.history.length - 1]?.date || o.date,
+        }))
+      : state.activity.length
+        ? state.activity.slice(0, 3)
+        : state.orders.slice(0, 3).map((o) => ({ text: `Commande #${o.id} reçue`, date: o.date }));
+    return `<section class="panel"><div class="panel-head"><h2>${remoteOrdersActive ? 'Activité des demandes' : 'Le fil de votre activité'}</h2><span class="badge">${remoteOrdersActive ? 'Connecté' : 'Démo'}</span></div><div class="activity-list">${items.map((a) => `<div class="activity-item"><p>${esc(a.text)}</p><small>${fmt(a.date)} · ${new Date(a.date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</small></div>`).join('')}</div></section>`;
   }
   function tablePage(count: number) {
     const pages = Math.max(1, Math.ceil(count / 12));

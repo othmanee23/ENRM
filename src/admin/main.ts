@@ -122,9 +122,7 @@ async function refreshRemoteProducts() {
     status: item.is_published ? 'Actif' : 'Brouillon',
   })) as AdminProduct[];
   remoteProductIds = new Set(fromDatabase.map((item) => item.id));
-  const remoteIds = new Set(remoteProductIds);
-  const localOnly = state.products.filter((item) => !remoteIds.has(item.id));
-  state.products = [...fromDatabase, ...localOnly];
+  state.products = fromDatabase;
   state.orders = state.orders.filter((order) =>
     order.items.every((item) => state.products.some((product) => product.id === item.id)),
   );
@@ -723,7 +721,7 @@ addEventListener('hashchange', async () => {
   filter = 'Tous';
   page = 1;
   const route = location.hash.slice(1).split('?')[0];
-  if (route !== 'orders' && remoteOrdersActive) {
+  if (!['overview', 'orders'].includes(route) && remoteOrdersActive) {
     remoteOrdersActive = false;
     state.orders = demoOrders;
     state.customers = demoCustomers;
@@ -732,12 +730,13 @@ addEventListener('hashchange', async () => {
   if (route === 'products' || route === 'inventory') {
     productCategories = await loadCategories();
     await refreshRemoteProducts();
-  } else if (route === 'orders') {
+  } else if (route === 'orders' || route === 'overview') {
     try {
       if (!(await refreshRemoteOrders())) {
-        toast(
-          'Connectez-vous comme administrateur dans Catégories pour consulter les commandes réelles.',
-        );
+        if (route === 'orders')
+          toast(
+            'Connectez-vous comme administrateur dans Catégories pour consulter les commandes réelles.',
+          );
       }
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Commandes inaccessibles.');
@@ -763,7 +762,7 @@ Promise.all([loadCatalogue(), loadCategories()])
     demoCustomers = structuredClone(state.customers);
     const route = location.hash.slice(1).split('?')[0];
     if (route === 'products' || route === 'inventory') await refreshRemoteProducts();
-    if (route === 'orders') await refreshRemoteOrders();
+    if (route === 'orders' || route === 'overview') await refreshRemoteOrders();
     persist();
     render();
   })
