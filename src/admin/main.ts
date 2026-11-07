@@ -158,7 +158,7 @@ async function refreshRemoteOrders() {
     customerId: `remote-${order.id}`,
     date: order.created_at,
     status: order.status,
-    payment: order.payment_status,
+    payment: '',
     tracking: order.tracking_number,
     note: order.internal_note,
     items: order.order_items.map((item) => ({
@@ -363,7 +363,7 @@ function orderEditor(id: string) {
     c = requireById(state.customers, o.customerId);
   openDialog(
     'Commande #' + o.id,
-    `<div class="detail-summary"><div>${badge(o.status)}<p class="form-note">Créée le ${fmt(o.date)}</p></div><strong>${currency(total(o))}</strong></div><div class="detail-grid"><div><small>CLIENT</small><p>${esc(c.name)}<br>${esc(c.phone || c.email)}</p></div><div><small>DESTINATION</small><p>${esc(c.city)}<br>${c.deliveryAddress ? esc(c.deliveryAddress) : 'Maroc · Livraison démo'}</p></div></div><div class="order-lines">${o.items.map((i) => `<div>${thumb(product(i.id))}<div><strong>${esc(i.name)}</strong><small>${i.qty} × ${currency(i.price)} · ${esc(i.volume)}</small></div><span>${currency(i.qty * i.price)}</span></div>`).join('')}</div>${o.remote ? '<p class="form-note">Demande client · Prix et livraison à confirmer</p>' : ''}<form id="order-update"><div class="form-grid"><label class="field">Statut de la commande<select name="status" ${o.status === 'Annulée' ? 'disabled' : ''}>${statuses.map((s) => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field">Paiement<select name="payment">${['À confirmer', 'Payée', 'À encaisser'].map((s) => `<option ${s === o.payment ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field full">Numéro de suivi<input name="tracking" value="${esc(o.tracking)}" maxlength="70" placeholder="Ex. suivi transporteur"></label><label class="field full">Note interne<textarea name="note" maxlength="1000">${esc(o.note)}</textarea></label></div>${formActions('Mettre à jour')}</form><h3 class="timeline-title">Historique de la commande</h3><div class="activity-list">${[
+    `<div class="detail-summary"><div>${badge(o.status)}<p class="form-note">Créée le ${fmt(o.date)}</p></div><strong>${currency(total(o))}</strong></div><div class="detail-grid"><div><small>CLIENT</small><p>${esc(c.name)}<br>${c.phone ? `<a href="tel:${esc(c.phone.replace(/[^+\d]/g, ''))}">${esc(c.phone)}</a>` : esc(c.email)}</p></div><div><small>DESTINATION</small><p>${esc(c.city)}<br>${c.deliveryAddress ? esc(c.deliveryAddress) : 'Maroc · Livraison démo'}</p></div></div><div class="order-lines">${o.items.map((i) => `<div>${thumb(product(i.id))}<div><strong>${esc(i.name)}</strong><small>${i.qty} × ${currency(i.price)} · ${esc(i.volume)}</small></div><span>${currency(i.qty * i.price)}</span></div>`).join('')}</div>${o.remote ? '<p class="form-note">Demande client · Contactez le client pour confirmer les détails.</p>' : ''}<form id="order-update"><div class="form-grid"><label class="field">Statut de la commande<select name="status" ${o.status === 'Annulée' ? 'disabled' : ''}>${statuses.map((s) => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field full">Numéro de suivi<input name="tracking" value="${esc(o.tracking)}" maxlength="70" placeholder="Ex. suivi transporteur"></label><label class="field full">Note interne<textarea name="note" maxlength="1000">${esc(o.note)}</textarea></label></div>${formActions('Mettre à jour')}</form><h3 class="timeline-title">Historique de la commande</h3><div class="activity-list">${[
       ...o.history,
     ]
       .reverse()
@@ -377,14 +377,12 @@ function orderEditor(id: string) {
     e.preventDefault();
     const f = formData(e.target);
     const nextStatus = o.status === 'Annulée' ? 'Annulée' : fieldValue(f, 'status');
-    const nextPayment = fieldValue(f, 'payment');
     const nextTracking = fieldValue(f, 'tracking').trim();
     const nextNote = fieldValue(f, 'note').trim();
     if (o.remote) {
       const { error } = await supabase!.rpc('update_enrm_order', {
         p_order_id: o.remoteId,
         p_status: nextStatus,
-        p_payment_status: nextPayment,
         p_tracking_number: nextTracking,
         p_internal_note: nextNote,
       });
@@ -397,7 +395,6 @@ function orderEditor(id: string) {
       o.history.push({ label: nextStatus, date: new Date().toISOString() });
     Object.assign(o, {
       status: nextStatus,
-      payment: nextPayment,
       tracking: nextTracking,
       note: nextNote,
     });
@@ -420,7 +417,7 @@ function newOrder() {
       )
       .join(
         '',
-      )}</select></label>${field('Quantité', 'quantity', 1, 'number', 'min="1" max="999"')}<label class="field">Paiement<select name="payment"><option>À encaisser</option><option>Payée</option></select></label></div><p class="form-note">Commande fictive. Le stock est déduit à la création.</p>${formActions('Créer la commande')}</form>`,
+      )}</select></label>${field('Quantité', 'quantity', 1, 'number', 'min="1" max="999"')}</div><p class="form-note">Commande fictive. Le stock est déduit à la création.</p>${formActions('Créer la commande')}</form>`,
   );
   $('#new-order').onsubmit = (e) => {
     e.preventDefault();
@@ -438,7 +435,7 @@ function newOrder() {
       customerId: fieldValue(f, 'customer'),
       date: new Date().toISOString(),
       status: 'À préparer',
-      payment: fieldValue(f, 'payment'),
+      payment: '',
       tracking: '',
       note: '',
       items: [
@@ -533,13 +530,12 @@ function exportCsv(kind: string) {
   let rows;
   if (kind === 'orders')
     rows = [
-      ['Commande', 'Client', 'Date', 'Statut', 'Paiement', 'Montant MAD'],
+      ['Commande', 'Client', 'Date', 'Statut', 'Sous-total indicatif MAD'],
       ...state.orders.map((o) => [
         o.id,
         requireById(state.customers, o.customerId).name,
         o.date,
         o.status,
-        o.payment,
         total(o),
       ]),
     ];

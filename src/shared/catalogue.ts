@@ -94,7 +94,6 @@ export interface DatabaseOrder {
   city: string;
   delivery_address: string;
   status: string;
-  payment_status: string;
   tracking_number: string;
   internal_note: string;
   created_at: string;
@@ -125,7 +124,7 @@ export async function loadAdminOrders(): Promise<DatabaseOrder[] | null> {
     const { data, error } = await supabase
       .from('orders')
       .select(
-        'id,order_number,customer_name,phone,city,delivery_address,status,payment_status,tracking_number,internal_note,created_at,order_items(product_id,product_name,volume,quantity,unit_price)',
+        'id,order_number,customer_name,phone,city,delivery_address,status,tracking_number,internal_note,created_at,order_items(product_id,product_name,volume,quantity,unit_price)',
       )
       .order('created_at', { ascending: false })
       .range(offset, offset + 499);

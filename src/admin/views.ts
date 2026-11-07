@@ -112,12 +112,12 @@ export function createAdminViews({
     return os
       .map((o) => {
         const c = requireById(state.customers, o.customerId);
-        return `<tr><td><button class="order-link" data-order="${o.id}">#${o.id}</button></td><td><div class="customer-cell"><span class="avatar">${esc(initials(c.name))}</span><span><strong>${esc(c.name)}</strong><small>${esc(c.city)}</small></span></div></td><td>${fmt(o.date)}<small>${o.items.reduce((s, i) => s + i.qty, 0)} articles</small></td><td>${badge(o.payment)}</td><td>${badge(o.status)}</td><td><strong>${currency(total(o))}</strong></td><td><button class="icon-button" data-order="${o.id}" aria-label="Ouvrir ${o.id}">${icon('arrow')}</button></td></tr>`;
+        return `<tr><td><button class="order-link" data-order="${o.id}">#${o.id}</button></td><td><div class="customer-cell"><span class="avatar">${esc(initials(c.name))}</span><span><strong>${esc(c.name)}</strong><small>${esc(c.city)}</small></span></div></td><td>${fmt(o.date)}<small>${o.items.reduce((s, i) => s + i.qty, 0)} articles</small></td><td>${badge(o.status)}</td><td><strong>${currency(total(o))}</strong></td><td><button class="icon-button" data-order="${o.id}" aria-label="Ouvrir ${o.id}">${icon('arrow')}</button></td></tr>`;
       })
       .join('');
   }
   function orderTable(os: Order[]) {
-    return `<div class="table-wrap"><table><thead><tr><th>Commande</th><th>Client</th><th>Date</th><th>Paiement</th><th>Statut</th><th>Montant</th><th></th></tr></thead><tbody>${orderRows(os)}</tbody></table></div>`;
+    return `<div class="table-wrap"><table><thead><tr><th>Commande</th><th>Client</th><th>Date</th><th>Statut</th><th>Sous-total</th><th></th></tr></thead><tbody>${orderRows(os)}</tbody></table></div>`;
   }
   function lowStock() {
     return state.products
