@@ -5,6 +5,7 @@ import { createAdminViews } from './views';
 import { createDemoState } from './seed';
 import { thumb, badge, field, formActions, empty } from './components';
 import { fmt, statuses } from './format';
+import { mountCategoryManager } from './categories';
 
 import { $, formData, formValues, fieldValue } from '../shared/dom';
 import { esc, currency } from '../shared/format';
@@ -21,6 +22,7 @@ const routes = [
   ['overview', 'Vue d’ensemble', 'grid'],
   ['orders', 'Commandes', 'bag'],
   ['products', 'Produits', 'box'],
+  ['categories', 'Catégories', 'tag'],
   ['inventory', 'Stock & inventaire', 'layers'],
   ['customers', 'Clients', 'users'],
   ['analytics', 'Statistiques', 'chart'],
@@ -87,7 +89,8 @@ function render() {
     period,
     today,
   });
-  $('#workspace').innerHTML = renderers[view]();
+  if (view === 'categories') mountCategoryManager($('#workspace'));
+  else $('#workspace').innerHTML = renderers[view]();
   $('#workspace').classList.remove('page-enter');
   requestAnimationFrame(() => $('#workspace').classList.add('page-enter'));
   document.body.classList.remove('menu-open');

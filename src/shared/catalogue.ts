@@ -1,4 +1,6 @@
-import type { Product } from './types';
+import type { Category, Product } from './types';
+import { supabase } from './supabase';
+export const DEFAULT_CATEGORY_ID = '00000000-0000-4000-8000-000000000001';
 export function isProduct(value: unknown): value is Product {
   if (!value || typeof value !== 'object') return false;
   const p = value as Record<string, unknown>;
@@ -19,11 +21,56 @@ export function isProduct(value: unknown): value is Product {
   );
 }
 export async function loadCatalogue(): Promise<Product[]> {
+  if (supabase) {
+    const products: Product[] = [];
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_published', true)
+        .eq('show_on_website', true)
+        .order('id')
+        .range(offset, offset + 999);
+      if (error) throw new Error(`Catalogue inaccessible (${error.message})`);
+      if (!Array.isArray(data) || !data.every(isProduct)) throw new Error('Catalogue invalide');
+      products.push(...data);
+      if (data.length < 1000) break;
+    }
+    return products;
+  }
   const response = await fetch('/catalogue.json');
   if (!response.ok) throw new Error(`Catalogue inaccessible (${response.status})`);
   const values: unknown = await response.json();
   if (!Array.isArray(values) || !values.every(isProduct)) throw new Error('Catalogue invalide');
   return values;
+}
+export async function loadCategories(): Promise<Category[]> {
+  if (supabase) {
+    const categories: Category[] = [];
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id,parent_id,name,slug,sort_order,is_active')
+        .eq('is_active', true)
+        .order('sort_order')
+        .order('name')
+        .range(offset, offset + 999);
+      if (error) throw new Error(`Catégories inaccessibles (${error.message})`);
+      categories.push(...(data || []));
+      if (!data || data.length < 1000) break;
+    }
+    return categories;
+  }
+  return [
+    {
+      id: DEFAULT_CATEGORY_ID,
+      parent_id: null,
+      name: 'Huiles moteur',
+      slug: 'huiles-moteur',
+      sort_order: 10,
+      is_active: true,
+    },
+  ];
 }
 export function productGroup(p: Product): string {
   return [p.marque, p.gamme, p.sous_reference, p.viscosite].join('|');

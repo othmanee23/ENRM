@@ -6,3 +6,5 @@ artifacts/
 !.env.example
 .DS_Store
 coverage/
+supabase/.branches/
+supabase/.temp/

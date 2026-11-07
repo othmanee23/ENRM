@@ -1,6 +1,7 @@
 /** Exact imported catalogue variant. Formulation and volume always remain distinct. */
 export interface Product {
   id: string;
+  category_id?: string;
   marque: string;
   gamme: string;
   sous_reference: string;
@@ -22,6 +23,14 @@ export interface Product {
   url_verso: string;
   photo_revendeur_url: string;
   note: string;
+}
+export interface Category {
+  id: string;
+  parent_id: string | null;
+  name: string;
+  slug: string;
+  sort_order: number;
+  is_active: boolean;
 }
 export interface CartItem {
   id: string;

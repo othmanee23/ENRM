@@ -996,6 +996,19 @@ dialog::backdrop {
   grid-template-columns: 1fr 1fr;
   gap: 17px;
 }
+.category-auth {
+  max-width: 620px;
+}
+.category-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.category-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: #c88e25;
+}
 .field {
   display: flex;
   flex-direction: column;

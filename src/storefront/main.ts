@@ -5,9 +5,15 @@ import { productUrl, safeReturn } from './routing';
 
 import { $, formData, formValues, fieldValue } from '../shared/dom';
 import { esc, norm, brandName, currency as money } from '../shared/format';
-import { loadCatalogue, productGroup as groupKey, requireProduct } from '../shared/catalogue';
+import {
+  DEFAULT_CATEGORY_ID,
+  loadCatalogue,
+  loadCategories,
+  productGroup as groupKey,
+  requireProduct,
+} from '../shared/catalogue';
 import { readJson, writeJson, sanitizeCart, CART_KEY } from '../shared/storage';
-import type { Product, CartItem } from '../shared/types';
+import type { Category, Product, CartItem } from '../shared/types';
 const params = new URLSearchParams(location.search),
   page = document.body.dataset.page;
 
@@ -30,6 +36,7 @@ const brands = [
   'Valvoline',
 ];
 let products: Product[] = [],
+  categories: Category[] = [],
   filtered: Product[] = [],
   limit = 12,
   currentProduct: Product | undefined,
@@ -76,7 +83,7 @@ function populate(id: string, values: string[]) {
 }
 function readState() {
   return Object.fromEntries(
-    ['search', 'brand', 'range', 'viscosity', 'volume', 'sort'].map((k) => [
+    ['search', 'category', 'brand', 'range', 'viscosity', 'volume', 'sort'].map((k) => [
       k,
       document.querySelector<HTMLInputElement | HTMLSelectElement>('#' + k)!.value,
     ]),
@@ -102,6 +109,9 @@ function updateCatalogue(reset = true) {
             p.id,
           ].join(' '),
         ).includes(q)) &&
+      (!state.category ||
+        (p.category_id || DEFAULT_CATEGORY_ID) ===
+          categories.find((category) => category.slug === state.category)?.id) &&
       (!state.brand || p.marque === state.brand) &&
       (!state.range || p.gamme === state.range) &&
       (!state.viscosity || p.viscosite === state.viscosity) &&
@@ -126,6 +136,7 @@ function updateCatalogue(reset = true) {
   history.replaceState(null, '', url);
   $('#active-filters').textContent = [
     state.brand && brandName(state.brand),
+    categories.find((category) => category.slug === state.category)?.name,
     state.range,
     state.viscosity,
     state.volume,
@@ -144,7 +155,7 @@ function renderProducts() {
   $('#load-more').hidden = limit >= filtered.length;
 }
 function resetFilters() {
-  ['search', 'brand', 'range', 'viscosity', 'volume'].forEach(
+  ['search', 'category', 'brand', 'range', 'viscosity', 'volume'].forEach(
     (k) => (document.querySelector<HTMLInputElement | HTMLSelectElement>('#' + k)!.value = ''),
   );
   $('#sort').value = 'selection';
@@ -315,13 +326,22 @@ $('#menu-button').onclick = () => {
 };
 async function init() {
   try {
-    products = await loadCatalogue();
+    [products, categories] = await Promise.all([loadCatalogue(), loadCategories()]);
     cart = cart.filter(
       (c) =>
         products.some((p) => p.id === c.id) && Number.isInteger(c.qty) && c.qty > 0 && c.qty <= 99,
     );
     saveCart();
     if (page === 'catalogue') {
+      const categorySelect = document.querySelector<HTMLSelectElement>('#category');
+      if (categorySelect)
+        categorySelect.innerHTML =
+          categorySelect.options[0].outerHTML +
+          categories
+            .map(
+              (category) => `<option value="${esc(category.slug)}">${esc(category.name)}</option>`,
+            )
+            .join('');
       populate('brand', [...products.map((p) => p.marque), 'Meyle', 'Valvoline']);
       populate(
         'range',
@@ -335,7 +355,7 @@ async function init() {
         'volume',
         products.map((p) => p.litrage),
       );
-      ['search', 'brand', 'range', 'viscosity', 'volume', 'sort'].forEach((k) => {
+      ['search', 'category', 'brand', 'range', 'viscosity', 'volume', 'sort'].forEach((k) => {
         if (params.has(k))
           document.querySelector<HTMLInputElement | HTMLSelectElement>('#' + k)!.value =
             params.get(k) || '';

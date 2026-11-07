@@ -1,0 +1,47 @@
+project_id = "enrm-local"
+
+[api]
+enabled = true
+port = 55321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 55322
+shadow_port = 55320
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 55323
+
+[local_smtp]
+enabled = true
+port = 55324
+smtp_port = 55325
+pop3_port = 55326
+
+[analytics]
+enabled = true
+port = 55327
+vector_port = 55328
+
+[edge_runtime]
+enabled = true
+inspector_port = 55329
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:4173"
+additional_redirect_urls = ["http://localhost:4173", "http://127.0.0.1:4173"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enabled = true
+enable_confirmations = false

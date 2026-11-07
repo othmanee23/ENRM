@@ -4,7 +4,7 @@ French ecommerce demonstration for ENRM, built with **TypeScript, Vite and nativ
 
 ## Run locally
 
-Requires Node.js 22.12 or newer and npm.
+Requires Node.js 22.22.2 or newer and npm.
 
 ```sh
 npm ci
@@ -59,7 +59,24 @@ The cart uses `enrm-demo-cart`; admin data uses `enrm-admin-demo-v1`. Existing b
 
 The dashboard uses a separate local dataset. Its product edits do not change the public catalogue. Orders, customers, revenue, stock and promotions are fictitious. No payment, shipment, message or real order is sent. Product photos uploaded in the dashboard are stored locally and limited to 1 MB. CSV exports escape spreadsheet formulas; JSON backups contain the local demo data.
 
-There is no backend or admin authentication. A commercial version requires server-side authentication, authorization, durable storage and integrations. Use fictional personal data in this demonstration.
+Most of the admin workspace still uses a fictitious browser-local dataset. Orders, customers, stock, promotions, analytics, and settings are not connected to real operations. Do not use those demo screens to manage real customer data.
+
+## Supabase catalogue foundation
+
+The repository includes an independent local Supabase setup for the public catalogue. Categories are records with stable IDs, slugs, ordering, active state, and an optional parent category. Each product points to a category ID, so the storefront filter options can be loaded from data rather than hard-coded. The initial seed assigns the existing 210 oil variants to “Huiles moteur.”
+
+Start the local backend with Docker running:
+
+```sh
+npm run backend:start
+cp .env.example .env.local
+```
+
+Copy the local API URL and anon key from `npx supabase status` into `.env.local`, then run `npm run dev`. The storefront reads published products and active categories from Supabase when those variables are set. With no Supabase variables, it uses the unchanged static catalogue for preview. Never put a service-role key in browser environment variables.
+
+`npm run backend:reset` rebuilds the **local** database from migrations and seed data. `npm run backend:lint` checks the local database schema. `npm run backend:seed` regenerates `supabase/seed.sql` from `public/catalogue.json`.
+
+The admin has a Supabase-authenticated category manager at `/admin.html#categories`. It lets an authorized admin add, rename, reorder, show, or hide categories. The database denies public writes and restricts category/product writes to an authenticated ENRM admin. New users default to the customer role. Create the account in Supabase Auth, then promote the approved account in the database dashboard with an owner-level SQL query such as `update public.profiles set role = 'admin' where lower(email) = lower('admin@example.com');`. Never assign admin roles from client-side code. Other admin screens remain demo-only until their backend workflows are implemented.
 
 ## Accessibility and motion
 
@@ -67,7 +84,7 @@ Native forms and dialogs provide labels, validation and keyboard behavior. Reduc
 
 ## Deployment
 
-The project is linked to Vercel. `vercel.json` declares Vite, `npm run build` and the `dist` output directory. The production build must pass strict type checking and resource validation before Vercel publishes it.
+`vercel.json` declares the Vite build and `dist` output directory. Configure `VITE_SUPABASE_URL` and the anon key in the hosting project before publishing the database-backed catalogue. The repo is ready to link to Vercel, but the hosting project and runtime variables still need configuration.
 
 ```sh
 npx vercel deploy --prod
