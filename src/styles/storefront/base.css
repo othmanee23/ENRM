@@ -7,14 +7,6 @@
   --line: #d9ddd6;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.form-trap {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
 * {
   box-sizing: border-box;
 }
