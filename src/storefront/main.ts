@@ -13,6 +13,7 @@ import {
   requireProduct,
 } from '../shared/catalogue';
 import { readJson, writeJson, sanitizeCart, CART_KEY } from '../shared/storage';
+import { supabase } from '../shared/supabase';
 import type { Category, Product, CartItem } from '../shared/types';
 const params = new URLSearchParams(location.search),
   page = document.body.dataset.page;
@@ -213,7 +214,7 @@ function renderCart() {
           return `<article class="cart-item"><a href="${esc(productUrl(p.id))}" class="cart-photo">${photo(p)}</a><div><h3><a href="${esc(productUrl(p.id))}">${esc(brandName(p.marque) + ' ' + p.sous_reference)}</a></h3><p>${esc(p.viscosite)} · ${esc(p.litrage)}</p><strong>${money(p.price * c.qty)}</strong><div class="cart-controls"><button data-change="${c.id}" data-delta="-1" aria-label="Diminuer la quantité">−</button><span>${c.qty}</span><button data-change="${c.id}" data-delta="1" aria-label="Augmenter la quantité">+</button><button class="remove" data-remove="${c.id}">Retirer</button></div></div></article>`;
         })
         .join('') +
-      `<div class="cart-summary"><div><span>Sous-total démo</span><strong>${money(total)}</strong></div><p class="muted">Frais de livraison non définis. Ce montant est illustratif et ne constitue pas un total à régler.</p><button class="button primary" id="checkout">Simuler la commande <span>→</span></button><p class="muted">Aucun paiement. Aucune commande transmise.</p></div>`
+      `<div class="cart-summary"><div><span>${supabase ? 'Sous-total indicatif' : 'Sous-total démo'}</span><strong>${money(total)}</strong></div><p class="muted">Frais de livraison non définis. Le total final sera confirmé avant tout achat.</p><button class="button primary" id="checkout">${supabase ? 'Demander une commande' : 'Simuler la commande'} <span>→</span></button>${supabase ? '<p class="muted">Aucun paiement en ligne. Modalités à confirmer.</p>' : '<p class="muted">Aucune commande transmise.</p>'}</div>`
     : '<div class="empty"><h3>Le prochain départ se prépare ici.</h3><p>Votre panier est encore vide.</p><a class="button primary" href="catalogue.html">Explorer les huiles ↗</a></div>';
 }
 function formField(label: string, name: string, type = 'text', required = true) {
@@ -246,24 +247,52 @@ function openAdvice() {
 function checkout() {
   if (!cart.length) return;
   const snapshot = cart.map((c) => ({ ...c }));
+  const requestId = crypto.randomUUID();
   $('#flow-content').innerHTML =
-    `<p class="eyebrow">COMMANDE DE DÉMONSTRATION</p><h2>Votre prochain départ,<br>en quelques étapes.</h2><p class="muted">Utilisez des informations fictives. Elles restent en mémoire uniquement pendant cette simulation.</p><form id="checkout-form">${formField('Nom fictif', 'nom')}${formField('Téléphone fictif', 'telephone', 'tel')}${formField('Ville fictive', 'ville')}<label>Mode de paiement<input value="Simulation uniquement" disabled></label><label class="full">Adresse fictive *<textarea name="adresse" required maxlength="300"></textarea></label><p class="muted full">Livraison et paiement réels non configurés. Aucun montant à régler, aucune commande envoyée.</p><button class="button primary full" type="submit">Voir le récapitulatif <span>→</span></button></form>`;
+    `<p class="eyebrow">${supabase ? 'DEMANDE DE COMMANDE' : 'COMMANDE DE DÉMONSTRATION'}</p><h2>Votre prochain départ,<br>en quelques étapes.</h2><p class="muted">${supabase ? 'Indiquez vos coordonnées. ENRM confirmera la disponibilité, la livraison et les modalités de paiement.' : 'Utilisez des informations fictives. Elles restent en mémoire uniquement pendant cette simulation.'}</p><form id="checkout-form">${formField(supabase ? 'Nom complet' : 'Nom fictif', 'nom')}${formField(supabase ? 'Téléphone' : 'Téléphone fictif', 'telephone', 'tel')}${formField(supabase ? 'Ville' : 'Ville fictive', 'ville')}<label>Modalités de paiement<input value="À confirmer par ENRM" disabled></label><label class="full">${supabase ? 'Adresse souhaitée pour la livraison' : 'Adresse fictive'} *<textarea name="adresse" required maxlength="300"></textarea></label><p class="muted full">${supabase ? 'Les informations sont transmises à ENRM pour traiter cette demande. Les frais et conditions de vente restent à confirmer.' : 'Livraison et paiement réels non configurés. Aucune donnée ne sera transmise.'}</p>${supabase ? '<label class="full"><input type="checkbox" name="privacy_ack" required> J’ai lu l’<a href="confidentialite.html" target="_blank" rel="noopener noreferrer">information de confidentialité</a> et j’accepte l’utilisation de ces données pour traiter ma demande.</label>' : ''}<button class="button primary full" type="submit">Voir le récapitulatif <span>→</span></button></form>`;
   showDialog('#flow-dialog');
   $('#checkout-form').onsubmit = (e) => {
     e.preventDefault();
     const data = formValues(formData(e.target));
     $('#flow-content').innerHTML =
-      `<p class="eyebrow">VÉRIFICATION · DÉMONSTRATION</p><h2>Tout est en place.</h2><p>${esc(data.nom)} · ${esc(data.ville)}</p><div style="margin:20px 0">${snapshot
+      `<p class="eyebrow">${supabase ? 'RÉCAPITULATIF DE COMMANDE' : 'VÉRIFICATION · DÉMONSTRATION'}</p><h2>Tout est en place.</h2><p>${esc(data.nom)} · ${esc(data.ville)}</p><div style="margin:20px 0">${snapshot
         .map((c) => {
           const p = requireProduct(products, c.id);
           return `<p>${c.qty} × ${esc(brandName(p.marque) + ' ' + p.sous_reference + ' ' + p.viscosite + ' · ' + p.litrage)} — ${money(p.price * c.qty)}</p>`;
         })
         .join(
           '',
-        )}</div><p class="muted">Sous-total illustratif : ${money(snapshot.reduce((s, c) => s + requireProduct(products, c.id).price * c.qty, 0))}. Frais de livraison non définis. Aucun paiement.</p><button class="button primary" id="confirm-demo">Terminer la simulation <span>✓</span></button>`;
-    $('#confirm-demo').onclick = () => {
+        )}</div><p class="muted">Sous-total indicatif : ${money(snapshot.reduce((s, c) => s + requireProduct(products, c.id).price * c.qty, 0))}. Prix et disponibilité à confirmer par ENRM.</p><button class="button primary" id="confirm-demo">${supabase ? 'Envoyer ma demande' : 'Terminer la simulation'} <span>✓</span></button><p class="muted" id="order-error" role="alert"></p>`;
+    $('#confirm-demo').onclick = async (event) => {
+      const button = event.currentTarget as HTMLButtonElement;
+      if (!supabase) {
+        $('#flow-content').innerHTML =
+          '<div class="success-icon">✓</div><p class="eyebrow">SIMULATION TERMINÉE</p><h2>Vous avez fait<br>le tour du parcours.</h2><p>Aucune commande créée, aucun paiement effectué et aucune donnée transmise.</p><p class="muted" style="margin-top:20px">Votre panier reste disponible pour poursuivre la découverte.</p>';
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Enregistrement…';
+      const { data: result, error } = await supabase.rpc('place_enrm_order', {
+        p_customer_name: data.nom,
+        p_phone: data.telephone,
+        p_city: data.ville,
+        p_delivery_address: data.adresse,
+        p_items: snapshot,
+        p_request_id: requestId,
+      });
+      if (error || !result?.[0]) {
+        $('#order-error').textContent =
+          error?.message || 'La commande n’a pas pu être enregistrée. Réessayez.';
+        button.disabled = false;
+        button.innerHTML = 'Réessayer <span>↻</span>';
+        return;
+      }
+      cart = [];
+      saveCart();
+      renderCart();
       $('#flow-content').innerHTML =
-        '<div class="success-icon">✓</div><p class="eyebrow">SIMULATION TERMINÉE</p><h2>Vous avez fait<br>le tour du parcours.</h2><p>Aucune commande créée, aucun paiement effectué et aucune donnée transmise.</p><p class="muted" style="margin-top:20px">Votre panier reste disponible pour poursuivre la découverte.</p>';
+        `<div class="success-icon">✓</div><p class="eyebrow">DEMANDE ENREGISTRÉE</p><h2>Merci. ENRM vous recontactera.</h2><p>Référence : <strong>${esc(result[0].order_number)}</strong></p><p>Sous-total indicatif : <strong>${money(Number(result[0].total))}</strong></p><p class="muted" style="margin-top:20px">Le prix final, la disponibilité, la livraison et les modalités de paiement restent à confirmer. Aucun paiement n’a été effectué.</p><button class="button" id="close-order-success">Fermer</button>`;
+      $('#close-order-success').onclick = () => closeDialog($('#flow-dialog'));
     };
   };
 }
