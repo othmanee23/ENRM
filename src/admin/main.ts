@@ -717,6 +717,11 @@ $('#notifications').onclick = () => {
 };
 $('#search-icon').innerHTML = icon('search');
 addEventListener('hashchange', async () => {
+  const requestedRoute = location.hash.slice(1).split('?')[0];
+  if (supabase && requestedRoute !== 'categories' && !(await hasRemoteAdminAccess())) {
+    navigate('categories');
+    return;
+  }
   query = '';
   filter = 'Tous';
   page = 1;
@@ -761,6 +766,11 @@ Promise.all([loadCatalogue(), loadCategories()])
     demoOrders = structuredClone(state.orders);
     demoCustomers = structuredClone(state.customers);
     const route = location.hash.slice(1).split('?')[0];
+    if (supabase && route !== 'categories' && !(await hasRemoteAdminAccess())) {
+      navigate('categories');
+      render();
+      return;
+    }
     if (route === 'products' || route === 'inventory') await refreshRemoteProducts();
     if (route === 'orders' || route === 'overview') await refreshRemoteOrders();
     persist();

@@ -91,7 +91,7 @@ The current admin form manages top-level category records; although the schema h
 ## Security and customer-data handling
 
 - The browser receives only Supabase’s public anon key. Never put a Supabase service-role key in Vite variables or front-end code.
-- Admin authorization is checked against the authenticated Supabase profile and enforced again in database policies/functions.
+- Admin authorization is checked against the authenticated Supabase profile and enforced again in database policies/functions. When Supabase is configured, unauthenticated visitors and non-admin accounts are routed to the administrator sign-in/access screen instead of the demo dashboard. Without Supabase credentials, the local demo admin remains available for development.
 - Stock is stored separately from public product data.
 - Order submissions validate fields and quantities in both the client and database. Database-side prices and stock are authoritative.
 - Checkout explains that the request sends contact details to ENRM and asks the customer to acknowledge the privacy information.
