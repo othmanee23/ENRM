@@ -738,6 +738,7 @@ addEventListener('hashchange', async () => {
     navigate('categories');
     return;
   }
+  if (!state) return;
   query = '';
   filter = 'Tous';
   page = 1;
@@ -798,6 +799,13 @@ Promise.all([loadCatalogue(), loadCategories()])
     render();
   })
   .catch(() => {
+    if (supabase && !adminAuthenticated) {
+      state = createDemoState([], today);
+      demoOrders = structuredClone(state.orders);
+      demoCustomers = structuredClone(state.customers);
+      render();
+      return;
+    }
     $('#workspace').innerHTML = empty(
       'Chargement indisponible',
       'Rechargez la page pour retrouver votre espace.',
