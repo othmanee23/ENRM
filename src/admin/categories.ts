@@ -167,6 +167,7 @@ export function mountCategoryManager(container: HTMLElement) {
       return;
     }
     await render();
+    window.dispatchEvent(new CustomEvent('enrm-admin-authenticated'));
   };
 
   void render();

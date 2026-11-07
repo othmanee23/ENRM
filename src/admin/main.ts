@@ -41,6 +41,7 @@ const routes = [
   ['settings', 'Paramètres', 'settings'],
 ];
 let state: AdminState,
+  adminAuthenticated = !supabase,
   baseProducts: Product[] = [],
   productCategories: Category[] = [],
   remoteProductIds = new Set<string>(),
@@ -67,15 +68,16 @@ function total(o: Order) {
 }
 
 async function hasRemoteAdminAccess() {
-  if (!supabase) return true;
+  if (!supabase) return (adminAuthenticated = true);
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-  if (sessionError || !sessionData.session) return false;
+  if (sessionError || !sessionData.session) return (adminAuthenticated = false);
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', sessionData.session.user.id)
     .maybeSingle();
-  return !error && profile?.role === 'admin';
+  adminAuthenticated = !error && profile?.role === 'admin';
+  return adminAuthenticated;
 }
 
 function toDatabaseProduct(item: AdminProduct) {
@@ -209,9 +211,23 @@ function render() {
   const route = (location.hash.slice(1) || 'overview').split('?')[0];
   view = routes.some((r) => r[0] === route) || route === 'search' ? route : 'overview';
   const name = routes.find((r) => r[0] === view)?.[1] || 'Recherche';
-  $('#crumb').textContent = name;
-  document.title = name + ' — ENRM Gestion';
-  $('#admin-nav').innerHTML = routes
+  const restricted = Boolean(supabase && !adminAuthenticated);
+  $('#crumb').textContent = restricted ? 'Connexion administrateur' : name;
+  document.title = (restricted ? 'Connexion administrateur' : name) + ' — ENRM Gestion';
+  $('#store-label').textContent = supabase ? 'Boutique ENRM' : 'Boutique de démonstration';
+  $('#profile-name').textContent = restricted ? 'Espace ENRM' : supabase ? 'Administrateur' : 'Équipe ENRM';
+  $('#profile-role').textContent = restricted ? 'Connexion requise' : supabase ? 'Administrateur' : 'Administrateur · Démo';
+  $('#environment-tag').innerHTML = `<i></i>${restricted ? 'Connexion requise' : supabase ? 'Espace privé' : 'Démo locale'}`;
+  $('#global-search').hidden = restricted;
+  $('#notifications').hidden = restricted;
+  $('#mobile-menu').hidden = restricted;
+  $('#nav-caption').hidden = restricted;
+  $('#admin-footer-note').textContent = restricted
+    ? 'Accès réservé aux administrateurs.'
+    : supabase
+      ? 'Données ENRM · Supabase'
+      : 'Données fictives · Modifications enregistrées dans ce navigateur';
+  $('#admin-nav').innerHTML = restricted ? '' : routes
     .map(
       ([id, label, ico]) =>
         `<a href="#${id}" class="${view === id ? 'active' : ''}" ${view === id ? 'aria-current="page"' : ''}>${icon(ico)}<span>${label}</span>${id === 'orders' ? `<span class="nav-count">${state.orders.filter((o) => ['À confirmer', 'À préparer', 'En préparation'].includes(o.status)).length}</span>` : ''}</a>`,
@@ -232,7 +248,7 @@ function render() {
   requestAnimationFrame(() => $('#workspace').classList.add('page-enter'));
   document.body.classList.remove('menu-open');
   $('#scrim').hidden = true;
-  $('#menu').setAttribute('aria-expanded', 'false');
+  $('#mobile-menu').setAttribute('aria-expanded', 'false');
 }
 function openDialog(name: string, html: string) {
   $('#dialog-title').textContent = name;
@@ -690,15 +706,15 @@ document.addEventListener('keydown', (e) => {
     $('#global-query').focus();
   }
 });
-$('#menu').onclick = () => {
+$('#mobile-menu').onclick = () => {
   const open = document.body.classList.toggle('menu-open');
   $('#scrim').hidden = !open;
-  $('#menu').setAttribute('aria-expanded', String(open));
+  $('#mobile-menu').setAttribute('aria-expanded', String(open));
 };
 $('#scrim').onclick = () => {
   document.body.classList.remove('menu-open');
   $('#scrim').hidden = true;
-  $('#menu').setAttribute('aria-expanded', 'false');
+  $('#mobile-menu').setAttribute('aria-expanded', 'false');
 };
 $('#notifications').innerHTML = icon('bell');
 $('#notifications').onclick = () => {
@@ -749,7 +765,12 @@ addEventListener('hashchange', async () => {
   }
   render();
 });
+addEventListener('enrm-admin-authenticated', async () => {
+  await hasRemoteAdminAccess();
+  render();
+});
 addEventListener('enrm-sign-out', () => {
+  adminAuthenticated = !supabase;
   remoteProductIds.clear();
   remoteOrdersActive = false;
   state = createDemoState(baseProducts, today);
