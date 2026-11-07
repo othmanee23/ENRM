@@ -11,8 +11,17 @@ interface ViewContext {
   page: number;
   period: number;
   today: Date;
+  remoteOrdersActive?: boolean;
 }
-export function createAdminViews({ state, query, filter, page, period, today }: ViewContext) {
+export function createAdminViews({
+  state,
+  query,
+  filter,
+  page,
+  period,
+  today,
+  remoteOrdersActive = false,
+}: ViewContext) {
   const product = (id: string) => requireProduct(state.products, id);
   const total = (o: Order) => o.items.reduce((sum, item) => sum + item.qty * item.price, 0);
   function selectedOrders(days = period) {
@@ -43,7 +52,9 @@ export function createAdminViews({ state, query, filter, page, period, today }: 
     const os = selectedOrders(),
       rev = revenue(os),
       active = os.filter((o) => o.status !== 'Annulée'),
-      pending = state.orders.filter((o) => ['À préparer', 'En préparation'].includes(o.status));
+      pending = state.orders.filter((o) =>
+        ['À confirmer', 'À préparer', 'En préparation'].includes(o.status),
+      );
     return `<section class="stats" aria-label="Indicateurs">${stat('Chiffre d’affaires', money(rev), 'MAD', [`${active.length} commandes`, 'sur la période'], 'wallet')}${stat('Commandes', os.length, '', [`${pending.length} à traiter`, 'dans la boutique'], 'bag', true)}${stat('Panier moyen', money(active.length ? rev / active.length : 0), 'MAD', ['Hors annulations', 'sur la période'], 'trend')}${stat('Clients', new Set(os.map((o) => o.customerId)).size, '', [`${state.customers.length} au total`, 'dans votre fichier'], 'users')}</section>`;
   }
   function chart() {
@@ -167,15 +178,17 @@ export function createAdminViews({ state, query, filter, page, period, today }: 
       const c = requireById(state.customers, o.customerId);
       return (
         (filter === 'Tous' || o.status === filter) &&
-        matches(o.id + ' ' + c.name + ' ' + c.city + ' ' + o.tracking)
+        matches(o.id + ' ' + c.name + ' ' + c.city + ' ' + (c.phone || '') + ' ' + o.tracking)
       );
     });
     const shown = rows.slice((page - 1) * 12, page * 12);
     return (
       title(
         'Commandes',
-        'De la confirmation à la livraison, gardez le fil.',
-        `<button class="btn" data-export="orders">${icon('download')} Exporter</button><button class="btn primary" data-action="new-order">${icon('plus')} Nouvelle commande</button>`,
+        remoteOrdersActive
+          ? 'Demandes reçues depuis la boutique.'
+          : 'De la confirmation à la livraison, gardez le fil.',
+        `<button class="btn" data-export="orders">${icon('download')} Exporter</button>${remoteOrdersActive ? '' : `<button class="btn primary" data-action="new-order">${icon('plus')} Nouvelle commande</button>`}`,
       ) +
       `<section class="panel"><div class="toolbar">${tabs(['Tous', ...statuses])}${searchInput('Rechercher une commande…')}</div>${shown.length ? orderTable(shown) : empty()}${tablePage(rows.length)}</section>`
     );

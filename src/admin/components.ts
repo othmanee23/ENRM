@@ -7,7 +7,7 @@ export function thumb(p?: Partial<Product>) {
     : `<span class="thumb empty">${esc(p?.litrage || '5 L')}</span>`;
 }
 export function badge(s: string) {
-  return `<span class="badge ${{ Livrée: 'green', Payée: 'green', Actif: 'green', 'À préparer': 'amber', 'En préparation': 'amber', 'À encaisser': 'amber', Expédiée: 'blue', Annulée: 'red', Brouillon: '', Inactif: '' }[s] || ''}">${esc(s)}</span>`;
+  return `<span class="badge ${{ Livrée: 'green', Payée: 'green', Actif: 'green', 'À confirmer': 'amber', 'À préparer': 'amber', 'En préparation': 'amber', 'À encaisser': 'amber', Expédiée: 'blue', Annulée: 'red', Brouillon: '', Inactif: '' }[s] || ''}">${esc(s)}</span>`;
 }
 export function field(
   label: string,

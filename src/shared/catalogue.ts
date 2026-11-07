@@ -86,6 +86,55 @@ export async function loadAdminCatalogue(): Promise<{
   }
   return { products, stockByProductId };
 }
+export interface DatabaseOrder {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  phone: string;
+  city: string;
+  delivery_address: string;
+  status: string;
+  payment_status: string;
+  tracking_number: string;
+  internal_note: string;
+  created_at: string;
+  order_items: {
+    product_id: string;
+    product_name: string;
+    volume: string;
+    quantity: number;
+    unit_price: number;
+  }[];
+}
+export async function loadAdminOrders(): Promise<DatabaseOrder[] | null> {
+  if (!supabase) return null;
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+  if (sessionError || !session) return null;
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .maybeSingle();
+  if (profileError || profile?.role !== 'admin') return null;
+
+  const orders: DatabaseOrder[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(
+        'id,order_number,customer_name,phone,city,delivery_address,status,payment_status,tracking_number,internal_note,created_at,order_items(product_id,product_name,volume,quantity,unit_price)',
+      )
+      .order('created_at', { ascending: false })
+      .range(offset, offset + 499);
+    if (error) throw new Error(`Commandes inaccessibles (${error.message})`);
+    orders.push(...((data || []) as unknown as DatabaseOrder[]));
+    if (!data || data.length < 500) break;
+  }
+  return orders;
+}
 export async function loadCategories(): Promise<Category[]> {
   if (supabase) {
     const categories: Category[] = [];

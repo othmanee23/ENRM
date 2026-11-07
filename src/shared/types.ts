@@ -48,6 +48,9 @@ export interface Customer {
   city: string;
   email: string;
   type: string;
+  phone?: string;
+  deliveryAddress?: string;
+  remote?: boolean;
 }
 export interface OrderItem {
   id: string;
@@ -70,6 +73,8 @@ export interface Order {
   tracking: string;
   note: string;
   history: HistoryEntry[];
+  remoteId?: string;
+  remote?: boolean;
 }
 export interface Promotion {
   id: string;

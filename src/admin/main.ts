@@ -12,6 +12,7 @@ import { esc, currency } from '../shared/format';
 import {
   DEFAULT_CATEGORY_ID,
   loadAdminCatalogue,
+  loadAdminOrders,
   loadCatalogue,
   loadCategories,
   requireProduct,
@@ -43,6 +44,9 @@ let state: AdminState,
   baseProducts: Product[] = [],
   productCategories: Category[] = [],
   remoteProductIds = new Set<string>(),
+  remoteOrdersActive = false,
+  demoOrders: Order[] = [],
+  demoCustomers: Customer[] = [],
   view = 'overview',
   query = '',
   filter = 'Tous',
@@ -128,8 +132,57 @@ async function refreshRemoteProducts() {
   return true;
 }
 
+async function refreshRemoteOrders() {
+  if (!(await refreshRemoteProducts())) return false;
+  const loaded = await loadAdminOrders();
+  if (!loaded) return false;
+  if (!remoteOrdersActive) {
+    demoOrders = structuredClone(state.orders.filter((order) => !order.remote));
+    demoCustomers = structuredClone(state.customers.filter((customer) => !customer.remote));
+  }
+  const remoteCustomers: Customer[] = loaded.map((order) => ({
+    id: `remote-${order.id}`,
+    name: order.customer_name,
+    city: order.city,
+    email: '',
+    phone: order.phone,
+    deliveryAddress: order.delivery_address,
+    type: 'Particulier',
+    remote: true,
+  }));
+  state.customers = [...state.customers.filter((customer) => !customer.remote), ...remoteCustomers];
+  state.orders = loaded.map((order) => ({
+    id: order.order_number,
+    remoteId: order.id,
+    remote: true,
+    customerId: `remote-${order.id}`,
+    date: order.created_at,
+    status: order.status,
+    payment: order.payment_status,
+    tracking: order.tracking_number,
+    note: order.internal_note,
+    items: order.order_items.map((item) => ({
+      id: item.product_id,
+      name: item.product_name,
+      volume: item.volume,
+      qty: item.quantity,
+      price: Number(item.unit_price),
+    })),
+    history: [{ label: 'Demande reçue', date: order.created_at }],
+  }));
+  remoteOrdersActive = true;
+  return true;
+}
+
 function persist() {
-  if (saveAdminState(state)) return true;
+  const savedState = remoteOrdersActive
+    ? {
+        ...state,
+        orders: demoOrders,
+        customers: demoCustomers,
+      }
+    : state;
+  if (saveAdminState(savedState)) return true;
   toast('Stockage plein : utilisez une image plus légère.');
   return false;
 }
@@ -156,7 +209,7 @@ function render() {
   $('#admin-nav').innerHTML = routes
     .map(
       ([id, label, ico]) =>
-        `<a href="#${id}" class="${view === id ? 'active' : ''}" ${view === id ? 'aria-current="page"' : ''}>${icon(ico)}<span>${label}</span>${id === 'orders' ? `<span class="nav-count">${state.orders.filter((o) => ['À préparer', 'En préparation'].includes(o.status)).length}</span>` : ''}</a>`,
+        `<a href="#${id}" class="${view === id ? 'active' : ''}" ${view === id ? 'aria-current="page"' : ''}>${icon(ico)}<span>${label}</span>${id === 'orders' ? `<span class="nav-count">${state.orders.filter((o) => ['À confirmer', 'À préparer', 'En préparation'].includes(o.status)).length}</span>` : ''}</a>`,
     )
     .join('');
   const renderers: Record<string, () => string> = createAdminViews({
@@ -166,6 +219,7 @@ function render() {
     page,
     period,
     today,
+    remoteOrdersActive,
   });
   if (view === 'categories') mountCategoryManager($('#workspace'));
   else $('#workspace').innerHTML = renderers[view]();
@@ -309,7 +363,7 @@ function orderEditor(id: string) {
     c = requireById(state.customers, o.customerId);
   openDialog(
     'Commande #' + o.id,
-    `<div class="detail-summary"><div>${badge(o.status)}<p class="form-note">Créée le ${fmt(o.date)}</p></div><strong>${currency(total(o))}</strong></div><div class="detail-grid"><div><small>CLIENT</small><p>${esc(c.name)}<br>${esc(c.email)}</p></div><div><small>DESTINATION</small><p>${esc(c.city)}<br>Maroc · Livraison démo</p></div></div><div class="order-lines">${o.items.map((i) => `<div>${thumb(product(i.id))}<div><strong>${esc(i.name)}</strong><small>${i.qty} × ${currency(i.price)} · ${esc(i.volume)}</small></div><span>${currency(i.qty * i.price)}</span></div>`).join('')}</div><form id="order-update"><div class="form-grid"><label class="field">Statut de la commande<select name="status">${statuses.map((s) => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field">Paiement<select name="payment">${['Payée', 'À encaisser'].map((s) => `<option ${s === o.payment ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field full">Numéro de suivi fictif<input name="tracking" value="${esc(o.tracking)}" maxlength="70" placeholder="Ex. DEMO-1048"></label><label class="field full">Note interne<textarea name="note" maxlength="1000">${esc(o.note)}</textarea></label></div>${formActions('Mettre à jour')}</form><h3 class="timeline-title">Historique de la commande</h3><div class="activity-list">${[
+    `<div class="detail-summary"><div>${badge(o.status)}<p class="form-note">Créée le ${fmt(o.date)}</p></div><strong>${currency(total(o))}</strong></div><div class="detail-grid"><div><small>CLIENT</small><p>${esc(c.name)}<br>${esc(c.phone || c.email)}</p></div><div><small>DESTINATION</small><p>${esc(c.city)}<br>${c.deliveryAddress ? esc(c.deliveryAddress) : 'Maroc · Livraison démo'}</p></div></div><div class="order-lines">${o.items.map((i) => `<div>${thumb(product(i.id))}<div><strong>${esc(i.name)}</strong><small>${i.qty} × ${currency(i.price)} · ${esc(i.volume)}</small></div><span>${currency(i.qty * i.price)}</span></div>`).join('')}</div>${o.remote ? '<p class="form-note">Demande client · Prix et livraison à confirmer</p>' : ''}<form id="order-update"><div class="form-grid"><label class="field">Statut de la commande<select name="status" ${o.status === 'Annulée' ? 'disabled' : ''}>${statuses.map((s) => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field">Paiement<select name="payment">${['À confirmer', 'Payée', 'À encaisser'].map((s) => `<option ${s === o.payment ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field full">Numéro de suivi<input name="tracking" value="${esc(o.tracking)}" maxlength="70" placeholder="Ex. suivi transporteur"></label><label class="field full">Note interne<textarea name="note" maxlength="1000">${esc(o.note)}</textarea></label></div>${formActions('Mettre à jour')}</form><h3 class="timeline-title">Historique de la commande</h3><div class="activity-list">${[
       ...o.history,
     ]
       .reverse()
@@ -319,18 +373,36 @@ function orderEditor(id: string) {
       )
       .join('')}</div>`,
   );
-  $('#order-update').onsubmit = (e) => {
+  $('#order-update').onsubmit = async (e) => {
     e.preventDefault();
     const f = formData(e.target);
-    if (o.status !== fieldValue(f, 'status'))
-      o.history.push({ label: fieldValue(f, 'status'), date: new Date().toISOString() });
+    const nextStatus = o.status === 'Annulée' ? 'Annulée' : fieldValue(f, 'status');
+    const nextPayment = fieldValue(f, 'payment');
+    const nextTracking = fieldValue(f, 'tracking').trim();
+    const nextNote = fieldValue(f, 'note').trim();
+    if (o.remote) {
+      const { error } = await supabase!.rpc('update_enrm_order', {
+        p_order_id: o.remoteId,
+        p_status: nextStatus,
+        p_payment_status: nextPayment,
+        p_tracking_number: nextTracking,
+        p_internal_note: nextNote,
+      });
+      if (error) {
+        toast('La commande n’a pas été mise à jour : ' + error.message);
+        return;
+      }
+    }
+    if (o.status !== nextStatus)
+      o.history.push({ label: nextStatus, date: new Date().toISOString() });
     Object.assign(o, {
-      status: fieldValue(f, 'status'),
-      payment: fieldValue(f, 'payment'),
-      tracking: fieldValue(f, 'tracking').trim(),
-      note: fieldValue(f, 'note').trim(),
+      status: nextStatus,
+      payment: nextPayment,
+      tracking: nextTracking,
+      note: nextNote,
     });
     activity(`Commande #${id} : ${o.status}`);
+    if (o.remote && nextStatus === 'Annulée') await refreshRemoteProducts();
     persist();
     closeDialog();
     render();
@@ -628,7 +700,7 @@ $('#notifications').innerHTML = icon('bell');
 $('#notifications').onclick = () => {
   openDialog(
     'Vos points d’attention',
-    `<div class="stock-list"><div class="stock-item">${icon('bag')}<div><strong>${state.orders.filter((o) => ['À préparer', 'En préparation'].includes(o.status)).length} commandes à traiter</strong><small>Préparation et expédition</small></div><button class="btn" id="alert-orders">Voir</button></div><div class="stock-item">${icon('alert')}<div><strong>${lowStock().length} références à réapprovisionner</strong><small>Seuil : ${state.settings.threshold} unités</small></div><button class="btn" id="alert-stock">Voir</button></div></div>`,
+    `<div class="stock-list"><div class="stock-item">${icon('bag')}<div><strong>${state.orders.filter((o) => ['À confirmer', 'À préparer', 'En préparation'].includes(o.status)).length} commandes à traiter</strong><small>Demandes et préparation</small></div><button class="btn" id="alert-orders">Voir</button></div><div class="stock-item">${icon('alert')}<div><strong>${lowStock().length} références à réapprovisionner</strong><small>Seuil : ${state.settings.threshold} unités</small></div><button class="btn" id="alert-stock">Voir</button></div></div>`,
   );
   $('#alert-orders').onclick = () => {
     closeDialog();
@@ -645,15 +717,34 @@ addEventListener('hashchange', async () => {
   filter = 'Tous';
   page = 1;
   const route = location.hash.slice(1).split('?')[0];
+  if (route !== 'orders' && remoteOrdersActive) {
+    remoteOrdersActive = false;
+    state.orders = demoOrders;
+    state.customers = demoCustomers;
+    persist();
+  }
   if (route === 'products' || route === 'inventory') {
     productCategories = await loadCategories();
     await refreshRemoteProducts();
+  } else if (route === 'orders') {
+    try {
+      if (!(await refreshRemoteOrders())) {
+        toast(
+          'Connectez-vous comme administrateur dans Catégories pour consulter les commandes réelles.',
+        );
+      }
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Commandes inaccessibles.');
+    }
   }
   render();
 });
 addEventListener('enrm-sign-out', () => {
   remoteProductIds.clear();
+  remoteOrdersActive = false;
   state = createDemoState(baseProducts, today);
+  demoOrders = structuredClone(state.orders);
+  demoCustomers = structuredClone(state.customers);
   persist();
   render();
 });
@@ -662,8 +753,11 @@ Promise.all([loadCatalogue(), loadCategories()])
     baseProducts = data;
     productCategories = categories;
     state = loadAdminState(() => createDemoState(baseProducts, today));
+    demoOrders = structuredClone(state.orders);
+    demoCustomers = structuredClone(state.customers);
     const route = location.hash.slice(1).split('?')[0];
     if (route === 'products' || route === 'inventory') await refreshRemoteProducts();
+    if (route === 'orders') await refreshRemoteOrders();
     persist();
     render();
   })
