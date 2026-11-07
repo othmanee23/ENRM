@@ -23,6 +23,8 @@ export interface Product {
   url_verso: string;
   photo_revendeur_url: string;
   note: string;
+  is_published?: boolean;
+  show_on_website?: boolean;
 }
 export interface Category {
   id: string;

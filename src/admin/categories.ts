@@ -94,6 +94,7 @@ export function mountCategoryManager(container: HTMLElement) {
     container.querySelector<HTMLButtonElement>('#category-cancel')!.onclick = () => void render();
     container.querySelector<HTMLButtonElement>('#category-sign-out')!.onclick = async () => {
       await supabase!.auth.signOut();
+      window.dispatchEvent(new CustomEvent('enrm-sign-out'));
       await render();
     };
     container.querySelectorAll<HTMLButtonElement>('[data-edit-category]').forEach((button) => {

@@ -44,6 +44,48 @@ export async function loadCatalogue(): Promise<Product[]> {
   if (!Array.isArray(values) || !values.every(isProduct)) throw new Error('Catalogue invalide');
   return values;
 }
+export async function loadAdminCatalogue(): Promise<{
+  products: Product[];
+  stockByProductId: Map<string, number>;
+} | null> {
+  if (!supabase) return null;
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+  if (sessionError || !session) return null;
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .maybeSingle();
+  if (profileError || profile?.role !== 'admin') return null;
+
+  const products: Product[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('id')
+      .range(offset, offset + 999);
+    if (error) throw new Error(`Catalogue inaccessible (${error.message})`);
+    if (!Array.isArray(data) || !data.every(isProduct)) throw new Error('Catalogue invalide');
+    products.push(...data);
+    if (data.length < 1000) break;
+  }
+  const stockByProductId = new Map<string, number>();
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase
+      .from('product_inventory')
+      .select('product_id,quantity')
+      .order('product_id')
+      .range(offset, offset + 999);
+    if (error) throw new Error(`Stock inaccessible (${error.message})`);
+    for (const item of data || []) stockByProductId.set(item.product_id, item.quantity);
+    if (!data || data.length < 1000) break;
+  }
+  return { products, stockByProductId };
+}
 export async function loadCategories(): Promise<Category[]> {
   if (supabase) {
     const categories: Category[] = [];

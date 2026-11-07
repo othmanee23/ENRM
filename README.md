@@ -57,13 +57,11 @@ The catalogue has **210 original variants**. Product IDs, formulations, package 
 
 The cart uses `enrm-demo-cart`; admin data uses `enrm-admin-demo-v1`. Existing browser data remains compatible. Invalid cart entries are discarded, quantities are validated and duplicate entries are merged up to 99. Saved admin data is checked for valid relationships; locally created products from the earlier demo receive any missing catalogue fields.
 
-The dashboard uses a separate local dataset. Its product edits do not change the public catalogue. Orders, customers, revenue, stock and promotions are fictitious. No payment, shipment, message or real order is sent. Product photos uploaded in the dashboard are stored locally and limited to 1 MB. CSV exports escape spreadsheet formulas; JSON backups contain the local demo data.
-
-Most of the admin workspace still uses a fictitious browser-local dataset. Orders, customers, stock, promotions, analytics, and settings are not connected to real operations. Do not use those demo screens to manage real customer data.
+Without Supabase credentials, the dashboard uses a browser-local demo dataset. Product photos remain local and are limited to 1 MB. CSV exports escape spreadsheet formulas; JSON backups contain the local demo data.
 
 ## Supabase catalogue foundation
 
-The repository includes an independent local Supabase setup for the public catalogue. Categories are records with stable IDs, slugs, ordering, active state, and an optional parent category. Each product points to a category ID, so the storefront filter options can be loaded from data rather than hard-coded. The initial seed assigns the existing 210 oil variants to “Huiles moteur.”
+The repository includes an independent local Supabase setup for the catalogue and product administration. Categories are records with stable IDs, slugs, ordering, active state, and an optional parent category. Each product points to a category ID, so the storefront filter options can be loaded from data rather than hard-coded. The initial seed assigns the existing 210 oil variants to “Huiles moteur.” Product edits and stock quantities are saved to Supabase for authorized admins. Stock is held in its own admin-only table and is not returned by public catalogue queries. Product photos use the public `product-media` bucket, with authenticated admin writes and a 1 MB limit.
 
 Start the local backend with Docker running:
 
@@ -76,7 +74,7 @@ Copy the local API URL and anon key from `npx supabase status` into `.env.local`
 
 `npm run backend:reset` rebuilds the **local** database from migrations and seed data. `npm run backend:lint` checks the local database schema. `npm run backend:seed` regenerates `supabase/seed.sql` from `public/catalogue.json`.
 
-The admin has a Supabase-authenticated category manager at `/admin.html#categories`. It lets an authorized admin add, rename, reorder, show, or hide categories. The database denies public writes and restricts category/product writes to an authenticated ENRM admin. New users default to the customer role. Create the account in Supabase Auth, then promote the approved account in the database dashboard with an owner-level SQL query such as `update public.profiles set role = 'admin' where lower(email) = lower('admin@example.com');`. Never assign admin roles from client-side code. Other admin screens remain demo-only until their backend workflows are implemented.
+The admin has a Supabase-authenticated category manager at `/admin.html#categories`. It lets an authorized admin add, rename, reorder, show, or hide categories. The product editor supports assigning products to active categories and publishing/drafting them; inventory edits update private stock records. The database restricts category, product, stock, and media writes to an authenticated ENRM admin. New users default to the customer role. Create the account in Supabase Auth, then promote the approved account in the database dashboard with an owner-level SQL query such as `update public.profiles set role = 'admin' where lower(email) = lower('admin@example.com');`. Never assign admin roles from client-side code. Orders, customers, promotions, analytics, and settings remain demo-only until their backend workflows are implemented.
 
 ## Accessibility and motion
 

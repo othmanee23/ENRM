@@ -9,7 +9,16 @@ import { mountCategoryManager } from './categories';
 
 import { $, formData, formValues, fieldValue } from '../shared/dom';
 import { esc, currency } from '../shared/format';
-import { loadCatalogue, requireProduct, requireById, emptyProduct } from '../shared/catalogue';
+import {
+  DEFAULT_CATEGORY_ID,
+  loadAdminCatalogue,
+  loadCatalogue,
+  loadCategories,
+  requireProduct,
+  requireById,
+  emptyProduct,
+} from '../shared/catalogue';
+import { supabase } from '../shared/supabase';
 import type {
   Product,
   AdminProduct,
@@ -17,6 +26,7 @@ import type {
   Order,
   Customer,
   Promotion,
+  Category,
 } from '../shared/types';
 const routes = [
   ['overview', 'Vue d’ensemble', 'grid'],
@@ -31,6 +41,8 @@ const routes = [
 ];
 let state: AdminState,
   baseProducts: Product[] = [],
+  productCategories: Category[] = [],
+  remoteProductIds = new Set<string>(),
   view = 'overview',
   query = '',
   filter = 'Tous',
@@ -48,6 +60,72 @@ function product(id: string) {
 }
 function total(o: Order) {
   return o.items.reduce((s, i) => s + i.qty * i.price, 0);
+}
+
+async function hasRemoteAdminAccess() {
+  if (!supabase) return true;
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !sessionData.session) return false;
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', sessionData.session.user.id)
+    .maybeSingle();
+  return !error && profile?.role === 'admin';
+}
+
+function toDatabaseProduct(item: AdminProduct) {
+  const { status, stock: _stock, ...productData } = item;
+  return {
+    ...productData,
+    category_id: item.category_id || DEFAULT_CATEGORY_ID,
+    is_published: status === 'Actif',
+    show_on_website: status === 'Actif',
+  };
+}
+
+async function saveRemoteProduct(item: AdminProduct, previousId = item.id) {
+  if (!supabase) return null;
+  if (!(await hasRemoteAdminAccess()))
+    return 'Connectez-vous avec un compte administrateur dans Catégories.';
+  const payload = toDatabaseProduct(item);
+  const result = remoteProductIds.has(previousId)
+    ? await supabase.from('products').update(payload).eq('id', previousId)
+    : await supabase.from('products').upsert(payload);
+  if (result.error) return result.error.message;
+  const { error: stockError } = await supabase
+    .from('product_inventory')
+    .upsert({ product_id: item.id, quantity: item.stock });
+  if (stockError) {
+    toast(`Produit enregistré, mais stock non enregistré (${stockError.message})`);
+    remoteProductIds.add(item.id);
+    return null;
+  }
+  remoteProductIds.delete(previousId);
+  remoteProductIds.add(item.id);
+  return null;
+}
+
+async function refreshRemoteProducts() {
+  if (!supabase) return false;
+  const loaded = await loadAdminCatalogue();
+  if (!loaded) return false;
+  const fromDatabase = loaded.products.map((item) => ({
+    ...emptyProduct(),
+    ...item,
+    category_id: item.category_id || DEFAULT_CATEGORY_ID,
+    stock: loaded.stockByProductId.get(item.id) || 0,
+    status: item.is_published ? 'Actif' : 'Brouillon',
+  })) as AdminProduct[];
+  remoteProductIds = new Set(fromDatabase.map((item) => item.id));
+  const remoteIds = new Set(remoteProductIds);
+  const localOnly = state.products.filter((item) => !remoteIds.has(item.id));
+  state.products = [...fromDatabase, ...localOnly];
+  state.orders = state.orders.filter((order) =>
+    order.items.every((item) => state.products.some((product) => product.id === item.id)),
+  );
+  persist();
+  return true;
 }
 
 function persist() {
@@ -107,10 +185,34 @@ function closeDialog() {
 }
 
 function productEditor(id?: string) {
-  const p: AdminProduct = id ? product(id) : { ...emptyProduct(), status: 'Actif', stock: 0 };
+  const p: AdminProduct = id
+    ? product(id)
+    : {
+        ...emptyProduct(),
+        category_id: productCategories[0]?.id || DEFAULT_CATEGORY_ID,
+        status: 'Actif',
+        stock: 0,
+      };
+  const categories = [...productCategories];
+  if (p.category_id && !categories.some((category) => category.id === p.category_id))
+    categories.unshift({
+      id: p.category_id,
+      parent_id: null,
+      name: 'Catégorie masquée',
+      slug: '',
+      sort_order: -1,
+      is_active: false,
+    });
   openDialog(
     id ? 'Modifier le produit' : 'Nouveau produit',
-    `<form id="product-form"><div class="form-grid">${field('Nom du produit', 'name', p.sous_reference || '', 'text', 'full maxlength="100"')}${field('Marque', 'brand', p.marque || '', 'text', 'maxlength="50"')}${field('Référence / SKU', 'sku', p.id || 'ENRM-DEMO-' + Date.now().toString().slice(-6), 'text', 'maxlength="50" pattern="[A-Za-z0-9_-]+"')}${field('Viscosité', 'viscosity', p.viscosite || '', 'text', 'maxlength="30"')}${field('Contenance', 'volume', p.litrage || '5 L', 'text', 'maxlength="30"')}${field('Prix · MAD', 'price', p.price, 'number', 'min="0" max="9999999" step="0.01"')}${field('Stock disponible', 'stock', p.stock, 'number', 'min="0" max="999999"')}<label class="field full">Statut<select name="status"><option ${p.status === 'Actif' ? 'selected' : ''}>Actif</option><option ${p.status === 'Brouillon' ? 'selected' : ''}>Brouillon</option></select></label><label class="field full">Photo du produit<input type="file" name="image" accept="image/jpeg,image/png,image/webp"></label></div><p class="form-note">JPG, PNG ou WebP · 1 Mo maximum. Enregistrement dans la démo uniquement.</p>${formActions(id ? 'Enregistrer' : 'Ajouter le produit')}</form>`,
+    `<form id="product-form"><div class="form-grid">${field('Nom du produit', 'name', p.sous_reference || '', 'text', 'full maxlength="100"')}${field('Marque', 'brand', p.marque || '', 'text', 'maxlength="50"')}${field('Référence / SKU', 'sku', p.id || 'ENRM-DEMO-' + Date.now().toString().slice(-6), 'text', 'maxlength="50" pattern="[A-Za-z0-9_-]+"')}${field('Viscosité', 'viscosity', p.viscosite || '', 'text', 'maxlength="30"')}${field('Contenance', 'volume', p.litrage || '5 L', 'text', 'maxlength="30"')}${field('Prix · MAD', 'price', p.price, 'number', 'min="0" max="9999999" step="0.01"')}${field('Stock disponible', 'stock', p.stock, 'number', 'min="0" max="999999"')}<label class="field full">Catégorie<select name="category" required>${categories
+      .map(
+        (category) =>
+          `<option value="${esc(category.id)}" ${category.id === p.category_id ? 'selected' : ''}>${esc(category.name)}</option>`,
+      )
+      .join(
+        '',
+      )}</select></label><label class="field full">Statut<select name="status"><option ${p.status === 'Actif' ? 'selected' : ''}>Actif</option><option ${p.status === 'Brouillon' ? 'selected' : ''}>Brouillon</option></select></label><label class="field full">Photo du produit<input type="file" name="image" accept="image/jpeg,image/png,image/webp"></label></div><p class="form-note">JPG, PNG ou WebP · 1 Mo maximum. ${supabase ? 'Image partagée avec la boutique.' : 'Image enregistrée dans cette démonstration.'}</p>${formActions(id ? 'Enregistrer' : 'Ajouter le produit')}</form>`,
   );
   $('#product-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -121,7 +223,8 @@ function productEditor(id?: string) {
       return;
     }
     const file = f.get('image');
-    let image = p.recto || '';
+    let image = p.recto || '',
+      uploadedPath = '';
     if (file instanceof File && file.size) {
       if (
         !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
@@ -130,12 +233,29 @@ function productEditor(id?: string) {
         toast('Choisissez une image JPG, PNG ou WebP de moins de 1 Mo.');
         return;
       }
-      image = await new Promise<string>((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(String(r.result));
-        r.onerror = rej;
-        r.readAsDataURL(file);
-      });
+      if (supabase) {
+        if (!(await hasRemoteAdminAccess())) {
+          toast('Connectez-vous avec un compte administrateur dans Catégories.');
+          return;
+        }
+        const ext = file.type === 'image/jpeg' ? 'jpg' : file.type.slice('image/'.length);
+        uploadedPath = `${sku}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from('product-media')
+          .upload(uploadedPath, file, { contentType: file.type, upsert: false });
+        if (error) {
+          toast('La photo n’a pas été envoyée : ' + error.message);
+          return;
+        }
+        image = supabase.storage.from('product-media').getPublicUrl(uploadedPath).data.publicUrl;
+      } else {
+        image = await new Promise<string>((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(String(r.result));
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        });
+      }
     }
     const item: AdminProduct = {
       ...p,
@@ -146,10 +266,18 @@ function productEditor(id?: string) {
       litrage: fieldValue(f, 'volume').trim(),
       price: Number(fieldValue(f, 'price')),
       stock: Number(fieldValue(f, 'stock')),
+      category_id: fieldValue(f, 'category'),
       status: fieldValue(f, 'status'),
       recto: image,
     };
     item.designation = [item.marque, item.sous_reference, item.viscosite, item.litrage].join(' ');
+    const remoteError = await saveRemoteProduct(item, id || item.id);
+    if (remoteError) {
+      if (uploadedPath && supabase)
+        await supabase.storage.from('product-media').remove([uploadedPath]);
+      toast('Le produit n’a pas été enregistré : ' + remoteError);
+      return;
+    }
     const backup = JSON.stringify(state);
     if (id) {
       const oldId = id;
@@ -167,7 +295,13 @@ function productEditor(id?: string) {
     }
     closeDialog();
     render();
-    toast(id ? 'Produit mis à jour.' : 'Produit ajouté à la démonstration.');
+    toast(
+      id
+        ? 'Produit mis à jour.'
+        : supabase
+          ? 'Produit ajouté au catalogue.'
+          : 'Produit ajouté à la démonstration.',
+    );
   };
 }
 function orderEditor(id: string) {
@@ -443,12 +577,18 @@ document.addEventListener('change', (e) => {
     render();
   }
 });
-document.addEventListener('submit', (e) => {
+document.addEventListener('submit', async (e) => {
   if (!(e.target instanceof HTMLFormElement)) return;
   if (e.target.matches('[data-stock]')) {
     e.preventDefault();
     const p = product(e.target.dataset.stock!);
-    p.stock = Number(formData(e.target).get('stock'));
+    const nextStock = Number(formData(e.target).get('stock'));
+    const remoteError = await saveRemoteProduct({ ...p, stock: nextStock });
+    if (remoteError) {
+      toast('Le stock n’a pas été enregistré : ' + remoteError);
+      return;
+    }
+    p.stock = nextStock;
     activity(`Stock ajusté : ${p.sous_reference} · ${p.stock} unités`);
     persist();
     render();
@@ -500,16 +640,30 @@ $('#notifications').onclick = () => {
   };
 };
 $('#search-icon').innerHTML = icon('search');
-addEventListener('hashchange', () => {
+addEventListener('hashchange', async () => {
   query = '';
   filter = 'Tous';
   page = 1;
+  const route = location.hash.slice(1).split('?')[0];
+  if (route === 'products' || route === 'inventory') {
+    productCategories = await loadCategories();
+    await refreshRemoteProducts();
+  }
   render();
 });
-loadCatalogue()
-  .then((data) => {
+addEventListener('enrm-sign-out', () => {
+  remoteProductIds.clear();
+  state = createDemoState(baseProducts, today);
+  persist();
+  render();
+});
+Promise.all([loadCatalogue(), loadCategories()])
+  .then(async ([data, categories]) => {
     baseProducts = data;
+    productCategories = categories;
     state = loadAdminState(() => createDemoState(baseProducts, today));
+    const route = location.hash.slice(1).split('?')[0];
+    if (route === 'products' || route === 'inventory') await refreshRemoteProducts();
     persist();
     render();
   })

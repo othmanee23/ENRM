@@ -1,6 +1,7 @@
 import { readJson, writeJson, ADMIN_KEY } from '../shared/storage';
 import { emptyProduct } from '../shared/catalogue';
 import type { AdminState } from '../shared/types';
+import { DEFAULT_CATEGORY_ID } from '../shared/catalogue';
 const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object';
 const string = (v: unknown): v is string => typeof v === 'string';
@@ -80,6 +81,13 @@ export function isAdminState(value: unknown): value is AdminState {
 export function loadAdminState(fallback: () => AdminState): AdminState {
   const stored = readJson(ADMIN_KEY);
   if (!isAdminState(stored)) return fallback();
-  return { ...stored, products: stored.products.map((p) => ({ ...emptyProduct(), ...p })) };
+  return {
+    ...stored,
+    products: stored.products.map((p) => ({
+      ...emptyProduct(),
+      ...p,
+      category_id: p.category_id || DEFAULT_CATEGORY_ID,
+    })),
+  };
 }
 export const saveAdminState = (state: AdminState): boolean => writeJson(ADMIN_KEY, state);

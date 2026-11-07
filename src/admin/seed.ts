@@ -1,5 +1,5 @@
 import type { Product, AdminState } from '../shared/types';
-import { requireProduct } from '../shared/catalogue';
+import { DEFAULT_CATEGORY_ID, requireProduct } from '../shared/catalogue';
 export function createDemoState(baseProducts: Product[], today: Date): AdminState {
   const ago = (n: number) => new Date(today.getTime() - n * 864e5).toISOString();
   const names = [
@@ -39,8 +39,9 @@ export function createDemoState(baseProducts: Product[], today: Date): AdminStat
   ];
   const products = baseProducts.map((p, i) => ({
     ...p,
+    category_id: p.category_id || DEFAULT_CATEGORY_ID,
     stock: i % 19 === 0 ? 0 : i % 13 === 0 ? 3 + (i % 5) : 18 + ((i * 7) % 81),
-    status: 'Actif',
+    status: p.is_published === false ? 'Brouillon' : 'Actif',
   }));
   const orders = Array.from({ length: 48 }, (_, i) => {
     const p = requireProduct(products, ids[i % 6]);
