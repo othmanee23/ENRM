@@ -241,6 +241,7 @@ These local checks materially improve confidence in the application source, but 
 - Updated `@opennextjs/cloudflare` from 1.20.16 to 1.20.17, which uses `@opennextjs/aws` 4.1.16. The Worker build, dry-run packaging, and 13 tests pass after the update.
 - Local Cloudflare preview returned 200 for the homepage, catalogue, login, checkout, and a known product route; unauthenticated `/admin` returned 307 to `/login`.
 - `npm audit --omit=dev` reports zero production dependency advisories. Full `npm audit` reports three moderate findings in build-time `glob` / `minimatch` dependencies, with no compatible automatic fix. See the [glob advisory](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) and [minimatch advisory](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+- The local Supabase migration history includes all repository migrations through `20261111000300`, and `npm run backend:lint` reports no schema errors. Read-only SQL assertions confirmed public catalogue access, anonymous denial of order/admin data, and that a missing identity is not an admin. No-identity calls to the dashboard, customer/product admin, and stock mutation functions were denied; invalid catalogue pagination was rejected. No test data was written.
 - Production remains **NO-GO**: hosted staging auth/RLS/order checks, Worker environment configuration, production database migration review, SEO/image fixes, and runtime validation of OpenNext's experimental Node.js Proxy support remain outstanding. No production Worker or hosted Supabase changes were made.
 
 ## References

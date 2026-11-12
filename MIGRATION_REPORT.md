@@ -48,6 +48,8 @@ Executed using Node.js 22.22.2:
 - Local Worker route check — HTTP 200 for `/`, `/catalogue`, `/login`, `/panier`, `/commande`, and a known product URL; unauthenticated `/admin` returned 307 to `/login`; an invalid product slug returned 404.
 - `npx wrangler deploy --dry-run` — passed after the adapter update; packaged 287 assets (about 7.4 MiB uncompressed) without deploying.
 - `npm audit --omit=dev` — zero production dependency advisories. Full `npm audit` reports three moderate findings in OpenNext's build-time `glob` / `minimatch` dependencies; npm reports no compatible automatic fix.
+- Local Supabase migration history is applied through `20261111000300`; `npm run backend:lint` reports no schema errors.
+- Local SQL checks passed for public catalogue RPCs, anonymous denial of admin/order access, unauthenticated denial of admin dashboard/customer/product/stock functions, and rejection of invalid catalogue pagination. The checks made no data changes.
 - GitHub Actions now checks formatting, TypeScript, tests, the OpenNext build, and Wrangler dry-run packaging on Node 22.22.2.
 - `git diff --check` — passed.
 
