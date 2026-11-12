@@ -36,9 +36,11 @@ async function go(route: string) {
       ? '#react-admin-orders h1'
       : ['products', 'inventory'].includes(route)
         ? '#react-admin-products h1'
-        : route === 'customers'
-          ? '#react-admin-customers h1'
-          : '#workspace h1';
+        : route === 'categories'
+          ? '#react-admin-categories h1'
+          : route === 'customers'
+            ? '#react-admin-customers h1'
+            : '#workspace h1';
   await vi.waitFor(() => expect(q(reactPanel)).not.toBeNull());
 }
 function submit(selector: string) {
@@ -110,7 +112,7 @@ it('renders every admin screen, creates a product and order, and persists the st
     adminRoot!.render(createElement(AdminWorkspace));
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
-  await vi.waitFor(() => expect(q('#workspace h1')).not.toBeNull());
+  await vi.waitFor(() => expect(q('#react-admin-categories h1')).not.toBeNull());
   for (const route of [
     'orders',
     'products',
@@ -127,9 +129,11 @@ it('renders every admin screen, creates a product and order, and persists the st
         ? q('#react-admin-orders')
         : ['products', 'inventory'].includes(route)
           ? q('#react-admin-products')
-          : route === 'customers'
-            ? q('#react-admin-customers')
-            : q('#workspace')
+          : route === 'categories'
+            ? q('#react-admin-categories')
+            : route === 'customers'
+              ? q('#react-admin-customers')
+              : q('#workspace')
       ).textContent,
     ).not.toContain('undefined');
   }

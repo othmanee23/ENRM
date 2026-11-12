@@ -5,6 +5,7 @@ import { AdminNavigation } from './AdminNavigation';
 import { AdminOrdersPanel } from './AdminOrdersPanel';
 import { AdminProductsPanel } from './AdminProductsPanel';
 import { AdminCustomersPanel } from './AdminCustomersPanel';
+import { AdminCategoriesPanel } from './AdminCategoriesPanel';
 
 export function AdminWorkspace() {
   useEffect(() => {
@@ -86,6 +87,7 @@ export function AdminWorkspace() {
         <AdminOrdersPanel />
         <AdminProductsPanel />
         <AdminCustomersPanel />
+        <AdminCategoriesPanel />
         <main id="workspace" tabIndex={-1}>
           <div className="loading">Chargement des données ENRM…</div>
         </main>

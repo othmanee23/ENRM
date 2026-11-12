@@ -4,7 +4,6 @@ import { createAdminViews } from './views';
 import { createDemoState } from './seed';
 import { thumb, badge, field, formActions, empty } from './components';
 import { fmt, statuses } from './format';
-import { mountCategoryManager } from './categories';
 
 import { $, formData, formValues, fieldValue } from '../shared/dom';
 import { esc, currency } from '../shared/format';
@@ -484,12 +483,13 @@ function render() {
     dashboardSummary,
   });
   const workspace = $('#workspace');
-  const reactManagedView = ['orders', 'products', 'inventory', 'customers'].includes(view);
+  const reactManagedView = ['orders', 'products', 'inventory', 'customers', 'categories'].includes(
+    view,
+  );
   workspace.hidden = reactManagedView;
   if (reactManagedView) {
     // The React admin panels own these list screens; existing mutations remain authoritative.
-  } else if (view === 'categories') mountCategoryManager(workspace);
-  else workspace.innerHTML = renderers[view]();
+  } else workspace.innerHTML = renderers[view]();
   workspace.classList.remove('page-enter');
   requestAnimationFrame(() => workspace.classList.add('page-enter'));
   document.body.classList.remove('menu-open');
