@@ -2,7 +2,7 @@
 
 ## Summary
 
-The repository now uses Next.js App Router and an OpenNext Cloudflare Worker build while preserving the current business model, catalogue identifiers, database, and existing order RPC. The public storefront and shared controls are React-rendered; the admin shell/navigation and orders, products, inventory, customers, and categories screens are also React-rendered. Overview/analytics/promotions/settings remain on the imperative renderer, with editors and data workflows still split across both implementations. No production deployment or hosted Supabase changes have been made. See “Remaining migration work” before planning a production cutover.
+The repository now uses Next.js App Router and an OpenNext Cloudflare Worker build while preserving the current business model, catalogue identifiers, database, and existing order RPC. The public storefront and all admin screens are React-rendered. `src/admin/main.ts` remains the coordinator for data loading and DOM-delegated modal editors/mutations. No production deployment or hosted Supabase changes have been made. See “Remaining migration work” before planning a production cutover.
 
 ## Architecture decisions
 
@@ -60,7 +60,7 @@ The OpenNext patch update removed the four high-severity findings from the previ
 
 ## Remaining migration work before production cutover
 
-1. Continue the admin React migration for overview/analytics, promotions/settings decisions, and product/order editors. Keep the server-side auth gate and existing database contracts.
+1. Continue moving admin modal editors and mutation handling out of `src/admin/main.ts`; keep the server-side auth gate and existing database RPC/RLS contracts.
 2. Add targeted UI regression coverage for cart updates across tabs, mobile navigation, catalogue filters, gallery selection, and browser video/reduced-motion behavior.
 3. Run a complete local route and security smoke audit for canonical slugs, malformed/legacy URLs, access control, session refresh, logout, and order lifecycle.
 4. Use a confirmed non-production Supabase project to verify the live RPC shape, idempotency, stock rollback, and admin status-history behavior. Do not run these checks against production.
@@ -187,3 +187,11 @@ No hosted environment variables, DNS, Supabase project, Cloudflare resources, or
 - Category slugs are normalized in the UI and database uniqueness remains authoritative; errors do not expose raw Supabase details. The current UI adds/edits top-level categories; hierarchical parent editing remains unimplemented.
 - The existing admin workflow test now verifies that `/admin#categories` renders through React alongside orders/products/inventory/customers routes. `npm run format`, `npm run typecheck`, and `npm test` passed (31 tests).
 - Overview/analytics/promotions/settings and most editors remain imperative. No hosted services or production deployment were changed.
+
+## Follow-up implementation (2026-11-12): complete React admin screen rendering
+
+- Migrated overview, analytics, promotions, settings, and global search rendering into `AdminDashboardPanel.tsx`. Orders/products/inventory/customers/categories remain in their dedicated React panels. Removed the old `src/admin/views.ts` HTML-string renderer.
+- All admin screens now render through React. `src/admin/main.ts` remains responsible for data loading, state coordination, and existing DOM-delegated modal editor/mutation workflows; order and product writes continue through the existing RPC/RLS boundary. Connected promotions and shared settings remain explicitly unconfigured because no persistent backend model exists.
+- The admin regression now visits each screen, filters global search and the tables, saves demo settings, creates a demo promotion, and exercises the product/order/stock workflow. It passes under the supported Node runtime.
+- The admin state event snapshot now clears both records and dashboard summary data when authorization is restricted.
+- Current outstanding work is editor/mutation handler migration and verification against an already existing non-production Supabase/Cloudflare environment. No hosted service, paid resource, DNS, production data, or deployment was changed.

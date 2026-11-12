@@ -26,21 +26,24 @@ function change(selector: string, value: string) {
   );
 }
 async function go(route: string) {
+  const routeName = route.split('?')[0];
   await act(async () => {
     history.replaceState(null, '', `/admin#${route}`);
     window.dispatchEvent(new HashChangeEvent('hashchange'));
     await new Promise((resolve) => setTimeout(resolve, 10));
   });
   const reactPanel =
-    route === 'orders'
+    routeName === 'orders'
       ? '#react-admin-orders h1'
-      : ['products', 'inventory'].includes(route)
+      : ['products', 'inventory'].includes(routeName)
         ? '#react-admin-products h1'
-        : route === 'categories'
+        : routeName === 'categories'
           ? '#react-admin-categories h1'
-          : route === 'customers'
-            ? '#react-admin-customers h1'
-            : '#workspace h1';
+          : ['overview', 'analytics', 'promotions', 'settings', 'search'].includes(routeName)
+            ? '#react-admin-summary h1'
+            : route === 'customers'
+              ? '#react-admin-customers h1'
+              : '#workspace h1';
   await vi.waitFor(() => expect(q(reactPanel)).not.toBeNull());
 }
 function submit(selector: string) {
@@ -122,21 +125,40 @@ it('renders every admin screen, creates a product and order, and persists the st
     'promotions',
     'settings',
     'overview',
+    'search?q=Youssef%20D%C3%A9mo',
   ]) {
     await go(route);
+    const routeName = route.split('?')[0];
     expect(
-      (route === 'orders'
+      (routeName === 'orders'
         ? q('#react-admin-orders')
-        : ['products', 'inventory'].includes(route)
+        : ['products', 'inventory'].includes(routeName)
           ? q('#react-admin-products')
-          : route === 'categories'
+          : routeName === 'categories'
             ? q('#react-admin-categories')
-            : route === 'customers'
-              ? q('#react-admin-customers')
-              : q('#workspace')
+            : ['overview', 'analytics', 'promotions', 'settings', 'search'].includes(routeName)
+              ? q('#react-admin-summary')
+              : route === 'customers'
+                ? q('#react-admin-customers')
+                : q('#workspace')
       ).textContent,
     ).not.toContain('undefined');
   }
+  await go('settings');
+  change('#settings-form [name="threshold"]', '12');
+  submit('#settings-form');
+  await vi.waitFor(() => {
+    const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(saved.settings.threshold).toBe(12);
+  });
+  await go('promotions');
+  q('[data-action="new-promo"]').click();
+  change('#promo-form [name="code"]', 'SPRING15');
+  submit('#promo-form');
+  await vi.waitFor(() => {
+    const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(saved.promotions.some((promotion) => promotion.code === 'SPRING15')).toBe(true);
+  });
   await go('customers');
   change('#local-query', 'Youssef Démo');
   await vi.waitFor(() =>

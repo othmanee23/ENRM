@@ -1,6 +1,5 @@
 import { loadAdminState, saveAdminState } from './storage';
 import { icon } from './icons';
-import { createAdminViews } from './views';
 import { createDemoState } from './seed';
 import { thumb, badge, field, formActions, empty } from './components';
 import { fmt, statuses } from './format';
@@ -441,6 +440,7 @@ function render() {
       detail: {
         view,
         restricted,
+        state: restricted ? null : state,
         actionableOrders:
           supabase && !remoteOrdersActive
             ? null
@@ -463,33 +463,26 @@ function render() {
         remoteProductsActive,
         remoteProductsTotal,
         stockThreshold: state.settings.threshold,
+        period,
+        dashboardSummary: restricted ? null : dashboardSummary,
       },
     }),
   );
-  const renderers: Record<string, () => string> = createAdminViews({
-    state,
-    query,
-    filter,
-    page,
-    period,
-    today,
-    remoteProductsActive,
-    remoteOrdersActive,
-    remoteOrdersLoading,
-    connectedAdmin: Boolean(supabase && adminAuthenticated),
-    remoteOrdersTotal,
-    remoteProductsTotal,
-    remoteCustomersTotal,
-    dashboardSummary,
-  });
   const workspace = $('#workspace');
-  const reactManagedView = ['orders', 'products', 'inventory', 'customers', 'categories'].includes(
-    view,
-  );
+  const reactManagedView = [
+    'overview',
+    'orders',
+    'products',
+    'inventory',
+    'customers',
+    'categories',
+    'analytics',
+    'promotions',
+    'settings',
+    'search',
+  ].includes(view);
   workspace.hidden = reactManagedView;
-  if (reactManagedView) {
-    // The React admin panels own these list screens; existing mutations remain authoritative.
-  } else workspace.innerHTML = renderers[view]();
+  if (!reactManagedView) workspace.replaceChildren();
   workspace.classList.remove('page-enter');
   requestAnimationFrame(() => workspace.classList.add('page-enter'));
   document.body.classList.remove('menu-open');

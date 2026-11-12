@@ -41,23 +41,23 @@ Category URLs use database `categories.slug` values for catalogue filtering. Pro
 
 ## Source tree map
 
-| Path                                            | Responsibility                                                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `src/app/`                                      | Next.js routes, layouts, metadata and route-level server rendering                                     |
-| `src/components/storefront/`                    | React storefront shell, product cards, cart state, checkout and UI controls                            |
-| `src/components/admin/`                         | JSX admin shell/navigation and React orders/products/inventory/customers/categories screens            |
-| `src/admin/main.ts`, `src/admin/views.ts`       | Existing admin state, data loading, event delegation, editors and remaining imperative feature screens |
-| `src/components/admin/AdminCategoriesPanel.tsx` | React category management UI; Supabase CRUD remains protected by database RLS                          |
-| `src/lib/`                                      | Server catalogue access, SEO/media helpers, Supabase server/client utilities                           |
-| `src/shared/`                                   | Shared types, catalogue helpers, formats, slug and browser Supabase helpers                            |
-| `src/styles/`, `src/app/globals.css`            | Existing ENRM styles plus admin/login/Next route styles                                                |
-| `public/catalogue.json`                         | Local 210-variant fallback catalogue; not a substitute for verified production Supabase configuration  |
-| `public/assets/`                                | Brand marks, product images, fonts and video                                                           |
-| `supabase/migrations/`                          | Versioned schema, RLS, RPC and storage policies                                                        |
-| `scripts/`                                      | Build-output guard and Supabase seed generation                                                        |
-| `tests/`                                        | Vitest/jsdom unit and user workflow coverage                                                           |
+| Path                                            | Responsibility                                                                                        |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/app/`                                      | Next.js routes, layouts, metadata and route-level server rendering                                    |
+| `src/components/storefront/`                    | React storefront shell, product cards, cart state, checkout and UI controls                           |
+| `src/components/admin/`                         | React admin shell/navigation and all screen rendering                                                 |
+| `src/admin/main.ts`                             | Existing admin data loading, state coordination, event delegation, and editors                        |
+| `src/components/admin/AdminCategoriesPanel.tsx` | React category management UI; Supabase CRUD remains protected by database RLS                         |
+| `src/lib/`                                      | Server catalogue access, SEO/media helpers, Supabase server/client utilities                          |
+| `src/shared/`                                   | Shared types, catalogue helpers, formats, slug and browser Supabase helpers                           |
+| `src/styles/`, `src/app/globals.css`            | Existing ENRM styles plus admin/login/Next route styles                                               |
+| `public/catalogue.json`                         | Local 210-variant fallback catalogue; not a substitute for verified production Supabase configuration |
+| `public/assets/`                                | Brand marks, product images, fonts and video                                                          |
+| `supabase/migrations/`                          | Versioned schema, RLS, RPC and storage policies                                                       |
+| `scripts/`                                      | Build-output guard and Supabase seed generation                                                       |
+| `tests/`                                        | Vitest/jsdom unit and user workflow coverage                                                          |
 
-`src/admin` remains the clearest architectural seam: it currently mixes state/data orchestration and rendering in a single imperative module. Orders/products/inventory/customers React panels consume a browser event snapshot and delegate mutations back to that module; the category panel uses the Supabase browser client directly under RLS. This is an incremental bridge, not a fully React-native admin architecture.
+`src/admin/main.ts` remains the clearest architectural seam: it coordinates remote/demo state and still owns a number of modal editors and DOM-delegated write handlers. React screen components consume browser event snapshots; category CRUD uses the Supabase browser client directly under RLS. Rendering is React-based, but data-flow/editor migration is not complete.
 
 ## Admin migration status
 
@@ -69,10 +69,11 @@ Category URLs use database `categories.slug` values for catalogue filtering. Pro
 | Products/inventory  | React tables; editors, uploads and writes remain in existing admin workflow/RPCs                                                                                       |
 | Customers           | React table; connected customer rows are derived from orders, not a customer-account/CRM feature                                                                       |
 | Categories          | React UI; authenticated Supabase reads/writes rely on database RLS                                                                                                     |
-| Overview/analytics  | Still imperative; connected data uses dashboard queries/RPCs                                                                                                           |
-| Promotions/settings | Still imperative; connected admin explicitly sees these features as unconfigured because there is no persistent backend model                                          |
+| Overview/analytics  | React screens; connected data uses dashboard queries/RPCs                                                                                                              |
+| Promotions/settings | React screens; connected admin explicitly sees these features as unconfigured because there is no persistent backend model                                             |
+| Global search       | React results screen; existing product/order/customer editors are opened through admin event handlers                                                                  |
 
-The admin UI is therefore not “finished” as a complete React migration. Its intended order workflow exists, but overview/analytics, promotions/settings, editors, error/loading states, and the connected role matrix need a deliberate feature-by-feature migration. Do not imply promotions or shared settings persist in production.
+The admin UI is not yet a complete React-native data flow: all screens render through React, while the coordinator and several product/order/customer/promotion editors still use DOM event delegation. The connected role matrix and end-to-end editor/error/loading states still need further verification. Do not imply promotions or shared settings persist in production.
 
 ## Security boundary
 
@@ -88,7 +89,7 @@ The existing local checks cover format, strict TypeScript, Vitest/jsdom workflow
 
 ## Remaining work before calling the whole project production-ready
 
-1. Finish React migration of overview/analytics, promotions/settings decisions, and product/order editors. Keep the server auth gate and database RPC/RLS contracts.
+1. Continue migrating modal editors and data mutations out of the admin coordinator into explicit React hooks/actions, retaining server auth and database RPC/RLS contracts.
 2. Add/maintain route-level regression coverage for slug canonicalization, legacy redirect parameters, admin login redirect reasons, user role denial, and hash navigation. Exercise both connected-admin and no-Supabase demo modes.
 3. Use an already available isolated/local Supabase instance for repeatable authorization and workflow checks. Do not create another hosted project or incur compute charges without explicit instruction.
 4. Fix/verify any remaining cross-feature defects such as uploaded Supabase Storage absolute URLs being rendered consistently across detail, cart, metadata, and admin preview.
