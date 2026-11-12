@@ -6,7 +6,7 @@ ENRM is a French-language automotive oils catalogue and order-request website fo
 
 The public site uses Next.js App Router and React. Catalogue and product pages render on the server; product metadata and canonical URLs are generated from catalogue records. Supabase provides the database, authentication, storage, and order-request RPCs. Cloudflare Workers is the deployment target through OpenNext.
 
-The storefront routes and shared controls are React components. `/admin` is guarded by a Next.js server-side auth check and now has a JSX shell, while its feature screens and data workflows still run through the existing imperative `src/admin/main.ts` and `src/admin/views.ts`. Root-level HTML entry pages have been removed; HTML under `tests/fixtures/` is test-only. Legacy public URLs permanently redirect to Next.js routes. See [MIGRATION_REPORT.md](./MIGRATION_REPORT.md) for implementation and verification history. The current branch is `fix/nextjs-migration`; a successful local build is not a production release.
+The storefront routes and shared controls are React components. `/admin` is guarded by a Next.js server-side auth check and now has a JSX shell, with React navigation; its feature screens and data workflows still run through the existing imperative `src/admin/main.ts` and `src/admin/views.ts`. Root-level HTML entry pages have been removed; HTML under `tests/fixtures/` is test-only. Legacy public URLs permanently redirect to Next.js routes. See [MIGRATION_REPORT.md](./MIGRATION_REPORT.md) for implementation and verification history. The current branch is `fix/nextjs-migration`; a successful local build is not a production release.
 
 ## Stack
 

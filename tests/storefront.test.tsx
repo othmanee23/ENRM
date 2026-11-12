@@ -10,6 +10,7 @@ import {
   FilterToggle,
 } from '../src/components/storefront/StorefrontControls';
 import { AdviceMiniForm } from '../src/components/storefront/AdviceMiniForm';
+import { AdminNavigation } from '../src/components/admin/AdminNavigation';
 
 let host: HTMLDivElement;
 let root: Root;
@@ -121,5 +122,20 @@ describe('storefront React interactions', () => {
         .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })),
     );
     expect(host.textContent).toContain('cette démonstration n’envoie pas votre demande');
+  });
+
+  it('renders admin navigation state from the explicit React event boundary', () => {
+    act(() => root.render(createElement(AdminNavigation)));
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent('enrm-admin-navigation', {
+          detail: { view: 'orders', restricted: false, actionableOrders: 3 },
+        }),
+      );
+    });
+    const orders = host.querySelector<HTMLAnchorElement>('a[href="#orders"]')!;
+    expect(orders.classList.contains('active')).toBe(true);
+    expect(orders.getAttribute('aria-current')).toBe('page');
+    expect(orders.querySelector('.nav-count')?.textContent).toBe('3');
   });
 });

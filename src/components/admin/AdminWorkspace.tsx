@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AdminNavigation } from './AdminNavigation';
 
 export function AdminWorkspace() {
   useEffect(() => {
@@ -29,7 +30,9 @@ export function AdminWorkspace() {
         <p className="nav-caption" id="nav-caption">
           VOTRE ACTIVITÉ
         </p>
-        <nav id="admin-nav" aria-label="Navigation administration" />
+        <nav id="admin-nav" aria-label="Navigation administration">
+          <AdminNavigation />
+        </nav>
         <div className="sidebar-bottom">
           <a href="/" className="store-link">
             <span>↗</span> Voir la boutique

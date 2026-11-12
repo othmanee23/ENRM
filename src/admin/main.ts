@@ -437,14 +437,22 @@ function render() {
     : supabase
       ? 'Données ENRM · Supabase'
       : 'Données fictives · Modifications enregistrées dans ce navigateur';
-  $('#admin-nav').innerHTML = restricted
-    ? ''
-    : routes
-        .map(
-          ([id, label, ico]) =>
-            `<a href="#${id}" class="${view === id ? 'active' : ''}" ${view === id ? 'aria-current="page"' : ''}>${icon(ico)}<span>${label}</span>${id === 'orders' ? `<span class="nav-count">${supabase && !remoteOrdersActive ? '—' : supabase ? remoteActionableCount : state.orders.filter((o) => ['À confirmer', 'À préparer', 'En préparation'].includes(o.status)).length}</span>` : ''}</a>`,
-        )
-        .join('');
+  window.dispatchEvent(
+    new CustomEvent('enrm-admin-navigation', {
+      detail: {
+        view,
+        restricted,
+        actionableOrders:
+          supabase && !remoteOrdersActive
+            ? null
+            : supabase
+              ? remoteActionableCount
+              : state.orders.filter((o) =>
+                  ['À confirmer', 'À préparer', 'En préparation'].includes(o.status),
+                ).length,
+      },
+    }),
+  );
   const renderers: Record<string, () => string> = createAdminViews({
     state,
     query,
