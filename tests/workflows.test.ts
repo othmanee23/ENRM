@@ -7,24 +7,12 @@ const listeners: Array<
 > = [];
 const q = <T extends HTMLElement = HTMLElement>(s: string): T => document.querySelector(s)!;
 function mount(file: string, url: string) {
-  let html = readFileSync(file, 'utf8').replace(
-    /<!-- layout:(header|footer|dialogs) -->/g,
-    (_, part: string) => readFileSync(`src/layout/${part}.html`, 'utf8'),
-  );
+  const html = readFileSync(file, 'utf8');
   document.documentElement.innerHTML = html
     .replace(/<!doctype html>/i, '')
     .replace(/<\/?html[^>]*>/g, '');
   history.replaceState(null, '', url);
-  const page =
-    file === 'catalogue.html' ? 'catalogue' : file === 'product.html' ? 'product' : 'site';
-  document.body.dataset.page = page;
-  if (page === 'catalogue' || page === 'product') {
-    const bootstrap = document.createElement('script');
-    bootstrap.id = page === 'catalogue' ? 'catalogue-bootstrap' : 'product-bootstrap';
-    bootstrap.type = 'application/json';
-    bootstrap.textContent = JSON.stringify({ products: catalogue, categories: [] });
-    document.body.append(bootstrap);
-  }
+  document.body.dataset.page = 'admin';
 }
 function change(selector: string, value: string) {
   const el = q<HTMLInputElement | HTMLSelectElement>(selector);
@@ -90,41 +78,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
   document.body.innerHTML = '';
 });
-it('uses GET filters and adds the exact catalogue variant to the persistent cart', async () => {
-  mount('catalogue.html', '/catalogue.html');
-  await import('../src/storefront/main');
-  const form = q<HTMLFormElement>('#catalogue-filters');
-  expect(form.method).toBe('get');
-  expect(form.action).toContain('/catalogue');
-  expect(q<HTMLSelectElement>('#brand').name).toBe('brand');
-  expect(q<HTMLInputElement>('#search').name).toBe('search');
-  const id = catalogue[0].id as string;
-  const add = document.createElement('button');
-  add.type = 'button';
-  add.dataset.add = id;
-  q('#product-grid').append(add);
-  add.click();
-  expect(JSON.parse(localStorage.getItem('enrm-demo-cart')!)).toEqual([{ id, qty: 1 }]);
-  q('#open-cart').click();
-  await vi.waitFor(() => expect(q<HTMLDialogElement>('#cart-dialog').open).toBe(true));
-  expect(q('#cart-content').textContent).toContain('Sous-total indicatif');
-});
-it('switches product volumes without mixing the image, price, ID or quantity', async () => {
-  mount('product.html', '/product.html?id=ENRM-HM-031');
-  await import('../src/storefront/main');
-  await vi.waitFor(() => expect(document.querySelector('#detail-add')).not.toBeNull());
-  q<HTMLElement>('[data-variant="ENRM-HM-030"]').click();
-  expect(location.search).toContain('ENRM-HM-030');
-  const exact = catalogue.find((p: { id: string }) => p.id === 'ENRM-HM-030');
-  expect(q<HTMLImageElement>('#detail-photo img').getAttribute('src')).toBe(exact.recto);
-  change('#detail-qty', '3');
-  q('#detail-add').click();
-  expect(JSON.parse(localStorage.getItem('enrm-demo-cart')!)).toEqual([
-    { id: 'ENRM-HM-030', qty: 3 },
-  ]);
-});
 it('renders every admin screen, creates a product and order, and persists the stock deduction', async () => {
-  mount('admin.html', '/admin.html');
+  mount('tests/fixtures/admin-shell.html', '/admin');
   await import('../src/admin/main');
   await vi.waitFor(() => expect(q('#workspace').textContent).toContain('Vue d’ensemble'));
   for (const route of [
@@ -137,12 +92,12 @@ it('renders every admin screen, creates a product and order, and persists the st
     'settings',
     'overview',
   ]) {
-    history.replaceState(null, '', `/admin.html#${route}`);
+    history.replaceState(null, '', `/admin#${route}`);
     window.dispatchEvent(new HashChangeEvent('hashchange'));
     expect(q('#workspace h1')).not.toBeNull();
     expect(q('#workspace').textContent).not.toContain('undefined');
   }
-  history.replaceState(null, '', '/admin.html#products');
+  history.replaceState(null, '', '/admin#products');
   window.dispatchEvent(new HashChangeEvent('hashchange'));
   await vi.waitFor(() => expect(q('[data-action="new-product"]')).not.toBeNull());
   q('[data-action="new-product"]').click();
@@ -154,7 +109,7 @@ it('renders every admin screen, creates a product and order, and persists the st
   change('#product-form [name="stock"]', '10');
   submit('#product-form');
   await vi.waitFor(() => expect(q<HTMLDialogElement>('#editor').open).toBe(false));
-  history.replaceState(null, '', '/admin.html#orders');
+  history.replaceState(null, '', '/admin#orders');
   window.dispatchEvent(new HashChangeEvent('hashchange'));
   await vi.waitFor(() => expect(q('[data-action="new-order"]')).not.toBeNull());
   q('[data-action="new-order"]').click();

@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { StorefrontChrome } from '../../components/storefront/StorefrontChrome';
-import { StorefrontRuntime } from '../../components/storefront/StorefrontRuntime';
+import { CartProvider } from '../../components/storefront/CartProvider';
+import { StorefrontEffects } from '../../components/storefront/StorefrontControls';
 
 export default function StorefrontLayout({ children }: { children: ReactNode }) {
   return (
-    <>
-      <StorefrontRuntime />
+    <CartProvider>
       <StorefrontChrome>{children}</StorefrontChrome>
-    </>
+      <StorefrontEffects />
+    </CartProvider>
   );
 }

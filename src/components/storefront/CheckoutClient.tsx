@@ -1,34 +1,18 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import type { CartItem, Product } from '../../shared/types';
+import type { Product } from '../../shared/types';
 import { productSlug } from '../../shared/slugs';
 import { getSupabaseBrowserClient } from '../../lib/supabase/client';
 import { loadCatalogueProductsByIds } from '../../shared/catalogue';
+import { useCart } from './CartProvider';
 
-const CART_KEY = 'enrm-demo-cart';
 type CheckoutResult = { orderNumber: string; total: number } | null;
-function readCart(): CartItem[] {
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-    if (!Array.isArray(value)) return [];
-    return value.filter(
-      (item): item is CartItem =>
-        Boolean(item) &&
-        typeof item.id === 'string' &&
-        Number.isInteger(item.qty) &&
-        item.qty > 0 &&
-        item.qty <= 99,
-    );
-  } catch {
-    return [];
-  }
-}
 const mad = (price: number) =>
   `${new Intl.NumberFormat('fr-MA', { maximumFractionDigits: 2 }).format(price)} MAD`;
 
 export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boolean }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { items, ready, clearCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState('');
   const [result, setResult] = useState<CheckoutResult>(null);
@@ -36,27 +20,19 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
   const requestId = useRef<string | null>(null);
   const byId = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
   useEffect(() => {
+    if (!ready) return;
     let active = true;
-    const refresh = () => {
-      const next = readCart();
-      setItems(next);
-      void loadCatalogueProductsByIds(next.map((item) => item.id))
-        .then((rows) => {
-          if (active) setProducts(rows);
-        })
-        .catch(() => {
-          if (active) setProducts([]);
-        });
-    };
-    refresh();
-    window.addEventListener('storage', refresh);
-    window.addEventListener('enrm-cart-changed', refresh);
+    void loadCatalogueProductsByIds(items.map((item) => item.id))
+      .then((rows) => {
+        if (active) setProducts(rows);
+      })
+      .catch(() => {
+        if (active) setProducts([]);
+      });
     return () => {
       active = false;
-      window.removeEventListener('storage', refresh);
-      window.removeEventListener('enrm-cart-changed', refresh);
     };
-  }, []);
+  }, [items, ready]);
   const unavailable = items.filter((item) => !byId.has(item.id));
   const subtotal = items.reduce((sum, item) => sum + (byId.get(item.id)?.price || 0) * item.qty, 0);
 
@@ -99,9 +75,7 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
       return;
     }
     setResult({ orderNumber: data[0].order_number, total: Number(data[0].total) });
-    localStorage.removeItem(CART_KEY);
-    window.dispatchEvent(new CustomEvent('enrm-cart-changed'));
-    setItems([]);
+    clearCart();
   }
 
   if (result)
@@ -134,7 +108,11 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
           <h1>Vos coordonnées.</h1>
         </div>
       </div>
-      {!items.length ? (
+      {!ready ? (
+        <p className="loading" role="status">
+          Chargement de votre sélection…
+        </p>
+      ) : !items.length ? (
         <div className="empty">
           <h2>Votre panier est vide.</h2>
           <a className="button primary" href="/catalogue">

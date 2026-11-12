@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
-import { LegacyPage } from '../../../components/legacy/LegacyPage';
+import { ProductCard } from '../../../components/storefront/ProductCard';
 import {
   getPublicCatalogueFacets,
   getPublicCataloguePage,
   getPublicCategories,
 } from '../../../lib/catalogue';
-import { legacyPages } from '../../../generated/legacy-pages';
-import { renderCatalogueGrid } from '../../../lib/legacy-render';
-import { brandName, esc } from '../../../shared/format';
-import type { Category } from '../../../shared/types';
+import { publicPageMetadata } from '../../../lib/seo';
+import { brandName } from '../../../shared/format';
+import { FilterToggle } from '../../../components/storefront/StorefrontControls';
 
 export const dynamic = 'force-dynamic';
 
 type SearchParams = Record<string, string | string[] | undefined>;
+
 function value(params: SearchParams, ...keys: string[]): string {
   for (const key of keys) {
     const found = params[key];
@@ -20,133 +20,109 @@ function value(params: SearchParams, ...keys: string[]): string {
   }
   return '';
 }
-function selectedOption(
-  value: string,
-  selected: string,
-  label: (item: string) => string = (item) => item,
-) {
-  return `<option value="${esc(value)}"${value === selected ? ' selected' : ''}>${esc(label(value))}</option>`;
-}
-function setOptions(html: string, id: string, options: string) {
-  const pattern = new RegExp(`(<select\\b[^>]*id="${id}"[^>]*>)[\\s\\S]*?(<\\/select>)`);
-  return html.replace(
-    pattern,
-    (_match, open: string, close: string) => `${open}${options}${close}`,
-  );
-}
-function filterQuery(params: SearchParams) {
+
+function filterQuery(params: SearchParams): URLSearchParams {
   const query = new URLSearchParams();
-  for (const key of [
-    'search',
-    'q',
-    'category',
-    'brand',
-    'marque',
-    'range',
-    'viscosity',
-    'viscosite',
-    'volume',
-    'sort',
-  ]) {
-    const item = value(params, key);
-    if (item)
-      query.set(
-        key === 'q'
-          ? 'search'
-          : key === 'marque'
-            ? 'brand'
-            : key === 'viscosite'
-              ? 'viscosity'
-              : key,
-        item,
-      );
+  const aliases: [string, string][] = [
+    ['search', 'search'],
+    ['q', 'search'],
+    ['category', 'category'],
+    ['brand', 'brand'],
+    ['marque', 'brand'],
+    ['range', 'range'],
+    ['viscosity', 'viscosity'],
+    ['viscosite', 'viscosity'],
+    ['volume', 'volume'],
+    ['sort', 'sort'],
+  ];
+  for (const [source, destination] of aliases) {
+    const item = value(params, source);
+    if (item && !query.has(destination)) query.set(destination, item);
   }
   return query;
 }
-function paginationMarkup(page: number, pageSize: number, total: number, params: SearchParams) {
-  const pages = Math.max(1, Math.ceil(total / pageSize));
+
+function Pagination({
+  page,
+  pageSize,
+  total,
+  params,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  params: SearchParams;
+}) {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const query = filterQuery(params);
   const href = (nextPage: number) => {
     const next = new URLSearchParams(query);
     if (nextPage > 1) next.set('page', String(nextPage));
     return `/catalogue${next.size ? `?${next.toString()}` : ''}`;
   };
-  const from = total ? (page - 1) * pageSize + 1 : 0;
-  const to = Math.min(page * pageSize, total);
-  const previous =
-    page > 1
-      ? `<a class="outline" href="${esc(href(page - 1))}">← Précédent</a>`
-      : '<span class="outline" aria-disabled="true">← Précédent</span>';
-  const next =
-    page < pages
-      ? `<a class="outline" href="${esc(href(page + 1))}">Suivant →</a>`
-      : '<span class="outline" aria-disabled="true">Suivant →</span>';
-  return `<div class="load-area"><p class="muted">${from}–${to} sur ${total} références</p><nav class="catalogue-pagination" aria-label="Pages du catalogue">${previous}<span aria-current="page">Page ${page} / ${pages}</span>${next}</nav><p class="muted">Prix de démonstration. Disponibilité à confirmer par ENRM.</p></div>`;
+  const first = total ? (page - 1) * pageSize + 1 : 0;
+  const last = Math.min(page * pageSize, total);
+  return (
+    <div className="load-area">
+      <p className="muted">
+        {first}–{last} sur {total} références
+      </p>
+      <nav className="catalogue-pagination" aria-label="Pages du catalogue">
+        {page > 1 ? (
+          <a className="outline" href={href(page - 1)}>
+            ← Précédent
+          </a>
+        ) : (
+          <span className="outline" aria-disabled="true">
+            ← Précédent
+          </span>
+        )}
+        <span aria-current="page">
+          Page {page} / {pageCount}
+        </span>
+        {page < pageCount ? (
+          <a className="outline" href={href(page + 1)}>
+            Suivant →
+          </a>
+        ) : (
+          <span className="outline" aria-disabled="true">
+            Suivant →
+          </span>
+        )}
+      </nav>
+      <p className="muted">Prix de démonstration. Disponibilité à confirmer par ENRM.</p>
+    </div>
+  );
 }
-function optionControls(
-  html: string,
-  categories: Category[],
-  facets: Awaited<ReturnType<typeof getPublicCatalogueFacets>>,
-  params: SearchParams,
-) {
-  html = setOptions(
-    html,
-    'category',
-    '<option value="">Toutes les catégories</option>' +
-      categories
-        .map((category) =>
-          selectedOption(
-            category.slug,
-            value(params, 'category'),
-            (slug) => categories.find((item) => item.slug === slug)?.name || slug,
-          ),
-        )
-        .join(''),
+
+function SelectField({
+  id,
+  name,
+  label,
+  selected,
+  options,
+  emptyLabel,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  selected: string;
+  options: Array<{ value: string; label: string }>;
+  emptyLabel: string;
+}) {
+  return (
+    <label>
+      {label}
+      <select id={id} name={name} defaultValue={selected}>
+        <option value="">{emptyLabel}</option>
+        {options.map((option) => (
+          <option value={option.value} key={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
-  html = setOptions(
-    html,
-    'brand',
-    '<option value="">Toutes les marques</option>' +
-      facets.brands
-        .map((brand) => selectedOption(brand, value(params, 'brand', 'marque'), brandName))
-        .join(''),
-  );
-  html = setOptions(
-    html,
-    'range',
-    '<option value="">Toutes les gammes</option>' +
-      facets.ranges.map((item) => selectedOption(item, value(params, 'range'))).join(''),
-  );
-  html = setOptions(
-    html,
-    'viscosity',
-    '<option value="">Tous les grades</option>' +
-      facets.viscosities
-        .map((item) => selectedOption(item, value(params, 'viscosity', 'viscosite')))
-        .join(''),
-  );
-  html = setOptions(
-    html,
-    'volume',
-    '<option value="">Tous les formats</option>' +
-      facets.volumes.map((item) => selectedOption(item, value(params, 'volume'))).join(''),
-  );
-  html = setOptions(
-    html,
-    'sort',
-    [
-      ['selection', 'Sélection ENRM'],
-      ['price-up', 'Prix croissant'],
-      ['price-down', 'Prix décroissant'],
-      ['name', 'Nom A–Z'],
-    ]
-      .map(([sort, label]) =>
-        selectedOption(sort, value(params, 'sort') || 'selection', () => label),
-      )
-      .join(''),
-  );
-  html = html.replace('id="search"', `id="search" value="${esc(value(params, 'search', 'q'))}"`);
-  return html;
 }
 
 export async function generateMetadata({
@@ -155,7 +131,7 @@ export async function generateMetadata({
   searchParams: Promise<SearchParams>;
 }): Promise<Metadata> {
   const params = await searchParams;
-  const page = Math.max(1, Number.parseInt(value(params, 'page') || '1', 10) || 1);
+  const requestedPage = Math.max(1, Number.parseInt(value(params, 'page') || '1', 10) || 1);
   const hasFilters = [
     'search',
     'q',
@@ -171,10 +147,11 @@ export async function generateMetadata({
     (key) => Boolean(value(params, key)) && !(key === 'sort' && value(params, key) === 'selection'),
   );
   return {
-    title: 'Catalogue des huiles moteur',
-    description:
+    ...publicPageMetadata(
+      'Catalogue des huiles moteur',
       'Parcourez les références d’huiles moteur ENRM au Maroc par marque, formulation, viscosité et conditionnement.',
-    alternates: { canonical: !hasFilters && page > 1 ? `/catalogue?page=${page}` : '/catalogue' },
+      !hasFilters && requestedPage > 1 ? `/catalogue?page=${requestedPage}` : '/catalogue',
+    ),
     ...(hasFilters ? { robots: { index: false, follow: true } } : {}),
   };
 }
@@ -205,28 +182,160 @@ export default async function CataloguePage({
     sort: value(params, 'sort') || 'selection',
   };
   let result = await getPublicCataloguePage(filters);
-  const pages = Math.max(1, Math.ceil(result.total / pageSize));
-  const page = Math.min(requestedPage, pages);
+  const pageCount = Math.max(1, Math.ceil(result.total / pageSize));
+  const page = Math.min(requestedPage, pageCount);
   if (page !== requestedPage) result = await getPublicCataloguePage({ ...filters, page });
+  const selectedBrand = value(params, 'brand', 'marque');
 
-  let html: string = legacyPages.catalogue.html;
-  html = optionControls(html, categories, facets, params);
-  html = html.replace(
-    'Explorez les 210 variantes documentées.',
-    `Explorez ${result.total} variantes documentées.`,
+  return (
+    <>
+      <main id="main">
+        <section className="catalogue section" id="catalogue">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">LE CATALOGUE ENRM</p>
+              <h1>
+                Votre moteur.
+                <br />
+                Votre référence.
+              </h1>
+            </div>
+            <p>
+              Marques, formulations, grades et formats.
+              <br />
+              Explorez {result.total} variantes documentées.
+            </p>
+          </div>
+          <form id="catalogue-filters" action="/catalogue" method="get">
+            <div className="catalogue-toolbar">
+              <label className="search">
+                <span aria-hidden="true">⌕</span>
+                <input
+                  id="search"
+                  name="search"
+                  type="search"
+                  placeholder="Marque, gamme, 5W-30…"
+                  aria-label="Rechercher une huile"
+                  defaultValue={value(params, 'search', 'q')}
+                />
+              </label>
+              <FilterToggle />
+            </div>
+            <div className="catalogue-layout">
+              <aside className="filters" id="filters" aria-label="Filtres du catalogue">
+                <div className="filter-heading">
+                  <h2>Affiner la sélection</h2>
+                  <a className="text-link" id="reset" href="/catalogue">
+                    Tout effacer ↺
+                  </a>
+                </div>
+                <SelectField
+                  id="category"
+                  name="category"
+                  label="Catégorie"
+                  emptyLabel="Toutes les catégories"
+                  selected={categorySlug}
+                  options={categories.map((category) => ({
+                    value: category.slug,
+                    label: category.name,
+                  }))}
+                />
+                <SelectField
+                  id="brand"
+                  name="brand"
+                  label="Marque"
+                  emptyLabel="Toutes les marques"
+                  selected={selectedBrand}
+                  options={facets.brands.map((brand) => ({
+                    value: brand,
+                    label: brandName(brand),
+                  }))}
+                />
+                <SelectField
+                  id="range"
+                  name="range"
+                  label="Gamme"
+                  emptyLabel="Toutes les gammes"
+                  selected={value(params, 'range')}
+                  options={facets.ranges.map((item) => ({ value: item, label: item }))}
+                />
+                <SelectField
+                  id="viscosity"
+                  name="viscosity"
+                  label="Viscosité"
+                  emptyLabel="Tous les grades"
+                  selected={value(params, 'viscosity', 'viscosite')}
+                  options={facets.viscosities.map((item) => ({ value: item, label: item }))}
+                />
+                <SelectField
+                  id="volume"
+                  name="volume"
+                  label="Contenance"
+                  emptyLabel="Tous les formats"
+                  selected={value(params, 'volume')}
+                  options={facets.volumes.map((item) => ({ value: item, label: item }))}
+                />
+                <button className="button primary" type="submit">
+                  Afficher les résultats ↗
+                </button>
+              </aside>
+              <div className="catalogue-results">
+                <div className="results-bar">
+                  <p id="results-count" role="status">
+                    {result.total} variante{result.total !== 1 ? 's' : ''} trouvée
+                    {result.total !== 1 ? 's' : ''}
+                  </p>
+                  <label>
+                    Trier par
+                    <select
+                      id="sort"
+                      name="sort"
+                      defaultValue={value(params, 'sort') || 'selection'}
+                    >
+                      <option value="selection">Sélection ENRM</option>
+                      <option value="price-up">Prix croissant</option>
+                      <option value="price-down">Prix décroissant</option>
+                      <option value="name">Nom A–Z</option>
+                    </select>
+                  </label>
+                </div>
+                <div id="active-filters" aria-live="polite">
+                  {[
+                    selectedBrand && brandName(selectedBrand),
+                    categorySlug && categories.find((item) => item.slug === categorySlug)?.name,
+                    value(params, 'range'),
+                    value(params, 'viscosity', 'viscosite'),
+                    value(params, 'volume'),
+                    value(params, 'search', 'q') && `« ${value(params, 'search', 'q')} »`,
+                  ]
+                    .filter(Boolean)
+                    .join(' / ')}
+                </div>
+                {result.rows.length ? (
+                  <div id="product-grid" className="product-grid">
+                    {result.rows.map((product) => (
+                      <ProductCard product={product} key={product.id} />
+                    ))}
+                  </div>
+                ) : (
+                  <div id="product-grid" className="empty">
+                    <h2>
+                      {['Meyle', 'Valvoline'].includes(selectedBrand)
+                        ? 'Le catalogue arrive prochainement.'
+                        : 'Aucune référence trouvée.'}
+                    </h2>
+                    <p>Les références et visuels sont ajoutés après validation par ENRM.</p>
+                    <a className="text-link" href="/catalogue">
+                      Explorer les autres références ↗
+                    </a>
+                  </div>
+                )}
+                <Pagination page={page} pageSize={pageSize} total={result.total} params={params} />
+              </div>
+            </div>
+          </form>
+        </section>
+      </main>
+    </>
   );
-  html = html.replace(
-    /(<div[^>]*id="product-grid"[^>]*>)[\s\S]*?(<\/div>)/,
-    `$1${renderCatalogueGrid(result.rows)}$2`,
-  );
-  html = html.replace(
-    /<div class="load-area">[\s\S]*?<\/div>/,
-    paginationMarkup(page, pageSize, result.total, params),
-  );
-  const bootstrap = JSON.stringify({ products: result.rows, categories, facets }).replace(
-    /</g,
-    '\\u003c',
-  );
-  html += `<script id="catalogue-bootstrap" type="application/json">${bootstrap}</script>`;
-  return <LegacyPage name="catalogue" html={html} />;
 }

@@ -49,6 +49,7 @@ let state: AdminState,
   remoteProductIds = new Set<string>(),
   remoteProductsActive = false,
   remoteOrdersActive = false,
+  remoteOrdersLoading = false,
   remoteOrdersTotal = 0,
   remoteActionableCount = 0,
   remoteProductsTotal = 0,
@@ -345,6 +346,7 @@ async function refreshCurrentRemotePage() {
     if (selection !== null) input.setSelectionRange(selection, selection);
   };
   if (view === 'orders' || view === 'customers') remoteOrdersActive = false;
+  remoteOrdersLoading = view === 'orders';
   if (view === 'products' || view === 'inventory') remoteProductsActive = false;
   render();
   restoreFocus();
@@ -357,9 +359,11 @@ async function refreshCurrentRemotePage() {
           ? await refreshRemoteCustomers(options, requestId)
           : await refreshRemoteProducts(options, requestId);
     if (requestId !== remotePageRequest) return;
+    remoteOrdersLoading = false;
     if (!ok) toast('Les données ne sont pas disponibles. Réessayez.');
   } catch (error) {
     if (requestId !== remotePageRequest) return;
+    remoteOrdersLoading = false;
     if (view === 'orders' || view === 'customers') remoteOrdersActive = false;
     if (view === 'products' || view === 'inventory') remoteProductsActive = false;
     toast(error instanceof Error ? error.message : 'Les données ne sont pas disponibles.');
@@ -450,6 +454,7 @@ function render() {
     today,
     remoteProductsActive,
     remoteOrdersActive,
+    remoteOrdersLoading,
     connectedAdmin: Boolean(supabase && adminAuthenticated),
     remoteOrdersTotal,
     remoteProductsTotal,
@@ -1057,6 +1062,7 @@ addEventListener('hashchange', async () => {
   if (requestedRoute === 'products' || requestedRoute === 'inventory') remoteProductsActive = false;
   if (['orders', 'overview', 'customers', 'analytics', 'search'].includes(requestedRoute))
     remoteOrdersActive = false;
+  remoteOrdersLoading = requestedRoute === 'orders';
   if (['overview', 'analytics'].includes(requestedRoute)) {
     remoteProductsActive = false;
     dashboardSummary = null;
@@ -1066,6 +1072,7 @@ addEventListener('hashchange', async () => {
   render();
   const hasAccess = !supabase || (await hasRemoteAdminAccess());
   if (!hasAccess && !adminAuthenticated && requestedRoute !== 'categories') {
+    remoteOrdersLoading = false;
     navigate('categories');
     return;
   }
@@ -1091,6 +1098,7 @@ addEventListener('hashchange', async () => {
       }
     }
   } catch (error) {
+    remoteOrdersLoading = false;
     if (route === 'products' || route === 'inventory') remoteProductsActive = false;
     if (['orders', 'overview', 'customers', 'analytics', 'search'].includes(route))
       remoteOrdersActive = false;
@@ -1100,6 +1108,7 @@ addEventListener('hashchange', async () => {
     }
     toast(error instanceof Error ? error.message : 'Les données ne sont pas disponibles.');
   }
+  remoteOrdersLoading = false;
   render();
 });
 addEventListener('enrm-admin-authenticated', async () => {

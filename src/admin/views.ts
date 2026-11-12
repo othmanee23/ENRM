@@ -14,6 +14,7 @@ interface ViewContext {
   today: Date;
   remoteProductsActive?: boolean;
   remoteOrdersActive?: boolean;
+  remoteOrdersLoading?: boolean;
   connectedAdmin?: boolean;
   remoteOrdersTotal?: number;
   remoteProductsTotal?: number;
@@ -29,6 +30,7 @@ export function createAdminViews({
   today,
   remoteProductsActive = false,
   remoteOrdersActive = false,
+  remoteOrdersLoading = false,
   connectedAdmin = false,
   remoteOrdersTotal = 0,
   remoteProductsTotal = 0,
@@ -252,7 +254,9 @@ export function createAdminViews({
     if (connectedAdmin && !remoteOrdersActive)
       return (
         title('Commandes', 'Demandes reçues depuis la boutique.') +
-        unavailable('Les demandes de commande ne sont pas disponibles.')
+        (remoteOrdersLoading
+          ? '<section class="panel settings-body" role="status" aria-live="polite"><h2>Chargement des demandes…</h2><p>Connexion aux demandes de la boutique ENRM.</p></section>'
+          : unavailable('Les demandes de commande ne sont pas disponibles.'))
       );
     const rows =
       connectedAdmin && remoteOrdersActive

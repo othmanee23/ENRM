@@ -2,9 +2,11 @@
 
 ENRM is a French-language automotive oils catalogue and order-request website for Morocco. Customers browse exact product variants and submit a request with their phone number. ENRM administrators then contact customers and update each request’s status. The website does not collect payments.
 
-## Current migration state
+## Current state
 
-The project is being migrated from Vite and direct DOM scripts to Next.js App Router. The current branch is `fix/nextjs-migration`. Next routes, server rendering, metadata, structured product URLs, cart and checkout pages, and the Cloudflare OpenNext Worker build are in place. Existing storefront and administration screens still use a generated HTML and DOM compatibility runtime in parts of the app; see [MIGRATION_REPORT.md](./MIGRATION_REPORT.md) for remaining work. Do not treat this branch as a production cutover.
+The public site uses Next.js App Router and React. Catalogue and product pages render on the server; product metadata and canonical URLs are generated from catalogue records. Supabase provides the database, authentication, storage, and order-request RPCs. Cloudflare Workers is the deployment target through OpenNext.
+
+The storefront routes and shared controls are React components. `/admin` is guarded by a Next.js server-side auth check and now has a JSX shell, while its feature screens and data workflows still run through the existing imperative `src/admin/main.ts` and `src/admin/views.ts`. Root-level HTML entry pages have been removed; HTML under `tests/fixtures/` is test-only. Legacy public URLs permanently redirect to Next.js routes. See [MIGRATION_REPORT.md](./MIGRATION_REPORT.md) for implementation and verification history. The current branch is `fix/nextjs-migration`; a successful local build is not a production release.
 
 ## Stack
 
@@ -33,6 +35,7 @@ npm run typecheck
 npm test
 npm run build          # Next build plus OpenNext Worker bundle
 npm run build:next     # Next build only
+npm run check:build    # Verify the generated Worker and packaged public assets
 npm run preview        # Local Cloudflare Worker preview
 npx wrangler deploy --dry-run
 ```
@@ -42,9 +45,10 @@ npx wrangler deploy --dry-run
 ## Key locations
 
 - `src/app/` — App Router layouts, public routes, metadata, sitemap, robots, cart, checkout, and admin entry point.
-- `src/components/` — shared storefront shell, server-rendered legacy markup wrapper, and cart/checkout client components.
-- `src/lib/` — server-only catalogue reads, public Supabase clients, rendering helpers, and product slug lookup.
-- `src/storefront/`, `src/admin/`, `src/shared/` — existing feature logic being migrated; some modules still drive the compatibility screens.
+- `src/components/` — React storefront shell, cards, stateful cart controls, checkout, and the JSX admin shell.
+- `src/lib/` — catalogue reads, Supabase clients, SEO helpers, and product slug lookup.
+- `src/admin/main.ts` and `src/admin/views.ts` — existing admin workflows and screen rendering; migration to React feature screens remains open.
+- `tests/fixtures/` — static HTML inputs for isolated compatibility tests only; these files are not deployed pages.
 - `public/catalogue.json` — fallback catalogue containing 210 preserved product variants.
 - `public/assets/` — brand identity, images, fonts, and videos.
 - `supabase/migrations/` — forward-only schema/security history; no production schema changes were made for this frontend migration.
@@ -55,7 +59,7 @@ npx wrangler deploy --dry-run
 
 Product variants remain distinct by immutable database ID, formulation, and packaging size. Categories are database records, loaded dynamically, so authorized administrators can add categories without hard-coded storefront categories. Public catalogue reads use published rows and Supabase RLS. Order creation uses the existing `place_enrm_order` RPC, which remains authoritative for current prices, publication, stock, transactionality, and idempotency. Checkout asks for the customer’s name, phone, city, delivery address, and privacy acknowledgment. No payment gateway is used.
 
-The admin’s orders, products, inventory, and category workflows use existing Supabase authorization and policies when connected. Customers, analytics, promotions, and some settings remain demo-only in the legacy admin and are not authoritative hosted records.
+The admin’s orders, products, inventory, and category workflows use existing Supabase authorization and policies when connected. Customers and analytics derive from order data; promotions and shared settings are not configured as persistent features.
 
 ## Deployment
 

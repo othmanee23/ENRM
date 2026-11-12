@@ -6,17 +6,17 @@ ENRM is a French-language product catalogue and order-request platform for an au
 
 ## Technology stack
 
-| Layer          | Technology                                         | Responsibility                                                                                                                  |
-| -------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Web framework  | Next.js App Router                                 | Route handling, server-rendered pages, metadata, sitemap, robots, and Cloudflare-compatible output                              |
-| UI             | React and TypeScript (strict)                      | Shared layouts and interactive cart and checkout; some existing screens still run through a temporary DOM compatibility runtime |
-| Styling        | Tailwind CSS 4 plus retained ENRM stylesheets      | Utility styling and preservation of the established visual identity during migration                                            |
-| Database       | Supabase PostgreSQL                                | Categories, products, inventory, order requests, order items, and status history                                                |
-| Authentication | Supabase Auth                                      | Administrator sign-in and session handling                                                                                      |
-| Authorization  | Supabase Row Level Security and database functions | Enforce public reads, administrator writes, inventory privacy, and order-request permissions                                    |
-| Media          | Supabase Storage plus checked-in `public/assets/`  | Product media and brand assets                                                                                                  |
-| Hosting        | Cloudflare Workers via OpenNext                    | Run the Next.js server application at the Cloudflare edge                                                                       |
-| Verification   | TypeScript, Vitest, and jsdom                      | Type and workflow regression checks                                                                                             |
+| Layer          | Technology                                         | Responsibility                                                                                                                   |
+| -------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Web framework  | Next.js App Router                                 | Route handling, server-rendered pages, metadata, sitemap, robots, and Cloudflare-compatible output                               |
+| UI             | React and TypeScript (strict)                      | Server-rendered public pages and React storefront interactions; admin shell is JSX while admin feature screens remain imperative |
+| Styling        | Tailwind CSS 4 plus retained ENRM stylesheets      | Utility styling and preservation of the established visual identity during migration                                             |
+| Database       | Supabase PostgreSQL                                | Categories, products, inventory, order requests, order items, and status history                                                 |
+| Authentication | Supabase Auth                                      | Administrator sign-in and session handling                                                                                       |
+| Authorization  | Supabase Row Level Security and database functions | Enforce public reads, administrator writes, inventory privacy, and order-request permissions                                     |
+| Media          | Supabase Storage plus checked-in `public/assets/`  | Product media and brand assets                                                                                                   |
+| Hosting        | Cloudflare Workers via OpenNext                    | Run the Next.js server application at the Cloudflare edge                                                                        |
+| Verification   | TypeScript, Vitest, and jsdom                      | Type and workflow regression checks                                                                                              |
 
 No separate API server, Prisma layer, alternate authentication service, or payment gateway is used.
 
@@ -26,7 +26,7 @@ The application serves the homepage, catalogue, product details, advice, contact
 
 The catalogue contains 210 distinct existing variants. A variant is identified by its original product ID and preserves its formulation, packaging, price, and image references. Product URLs include a normalized descriptive label and the immutable ID suffix to avoid collisions. Existing `.html` product links are redirected or resolved to the new routes.
 
-Visitors can search and filter by category, brand, range, viscosity, and package size, sort results, choose exact packaging variants, and use a browser-persisted cart. The order-request form asks for a name, phone number, city, delivery address, and privacy acknowledgment. The displayed subtotal is indicative. Checkout sends only product IDs, quantities, customer details, and a unique request ID to the existing Supabase function. It does not create a payment or finalize availability, delivery cost, or final price.
+Visitors can search and filter by category, brand, range, viscosity, and package size, sort results, choose exact packaging variants, and use a browser-persisted cart. Public pages render through Next.js and React. React state manages cart updates, the product gallery, mobile menu, filters, product rails, advice feedback, and video controls; a React effect manages page scroll and reveal motion. The order-request form asks for a name, phone number, city, delivery address, and privacy acknowledgment. The displayed subtotal is indicative. Checkout sends only product IDs, quantities, customer details, and a unique request ID to the existing Supabase function. It does not create a payment or finalize availability, delivery cost, or final price.
 
 ## Administrator experience
 
@@ -60,6 +60,6 @@ These are browser-visible values by design; never configure a Supabase service-r
 
 ## Migration status and limits
 
-The repository is on `fix/nextjs-migration`. App Router routing, server-side rendering for the main commerce content, category/product queries, SEO metadata, structured URLs, no-payment cart/checkout pages, and an OpenNext Worker artifact are implemented. The generated compatibility layer still embeds the original checked-in page markup, while `src/storefront/main.ts` and much of `src/admin/main.ts` remain imperative DOM applications loaded as browser modules. Therefore the build is a working migration stage, not yet a complete React component rewrite. The old Vite page entry files and test harness are retained during the transition.
+The repository is on `fix/nextjs-migration`. App Router routing, server-side rendering for public content, category/product queries, SEO metadata, structured URLs, no-payment cart/checkout pages, and an OpenNext Worker artifact are implemented. Root public HTML pages have been removed and their legacy URLs redirect to Next.js routes. Root HTML entry pages and generated legacy page modules have been removed. The storefront uses React components for cart updates, galleries, catalogue filter toggling, rail scrolling, advice-form feedback, and video controls; shared scroll/reveal effects are managed by a React effect. The `/admin` route retains its server-side authorization gate and now renders a JSX shell, but feature screens and workflows still use the imperative `src/admin/main.ts` and `src/admin/views.ts`. HTML under `tests/fixtures/` is test-only. Admin feature migration and hosted staging verification remain outstanding; this is not a production release.
 
-No hosted Supabase schema migration was applied, no production data was rewritten, no service-role secret was added, and no production Worker was deployed. Before cutover, finish replacing the compatibility HTML and DOM runtime with React components, validate the experimental OpenNext Proxy session-refresh behavior in a staging Worker, test authentication and RLS with admin/non-admin accounts, validate all public routes visually, configure the new Cloudflare build variable names, and test against a non-production Supabase project.
+No hosted Supabase schema migration was applied, no production data was rewritten, no service-role secret was added, and no production Worker was deployed. Before cutover, migrate the remaining admin feature screens from `src/admin/main.ts` and `src/admin/views.ts` to React, validate the OpenNext Edge middleware session-refresh behavior in a staging Worker, test authentication and RLS with admin/non-admin accounts, configure the Cloudflare build variables, and test against a confirmed non-production Supabase project.

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { CartCount } from './CartCount';
+import { MobileMenu } from './StorefrontControls';
+import { AdviceMiniForm } from './AdviceMiniForm';
 
 export function StorefrontChrome({ children }: { children: ReactNode }) {
   return (
@@ -44,23 +46,9 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
               <CartCount />
             </span>
           </a>
-          <button
-            className="menu-button"
-            id="menu-button"
-            aria-label="Ouvrir le menu"
-            aria-expanded="false"
-            aria-controls="mobile-nav"
-          >
-            ☰
-          </button>
+          <MobileMenu />
         </div>
       </header>
-      <nav className="mobile-nav" id="mobile-nav" aria-label="Navigation mobile" hidden>
-        <a href="/catalogue">Toutes les huiles ↗</a>
-        <a href="/#marques">Les marques ↗</a>
-        <a href="/conseil">Trouver mon huile ↗</a>
-        <a href="/a-propos">À propos d’ENRM ↗</a>
-      </nav>
       {children}
       <section className="advice-studio section motion-scene" id="conseil">
         <div className="advice-studio-heading">
@@ -76,39 +64,7 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
             <br />
             avec votre moteur.
           </h3>
-          <form id="advice-mini">
-            <label>
-              Marque du véhicule
-              <input
-                name="marque"
-                autoComplete="off"
-                placeholder="Ex. Renault"
-                required
-                maxLength={80}
-              />
-            </label>
-            <div className="advice-mini-row">
-              <label>
-                Modèle
-                <input name="modele" placeholder="Ex. Clio" required maxLength={80} />
-              </label>
-              <label>
-                Année
-                <input
-                  name="annee"
-                  type="number"
-                  min={1950}
-                  max={2027}
-                  placeholder="2020"
-                  required
-                />
-              </label>
-            </div>
-            <button className="button primary" type="submit">
-              Préparer mon conseil <span>↗</span>
-            </button>
-            <p className="muted">Demande préparée sur le site. Aucun diagnostic automatique.</p>
-          </form>
+          <AdviceMiniForm />
         </div>
       </section>
       <footer className="footer-v5" id="footer">
@@ -160,22 +116,6 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
           </div>
         </div>
       </footer>
-      <dialog id="cart-dialog" className="drawer" aria-label="Panier">
-        <div className="dialog-top">
-          <h2>Votre panier.</h2>
-          <button className="close" aria-label="Fermer">
-            ×
-          </button>
-        </div>
-        <div id="cart-content"></div>
-      </dialog>
-      <dialog id="flow-dialog" className="flow-dialog" aria-label="Votre demande">
-        <button className="close" aria-label="Fermer">
-          ×
-        </button>
-        <div id="flow-content"></div>
-      </dialog>
-      <div className="toast" id="toast" role="status"></div>
     </>
   );
 }

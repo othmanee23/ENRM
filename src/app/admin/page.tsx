@@ -1,11 +1,5 @@
-import { LegacyPage } from '../../components/legacy/LegacyPage';
-import { LegacyRuntime } from '../../components/legacy/LegacyRuntime';
+import { AdminWorkspace } from '../../components/admin/AdminWorkspace';
 
 export default function AdminPage() {
-  return (
-    <>
-      <LegacyRuntime page="admin" />
-      <LegacyPage name="admin" />
-    </>
-  );
+  return <AdminWorkspace />;
 }

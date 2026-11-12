@@ -1,16 +1,17 @@
 import type { MetadataRoute } from 'next';
+import { getSiteUrl } from '../lib/seo';
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://enrm.ma';
+  const siteUrl = getSiteUrl();
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/login', '/panier', '/commande', '/api/'],
+        disallow: ['/api/'],
       },
     ],
-    sitemap: `${siteUrl}/sitemap.xml`,
-    host: siteUrl,
+    sitemap: new URL('/sitemap.xml', siteUrl).href,
+    host: new URL(siteUrl).origin,
   };
 }
