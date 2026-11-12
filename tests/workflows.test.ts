@@ -145,6 +145,35 @@ it('renders every admin screen, creates a product and order, and persists the st
     ).not.toContain('undefined');
   }
   expect(q('#react-admin-summary').textContent).toContain('Youssef Démo');
+  act(() =>
+    window.dispatchEvent(
+      new CustomEvent('enrm-admin-navigation', {
+        detail: {
+          view: 'orders',
+          restricted: true,
+          actionableOrders: null,
+          orders: [],
+          customers: [],
+          connectedAdmin: false,
+          remoteOrdersActive: false,
+          remoteOrdersLoading: false,
+          remoteOrdersTotal: 0,
+          remoteCustomersTotal: 0,
+          query: '',
+          filter: 'Tous',
+          page: 1,
+          products: [],
+          remoteProductsActive: false,
+          remoteProductsTotal: 0,
+          stockThreshold: 10,
+          period: 30,
+          dashboardSummary: null,
+        },
+      }),
+    ),
+  );
+  expect(q('#react-admin-orders').textContent).toContain('Accès administrateur requis');
+  expect(document.querySelector('[data-action="new-order"]')).toBeNull();
   await go('settings');
   change('#settings-form [name="threshold"]', '12');
   submit('#settings-form');

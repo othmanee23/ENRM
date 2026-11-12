@@ -70,6 +70,17 @@ export function AdminCustomersPanel() {
   );
 
   if (data.view !== 'customers') return null;
+  if (data.restricted) {
+    return (
+      <main id="react-admin-customers">
+        <Heading connected />
+        <section className="panel settings-body" role="status">
+          <h2>Accès administrateur requis</h2>
+          <p>Vérification de la session et des droits en cours.</p>
+        </section>
+      </main>
+    );
+  }
   if (data.connectedAdmin && !data.remoteOrdersActive)
     return (
       <main id="react-admin-customers">

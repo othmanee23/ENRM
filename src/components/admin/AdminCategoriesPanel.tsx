@@ -29,6 +29,7 @@ export function AdminCategoriesPanel() {
   const [sortOrder, setSortOrder] = useState('0');
   const [active, setActive] = useState(true);
   const [view, setView] = useState('overview');
+  const [restricted, setRestricted] = useState(false);
 
   const load = useCallback(async () => {
     if (!supabase) {
@@ -51,9 +52,10 @@ export function AdminCategoriesPanel() {
 
   useEffect(() => {
     const onNavigation = (event: Event) => {
-      const nextView = (event as CustomEvent<{ view: string }>).detail.view;
-      setView(nextView);
-      if (nextView === 'categories') void load();
+      const detail = (event as CustomEvent<{ view: string; restricted: boolean }>).detail;
+      setView(detail.view);
+      setRestricted(detail.restricted);
+      if (detail.view === 'categories' && !detail.restricted) void load();
     };
     window.addEventListener('enrm-admin-navigation', onNavigation);
     return () => window.removeEventListener('enrm-admin-navigation', onNavigation);
@@ -123,6 +125,23 @@ export function AdminCategoriesPanel() {
   }
 
   if (view !== 'categories') return null;
+
+  if (restricted) {
+    return (
+      <main id="react-admin-categories">
+        <div className="page-heading">
+          <div>
+            <p className="eyebrow">STRUCTURE DU CATALOGUE</p>
+            <h1>Catégories</h1>
+          </div>
+        </div>
+        <section className="panel settings-body" role="status">
+          <h2>Accès administrateur requis</h2>
+          <p>Vérification de la session et des droits en cours.</p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main id="react-admin-categories">

@@ -80,6 +80,17 @@ export function AdminOrdersPanel() {
   }, [data, customerById]);
 
   if (data.view !== 'orders') return null;
+  if (data.restricted) {
+    return (
+      <main id="react-admin-orders">
+        <PageHeading connected />
+        <section className="panel settings-body" role="status">
+          <h2>Accès administrateur requis</h2>
+          <p>Vérification de la session et des droits en cours.</p>
+        </section>
+      </main>
+    );
+  }
   if (data.connectedAdmin && !data.remoteOrdersActive) {
     return (
       <main id="react-admin-orders">

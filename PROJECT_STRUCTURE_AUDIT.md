@@ -78,6 +78,7 @@ The admin UI is not yet a complete React-native data flow: all screens render th
 ## Security boundary
 
 - The `/admin` server layout fails closed unless verified Supabase claims and a current admin profile role are present. Middleware refreshes cookies for `/admin`, `/login`, and `/reset-password` and sets CSP-related response headers.
+- Client-side admin navigation hides previously loaded records until the current role is checked again. React panels also suppress data and create/edit actions while access is restricted.
 - The browser receives only the Supabase URL and anon key. No service-role credential belongs in a browser bundle.
 - PostgreSQL RLS, table privileges, storage policies, and role-checking RPCs remain the true authorization boundary for direct browser Supabase calls. A hidden nav item or React state is not authorization.
 - `place_enrm_order` is intentionally callable by anonymous customers to create requests; it validates current products/prices/stock in the database. `update_enrm_order` and product/stock mutations require admin authorization.

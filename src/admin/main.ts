@@ -1076,6 +1076,8 @@ addEventListener('hashchange', async () => {
   remotePageRequest += 1;
   const requestedRoute = location.hash.slice(1).split('?')[0];
   if (!state) return;
+  // Hide every previously loaded admin record until the current role is reverified.
+  adminAuthenticated = !supabase;
   query = '';
   filter = 'Tous';
   page = 1;
