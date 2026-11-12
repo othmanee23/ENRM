@@ -144,6 +144,7 @@ it('renders every admin screen, creates a product and order, and persists the st
       ).textContent,
     ).not.toContain('undefined');
   }
+  expect(q('#react-admin-summary').textContent).toContain('Youssef Démo');
   await go('settings');
   change('#settings-form [name="threshold"]', '12');
   submit('#settings-form');
