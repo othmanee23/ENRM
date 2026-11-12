@@ -450,6 +450,20 @@ function render() {
               : state.orders.filter((o) =>
                   ['À confirmer', 'À préparer', 'En préparation'].includes(o.status),
                 ).length,
+        orders: restricted ? [] : state.orders,
+        customers: restricted ? [] : state.customers,
+        connectedAdmin: Boolean(supabase && adminAuthenticated),
+        remoteOrdersActive,
+        remoteOrdersLoading,
+        remoteOrdersTotal,
+        remoteCustomersTotal,
+        query,
+        filter,
+        page,
+        products: restricted ? [] : state.products,
+        remoteProductsActive,
+        remoteProductsTotal,
+        stockThreshold: state.settings.threshold,
       },
     }),
   );
@@ -469,10 +483,15 @@ function render() {
     remoteCustomersTotal,
     dashboardSummary,
   });
-  if (view === 'categories') mountCategoryManager($('#workspace'));
-  else $('#workspace').innerHTML = renderers[view]();
-  $('#workspace').classList.remove('page-enter');
-  requestAnimationFrame(() => $('#workspace').classList.add('page-enter'));
+  const workspace = $('#workspace');
+  const reactManagedView = ['orders', 'products', 'inventory', 'customers'].includes(view);
+  workspace.hidden = reactManagedView;
+  if (reactManagedView) {
+    // The React admin panels own these list screens; existing mutations remain authoritative.
+  } else if (view === 'categories') mountCategoryManager(workspace);
+  else workspace.innerHTML = renderers[view]();
+  workspace.classList.remove('page-enter');
+  requestAnimationFrame(() => workspace.classList.add('page-enter'));
   document.body.classList.remove('menu-open');
   $('#scrim').hidden = true;
   $('#mobile-menu').setAttribute('aria-expanded', 'false');

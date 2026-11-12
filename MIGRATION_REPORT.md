@@ -2,7 +2,7 @@
 
 ## Summary
 
-The repository now uses Next.js App Router and an OpenNext Cloudflare Worker build while preserving the current business model, catalogue identifiers, database, and existing order RPC. The public storefront and shared controls are React-rendered; the admin feature screens still use imperative DOM rendering behind a React JSX shell. No production deployment or hosted Supabase changes have been made. See “Remaining migration work” before planning a production cutover.
+The repository now uses Next.js App Router and an OpenNext Cloudflare Worker build while preserving the current business model, catalogue identifiers, database, and existing order RPC. The public storefront and shared controls are React-rendered; the admin shell/navigation and orders, products, inventory, and customers tables are also React-rendered. Categories and overview/analytics/promotions/settings remain on the imperative renderer, with editors and data workflows still split across both implementations. No production deployment or hosted Supabase changes have been made. See “Remaining migration work” before planning a production cutover.
 
 ## Architecture decisions
 
@@ -60,7 +60,7 @@ The OpenNext patch update removed the four high-severity findings from the previ
 
 ## Remaining migration work before production cutover
 
-1. Replace the imperative admin feature screens (`src/admin/main.ts` and `src/admin/views.ts`) with React components and preserve the server-side auth gate and existing database contracts.
+1. Continue the admin React migration for categories, overview/analytics, promotions/settings decisions, and product/order editors. Keep the server-side auth gate and existing database contracts.
 2. Add targeted UI regression coverage for cart updates across tabs, mobile navigation, catalogue filters, gallery selection, and browser video/reduced-motion behavior.
 3. Run a complete local route and security smoke audit for canonical slugs, malformed/legacy URLs, access control, session refresh, logout, and order lifecycle.
 4. Use a confirmed non-production Supabase project to verify the live RPC shape, idempotency, stock rollback, and admin status-history behavior. Do not run these checks against production.
@@ -156,10 +156,26 @@ No hosted environment variables, DNS, Supabase project, Cloudflare resources, or
 - Updated build/check commands and current-state documentation. `format` commands no longer expect root HTML pages.
 - Validation at this entry: `npm run typecheck` passed. The test suite later passed with 29 tests in 4 files under the supported Node runtime. The default `/usr/local/bin/node` is v22.12.0, below the repo's declared `>=22.22.2`; Vitest's transitive Undici requires newer Node APIs, so run project commands with the installed Homebrew Node 22.23.3. The OpenNext build/package and formatting checks have since passed. React interaction tests (including the admin navigation boundary) and local HTTP route/security checks have also passed. Hosted staging verification remains outstanding. No production service or paid resource was changed.
 
+## Follow-up implementation (2026-11-12): React admin orders screen
+
+- Migrated the admin orders list to `AdminOrdersPanel`, including status badges, customer summaries, totals, paging, loading/error states, export, and demo-only order creation. Existing authenticated order editing/status updates and the database RPC remain the authority for mutations.
+- Kept the server-side `/admin` role gate. Other admin screens remain on the existing imperative renderer; the admin feature migration is still partial.
+- Updated the admin workflow regression to mount the real JSX shell and React orders list. It still exercises product creation, order creation, and stock deduction using local demo data.
+
 ## Final local verification update (2026-11-12)
 
-- `PATH=/opt/homebrew/opt/node@22/bin:$PATH npm run format:check`, `npm run typecheck`, and `npm test` passed. Vitest ran 31 tests across 4 files.
+- `PATH=/opt/homebrew/opt/node@22/bin:$PATH npm run format:check`, `npm run typecheck`, and `npm test` passed. Vitest ran 31 tests across 4 files, including the React admin order screen workflow.
 - `npm run build` and `npm run check:build` passed; the Worker package includes all 210 catalogue rows and their public media. `npx wrangler deploy --dry-run` packaged about 6.97 MiB and exited without publishing.
 - Read-only local HTTP smoke checks: public routes returned 200; `/admin` redirected unauthenticated access to `/login`; `/admin.html` and old public HTML URLs redirected; a known product route returned 200 with JSON-LD; a wrong label for a valid ID redirected to canonical; unknown/invalid product IDs returned 404; `/product.html?id=...` redirected to canonical.
-- A browser opened the local storefront and exposed all expected React-rendered product cards and controls. React jsdom tests verified cart persistence/count, mobile menu state, gallery selection, filter panel state, and local-only advice feedback.
+- A browser opened the local storefront and exposed all expected React-rendered product cards and controls. React jsdom tests verified cart persistence/count, mobile menu state, gallery selection, filter panel state, local-only advice feedback, admin navigation, and the admin order workflow.
 - This does not complete admin feature migration or hosted staging verification. No production deployment, production database mutation, or paid service change occurred.
+
+## Follow-up implementation (2026-11-12): React admin data tables and project structure audit
+
+- Migrated the admin products, inventory, and customers tables to React components alongside the existing React orders table. They receive state from the current admin coordinator; existing edits, stock updates, order actions, Supabase RPCs, and RLS policies remain the mutation/security path.
+- Updated the admin workflow regression to mount the JSX shell and assert the React-rendered routes. Removed the former HTML shell fixture; there are no physical `.html` source entry pages. Legacy `.html` paths are compatibility redirects, including the TypeScript route handler at `/product.html`.
+- Added `PROJECT_STRUCTURE_AUDIT.md` covering source tree, route map, HTML history, slugs, admin rendering split, security boundary, and production readiness limits. Updated README and project description to match current implementation.
+- Slug review confirms stable product IDs are part of URLs, only published products resolve, and a valid product ID with a noncanonical description redirects to the canonical product path. Category rows are dynamically loaded and admin-created categories do not require a code change; parent/child editing is not exposed in the current UI.
+- Resolved prior audit concern on uploaded Storage URLs: `resolveMediaUrl` preserves safe HTTPS URLs and is used by product detail metadata/rendering and cart; local paths are normalized safely. The current admin product preview is separate and should be checked during future editor migration.
+- Remaining imperatively rendered admin areas are category management and overview/analytics/promotions/settings. Editors and some data workflows remain in `src/admin/main.ts`; this is a mixed migration, not a fully React-native admin.
+- Local verification and any outstanding commands are recorded in the final status below. No hosted Supabase, Cloudflare dashboard, DNS, production data, or deployment was changed.

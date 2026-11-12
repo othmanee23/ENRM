@@ -1,25 +1,45 @@
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { act, createElement } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { AdminWorkspace } from '../src/components/admin/AdminWorkspace';
 import type { AdminState } from '../src/shared/types';
 const catalogue = JSON.parse(readFileSync('public/catalogue.json', 'utf8'));
 const listeners: Array<
   [string, EventListenerOrEventListenerObject, boolean | AddEventListenerOptions | undefined]
 > = [];
 const q = <T extends HTMLElement = HTMLElement>(s: string): T => document.querySelector(s)!;
-function mount(file: string, url: string) {
-  const html = readFileSync(file, 'utf8');
-  document.documentElement.innerHTML = html
-    .replace(/<!doctype html>/i, '')
-    .replace(/<\/?html[^>]*>/g, '');
+let adminRoot: Root | null = null;
+function mountAdmin(url: string) {
+  const host = document.createElement('div');
+  document.body.append(host);
+  adminRoot = createRoot(host);
   history.replaceState(null, '', url);
-  document.body.dataset.page = 'admin';
 }
 function change(selector: string, value: string) {
   const el = q<HTMLInputElement | HTMLSelectElement>(selector);
   el.value = value;
-  el.dispatchEvent(
-    new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }),
+  act(() =>
+    el.dispatchEvent(
+      new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }),
+    ),
   );
+}
+async function go(route: string) {
+  await act(async () => {
+    history.replaceState(null, '', `/admin#${route}`);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  });
+  const reactPanel =
+    route === 'orders'
+      ? '#react-admin-orders h1'
+      : ['products', 'inventory'].includes(route)
+        ? '#react-admin-products h1'
+        : route === 'customers'
+          ? '#react-admin-customers h1'
+          : '#workspace h1';
+  await vi.waitFor(() => expect(q(reactPanel)).not.toBeNull());
 }
 function submit(selector: string) {
   q<HTMLFormElement>(selector).dispatchEvent(
@@ -27,6 +47,10 @@ function submit(selector: string) {
   );
 }
 beforeEach(() => {
+  Object.defineProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT', {
+    configurable: true,
+    value: true,
+  });
   vi.resetModules();
   localStorage.clear();
   Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
@@ -73,15 +97,20 @@ beforeEach(() => {
   });
 });
 afterEach(() => {
+  if (adminRoot) act(() => adminRoot?.unmount());
+  adminRoot = null;
   for (const args of listeners.splice(0)) document.removeEventListener(...args);
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   document.body.innerHTML = '';
 });
 it('renders every admin screen, creates a product and order, and persists the stock deduction', async () => {
-  mount('tests/fixtures/admin-shell.html', '/admin');
-  await import('../src/admin/main');
-  await vi.waitFor(() => expect(q('#workspace').textContent).toContain('Vue d’ensemble'));
+  mountAdmin('/admin');
+  await act(async () => {
+    adminRoot!.render(createElement(AdminWorkspace));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  await vi.waitFor(() => expect(q('#workspace h1')).not.toBeNull());
   for (const route of [
     'orders',
     'products',
@@ -92,13 +121,32 @@ it('renders every admin screen, creates a product and order, and persists the st
     'settings',
     'overview',
   ]) {
-    history.replaceState(null, '', `/admin#${route}`);
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-    expect(q('#workspace h1')).not.toBeNull();
-    expect(q('#workspace').textContent).not.toContain('undefined');
+    await go(route);
+    expect(
+      (route === 'orders'
+        ? q('#react-admin-orders')
+        : ['products', 'inventory'].includes(route)
+          ? q('#react-admin-products')
+          : route === 'customers'
+            ? q('#react-admin-customers')
+            : q('#workspace')
+      ).textContent,
+    ).not.toContain('undefined');
   }
-  history.replaceState(null, '', '/admin#products');
-  window.dispatchEvent(new HashChangeEvent('hashchange'));
+  await go('customers');
+  change('#local-query', 'Youssef Démo');
+  await vi.waitFor(() =>
+    expect(q('#react-admin-customers tbody tr').textContent).toContain('Youssef Démo'),
+  );
+  expect(document.querySelectorAll('#react-admin-customers tbody tr')).toHaveLength(1);
+  change('#local-query', '');
+  await go('products');
+  change('#local-query', 'ENRM-HM-006');
+  await vi.waitFor(() =>
+    expect(q('#react-admin-products tbody tr').textContent).toContain('ENRM-HM-006'),
+  );
+  expect(document.querySelectorAll('#react-admin-products tbody tr')).toHaveLength(1);
+  change('#local-query', '');
   await vi.waitFor(() => expect(q('[data-action="new-product"]')).not.toBeNull());
   q('[data-action="new-product"]').click();
   change('#product-form [name="name"]', 'Test formulation');
@@ -109,9 +157,14 @@ it('renders every admin screen, creates a product and order, and persists the st
   change('#product-form [name="stock"]', '10');
   submit('#product-form');
   await vi.waitFor(() => expect(q<HTMLDialogElement>('#editor').open).toBe(false));
-  history.replaceState(null, '', '/admin#orders');
-  window.dispatchEvent(new HashChangeEvent('hashchange'));
-  await vi.waitFor(() => expect(q('[data-action="new-order"]')).not.toBeNull());
+  await go('orders');
+  change('#local-query', 'EN-1048');
+  await vi.waitFor(() =>
+    expect(q('#react-admin-orders tbody tr').textContent).toContain('EN-1048'),
+  );
+  expect(document.querySelectorAll('#react-admin-orders tbody tr')).toHaveLength(1);
+  change('#local-query', '');
+  expect(q('[data-action="new-order"]')).not.toBeNull();
   q('[data-action="new-order"]').click();
   change('#new-order [name="product"]', 'ENRM-TEST-001');
   change('#new-order [name="quantity"]', '2');

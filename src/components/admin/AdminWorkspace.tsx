@@ -2,6 +2,9 @@
 
 import { useEffect } from 'react';
 import { AdminNavigation } from './AdminNavigation';
+import { AdminOrdersPanel } from './AdminOrdersPanel';
+import { AdminProductsPanel } from './AdminProductsPanel';
+import { AdminCustomersPanel } from './AdminCustomersPanel';
 
 export function AdminWorkspace() {
   useEffect(() => {
@@ -80,6 +83,9 @@ export function AdminWorkspace() {
           <button className="icon-button" id="notifications" aria-label="Voir les alertes" />
           <span className="avatar top-avatar">EA</span>
         </header>
+        <AdminOrdersPanel />
+        <AdminProductsPanel />
+        <AdminCustomersPanel />
         <main id="workspace" tabIndex={-1}>
           <div className="loading">Chargement des données ENRM…</div>
         </main>
