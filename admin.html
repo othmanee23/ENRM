@@ -17,7 +17,9 @@
       >
       <div class="store-switch">
         <span class="store-icon">E</span>
-        <div><strong>ENRM Maroc</strong><small id="store-label">Boutique de démonstration</small></div>
+        <div>
+          <strong>ENRM Maroc</strong><small id="store-label">Chargement de la boutique…</small>
+        </div>
         <span class="live-dot"></span>
       </div>
       <p class="nav-caption" id="nav-caption">VOTRE ACTIVITÉ</p>
@@ -28,8 +30,12 @@
         >
         <div class="profile">
           <span class="avatar">EA</span>
-          <div><strong id="profile-name">Équipe ENRM</strong><small id="profile-role">Administrateur · Démo</small></div>
+          <div>
+            <strong id="profile-name">Espace ENRM</strong
+            ><small id="profile-role">Chargement…</small>
+          </div>
         </div>
+        <button class="text-action" id="admin-signout" type="button" hidden>Se déconnecter</button>
       </div>
     </aside>
     <button class="sidebar-scrim" id="scrim" aria-label="Fermer le menu" hidden></button>
@@ -56,16 +62,16 @@
             autocomplete="off"
           /><kbd>⌘ K</kbd>
         </form>
-        <span class="demo-tag"><i></i> Démo locale</span
+        <span class="demo-tag" id="environment-tag"><i></i> Chargement…</span
         ><button class="icon-button" id="notifications" aria-label="Voir les alertes"></button
         ><span class="avatar top-avatar">EA</span>
       </header>
       <main id="workspace" tabindex="-1">
-        <div class="loading">Préparation de votre espace…</div>
+        <div class="loading">Chargement des données ENRM…</div>
       </main>
       <footer class="admin-foot">
         <span>ENRM · Votre activité, en toute clarté.</span
-        ><span id="admin-footer-note">Données fictives · Modifications enregistrées dans ce navigateur</span>
+        ><span id="admin-footer-note">Connexion à Supabase…</span>
       </footer>
     </div>
     <dialog id="editor" aria-labelledby="dialog-title">

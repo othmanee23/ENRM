@@ -15,6 +15,16 @@ function mount(file: string, url: string) {
     .replace(/<!doctype html>/i, '')
     .replace(/<\/?html[^>]*>/g, '');
   history.replaceState(null, '', url);
+  const page =
+    file === 'catalogue.html' ? 'catalogue' : file === 'product.html' ? 'product' : 'site';
+  document.body.dataset.page = page;
+  if (page === 'catalogue' || page === 'product') {
+    const bootstrap = document.createElement('script');
+    bootstrap.id = page === 'catalogue' ? 'catalogue-bootstrap' : 'product-bootstrap';
+    bootstrap.type = 'application/json';
+    bootstrap.textContent = JSON.stringify({ products: catalogue, categories: [] });
+    document.body.append(bootstrap);
+  }
 }
 function change(selector: string, value: string) {
   const el = q<HTMLInputElement | HTMLSelectElement>(selector);
@@ -80,21 +90,24 @@ afterEach(() => {
   vi.unstubAllGlobals();
   document.body.innerHTML = '';
 });
-it('filters, resets, and adds the exact catalogue variant to the persistent cart', async () => {
+it('uses GET filters and adds the exact catalogue variant to the persistent cart', async () => {
   mount('catalogue.html', '/catalogue.html');
   await import('../src/storefront/main');
-  await vi.waitFor(() => expect(q('#results-count').textContent).toContain('210 variantes'));
-  change('#brand', 'Motul');
-  expect(q('#results-count').textContent).toContain('31 variantes');
-  q('#reset').click();
-  expect(q('#results-count').textContent).toContain('210 variantes');
-  const add = q<HTMLButtonElement>('[data-add]');
-  const id = add.dataset.add;
+  const form = q<HTMLFormElement>('#catalogue-filters');
+  expect(form.method).toBe('get');
+  expect(form.action).toContain('/catalogue');
+  expect(q<HTMLSelectElement>('#brand').name).toBe('brand');
+  expect(q<HTMLInputElement>('#search').name).toBe('search');
+  const id = catalogue[0].id as string;
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.dataset.add = id;
+  q('#product-grid').append(add);
   add.click();
   expect(JSON.parse(localStorage.getItem('enrm-demo-cart')!)).toEqual([{ id, qty: 1 }]);
   q('#open-cart').click();
-  expect(q<HTMLDialogElement>('#cart-dialog').open).toBe(true);
-  expect(q('#cart-content').textContent).toContain('Sous-total démo');
+  await vi.waitFor(() => expect(q<HTMLDialogElement>('#cart-dialog').open).toBe(true));
+  expect(q('#cart-content').textContent).toContain('Sous-total indicatif');
 });
 it('switches product volumes without mixing the image, price, ID or quantity', async () => {
   mount('product.html', '/product.html?id=ENRM-HM-031');
@@ -129,6 +142,9 @@ it('renders every admin screen, creates a product and order, and persists the st
     expect(q('#workspace h1')).not.toBeNull();
     expect(q('#workspace').textContent).not.toContain('undefined');
   }
+  history.replaceState(null, '', '/admin.html#products');
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+  await vi.waitFor(() => expect(q('[data-action="new-product"]')).not.toBeNull());
   q('[data-action="new-product"]').click();
   change('#product-form [name="name"]', 'Test formulation');
   change('#product-form [name="brand"]', 'ENRM Démo');
@@ -138,6 +154,9 @@ it('renders every admin screen, creates a product and order, and persists the st
   change('#product-form [name="stock"]', '10');
   submit('#product-form');
   await vi.waitFor(() => expect(q<HTMLDialogElement>('#editor').open).toBe(false));
+  history.replaceState(null, '', '/admin.html#orders');
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+  await vi.waitFor(() => expect(q('[data-action="new-order"]')).not.toBeNull());
   q('[data-action="new-order"]').click();
   change('#new-order [name="product"]', 'ENRM-TEST-001');
   change('#new-order [name="quantity"]', '2');

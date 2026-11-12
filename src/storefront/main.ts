@@ -1,4 +1,3 @@
-import '../styles/storefront.css';
 import { setupMotion } from './motion';
 import { photo, card } from './components';
 import { productUrl, safeReturn } from './routing';
@@ -7,14 +6,14 @@ import { $, formData, formValues, fieldValue } from '../shared/dom';
 import { esc, norm, brandName, currency as money } from '../shared/format';
 import {
   DEFAULT_CATEGORY_ID,
-  loadCatalogue,
-  loadCategories,
+  loadCatalogueProductsByIds,
   productGroup as groupKey,
   requireProduct,
 } from '../shared/catalogue';
 import { readJson, writeJson, sanitizeCart, CART_KEY } from '../shared/storage';
 import { supabase } from '../shared/supabase';
 import type { Category, Product, CartItem } from '../shared/types';
+import { productIdFromSlug } from '../shared/slugs';
 const params = new URLSearchParams(location.search),
   page = document.body.dataset.page;
 
@@ -179,7 +178,7 @@ function renderProduct(id: string | null, updateUrl = false) {
   document.title = `${brandName(p.marque)} ${p.sous_reference} ${p.viscosite} ${p.litrage} — ENRM`;
   const variants = products.filter((v) => groupKey(v) === groupKey(p));
   $('#product-page').innerHTML =
-    `<div class="product-breadcrumb"><a href="${esc(safeReturn())}" id="back-catalogue">← Revenir au catalogue</a><span>${esc(brandName(p.marque))} / ${esc(p.sous_reference)}</span></div><section class="product-layout"><div class="detail-visual"><div id="detail-photo">${photo(p, 'eager')}</div><p class="media-caption">${p.recto ? (p.statut_recto.includes('générique') ? 'Illustration générique du contenant.' : 'Visuel du conditionnement ' + esc(p.litrage) + '.') : 'La photo exacte de cette variante reste à compléter.'}</p>${p.verso ? '<div class="gallery-buttons"><button data-face="recto" aria-pressed="true">Recto</button><button data-face="verso" aria-pressed="false">Verso</button></div>' : ''}</div><div class="detail-copy"><p class="eyebrow">${esc(brandName(p.marque))}</p><h1>${esc(p.sous_reference)}<span>${esc(p.viscosite)}</span></h1><p class="detail-reference">${p.id} · Disponibilité à confirmer</p><div class="detail-price">${money(p.price)}</div><p class="muted">Prix de démonstration pour ${esc(p.litrage)}</p><fieldset class="variant-fieldset"><legend>Votre contenance</legend><div class="volume-options">${variants.map((v) => `<a href="${esc(productUrl(v.id))}" data-variant="${v.id}" class="${v.id === p.id ? 'selected' : ''}" ${v.id === p.id ? 'aria-current="true"' : ''}>${esc(v.litrage)}</a>`).join('')}</div></fieldset><div class="buy-line"><label>Quantité<input class="quantity" id="detail-qty" type="number" value="1" min="1" max="99"></label><button class="button primary" id="detail-add">Ajouter au panier <span>＋</span></button></div><p class="muted">Aucun achat réel. Prix et stock à valider par ENRM.</p><a href="conseil.html" class="detail-advice">Un doute sur votre moteur ? <span>Parlons-en ↗</span></a><div class="product-service"><span>Conditionnement exact</span><span>Référence identifiable</span></div></div></section><section class="product-specs section"><div><p class="eyebrow">CHAQUE DÉTAIL COMPTE</p><h2>La référence,<br>en toute clarté.</h2></div><div><dl><div><dt>Marque</dt><dd>${esc(brandName(p.marque))}</dd></div><div><dt>Gamme</dt><dd>${esc(p.gamme)}</dd></div><div><dt>Sous-référence</dt><dd>${esc(p.sous_reference)}</dd></div><div><dt>Grade SAE</dt><dd>${esc(p.viscosite)}</dd></div><div><dt>Contenance</dt><dd>${esc(p.litrage)}</dd></div><div><dt>Référence fabricant</dt><dd>${esc(p.references_articles || 'À confirmer')}</dd></div></dl><p>${esc(p.designation)}</p><p class="muted">La viscosité seule ne prouve pas la compatibilité. Vérifiez les normes et homologations avec la documentation du constructeur et du fabricant.</p><a class="text-link" href="${esc((p.source_recto || p.preuves_maroc).split(' | ')[0])}" target="_blank" rel="noopener noreferrer">Consulter la source catalogue ↗</a><p class="muted">Prix, stock, frais de livraison et version d’emballage à valider avant publication.</p></div></section><section class="section related-section"><div class="section-heading"><h2>Poursuivre la découverte.</h2><a href="catalogue.html" class="text-link">Toutes les huiles ↗</a></div><p class="muted">Autres références de la marque. Ces produits ne sont pas des substituts techniques.</p><div class="product-rail">${products
+    `<div class="product-breadcrumb"><a href="${esc(safeReturn())}" id="back-catalogue">← Revenir au catalogue</a><span>${esc(brandName(p.marque))} / ${esc(p.sous_reference)}</span></div><section class="product-layout"><div class="detail-visual"><div id="detail-photo">${photo(p, 'eager')}</div><p class="media-caption">${p.recto ? (p.statut_recto.includes('générique') ? 'Illustration générique du contenant.' : 'Visuel du conditionnement ' + esc(p.litrage) + '.') : 'La photo exacte de cette variante reste à compléter.'}</p>${p.verso ? '<div class="gallery-buttons"><button data-face="recto" aria-pressed="true">Recto</button><button data-face="verso" aria-pressed="false">Verso</button></div>' : ''}</div><div class="detail-copy"><p class="eyebrow">${esc(brandName(p.marque))}</p><h1>${esc(p.sous_reference)}<span>${esc(p.viscosite)}</span></h1><p class="detail-reference">${p.id} · Disponibilité à confirmer</p><div class="detail-price">${money(p.price)}</div><p class="muted">Prix indicatif pour ${esc(p.litrage)} · à confirmer par ENRM</p><fieldset class="variant-fieldset"><legend>Votre contenance</legend><div class="volume-options">${variants.map((v) => `<a href="${esc(productUrl(v.id, v))}" data-variant="${v.id}" class="${v.id === p.id ? 'selected' : ''}" ${v.id === p.id ? 'aria-current="true"' : ''}>${esc(v.litrage)}</a>`).join('')}</div></fieldset><div class="buy-line"><label>Quantité<input class="quantity" id="detail-qty" type="number" value="1" min="1" max="99"></label><button class="button primary" id="detail-add">Ajouter au panier <span>＋</span></button></div><p class="muted">Votre demande sera confirmée par ENRM. Aucun paiement en ligne.</p><a href="conseil.html" class="detail-advice">Un doute sur votre moteur ? <span>Parlons-en ↗</span></a><div class="product-service"><span>Conditionnement exact</span><span>Référence identifiable</span></div></div></section><section class="product-specs section"><div><p class="eyebrow">CHAQUE DÉTAIL COMPTE</p><h2>La référence,<br>en toute clarté.</h2></div><div><dl><div><dt>Marque</dt><dd>${esc(brandName(p.marque))}</dd></div><div><dt>Gamme</dt><dd>${esc(p.gamme)}</dd></div><div><dt>Sous-référence</dt><dd>${esc(p.sous_reference)}</dd></div><div><dt>Grade SAE</dt><dd>${esc(p.viscosite)}</dd></div><div><dt>Contenance</dt><dd>${esc(p.litrage)}</dd></div><div><dt>Référence fabricant</dt><dd>${esc(p.references_articles || 'À confirmer')}</dd></div></dl><p>${esc(p.designation)}</p><p class="muted">La viscosité seule ne prouve pas la compatibilité. Vérifiez les normes et homologations avec la documentation du constructeur et du fabricant.</p><a class="text-link" href="${esc((p.source_recto || p.preuves_maroc).split(' | ')[0])}" target="_blank" rel="noopener noreferrer">Consulter la source catalogue ↗</a><p class="muted">Prix, stock, frais de livraison et version d’emballage à valider avant publication.</p></div></section><section class="section related-section"><div class="section-heading"><h2>Poursuivre la découverte.</h2><a href="catalogue.html" class="text-link">Toutes les huiles ↗</a></div><p class="muted">Autres références de la marque. Ces produits ne sont pas des substituts techniques.</p><div class="product-rail">${products
       .filter((v) => v.marque === p.marque && v.id !== p.id && v.recto)
       .slice(0, 4)
       .map(card)
@@ -196,26 +195,33 @@ function renderProduct(id: string | null, updateUrl = false) {
 function saveCart() {
   if (!writeJson(CART_KEY, cart)) toast('Panier conservé pour cette visite uniquement.');
   $('#cart-count').textContent = String(cart.reduce((s, c) => s + c.qty, 0));
+  window.dispatchEvent(new CustomEvent('enrm-cart-changed'));
 }
 function addToCart(id: string, qty = 1) {
   const item = cart.find((c) => c.id === id);
   if (item) item.qty = Math.min(99, item.qty + qty);
   else cart.push({ id, qty });
   saveCart();
-  toast('Ajouté au panier de démonstration');
+  toast('Ajouté à votre panier');
   if ($('#cart-dialog').open) renderCart();
 }
 function renderCart() {
-  const total = cart.reduce((s, c) => s + requireProduct(products, c.id).price * c.qty, 0);
+  const known = cart.map((item) => ({
+    item,
+    product: products.find((candidate) => candidate.id === item.id),
+  }));
+  const total = known.reduce((sum, entry) => sum + (entry.product?.price || 0) * entry.item.qty, 0);
+  const unavailable = known.some((entry) => !entry.product);
   $('#cart-content').innerHTML = cart.length
-    ? cart
-        .map((c) => {
-          const p = requireProduct(products, c.id);
-          return `<article class="cart-item"><a href="${esc(productUrl(p.id))}" class="cart-photo">${photo(p)}</a><div><h3><a href="${esc(productUrl(p.id))}">${esc(brandName(p.marque) + ' ' + p.sous_reference)}</a></h3><p>${esc(p.viscosite)} · ${esc(p.litrage)}</p><strong>${money(p.price * c.qty)}</strong><div class="cart-controls"><button data-change="${c.id}" data-delta="-1" aria-label="Diminuer la quantité">−</button><span>${c.qty}</span><button data-change="${c.id}" data-delta="1" aria-label="Augmenter la quantité">+</button><button class="remove" data-remove="${c.id}">Retirer</button></div></div></article>`;
-        })
+    ? known
+        .map(({ item, product: p }) =>
+          p
+            ? `<article class="cart-item"><a href="${esc(productUrl(p.id, p))}" class="cart-photo">${photo(p)}</a><div><h3><a href="${esc(productUrl(p.id, p))}">${esc(brandName(p.marque) + ' ' + p.sous_reference)}</a></h3><p>${esc(p.viscosite)} · ${esc(p.litrage)}</p><strong>${money(p.price * item.qty)}</strong><div class="cart-controls"><button data-change="${item.id}" data-delta="-1" aria-label="Diminuer la quantité">−</button><span>${item.qty}</span><button data-change="${item.id}" data-delta="1" aria-label="Augmenter la quantité">+</button><button class="remove" data-remove="${item.id}">Retirer</button></div></div></article>`
+            : `<article class="cart-item"><div><h3>Référence indisponible</h3><p>${esc(item.id)} n’est plus publiée. Elle n’a pas été remplacée.</p><button class="remove" data-remove="${esc(item.id)}">Retirer</button></div></article>`,
+        )
         .join('') +
-      `<div class="cart-summary"><div><span>${supabase ? 'Sous-total indicatif' : 'Sous-total démo'}</span><strong>${money(total)}</strong></div><p class="muted">Frais de livraison non définis. Le total final sera confirmé avant tout achat.</p><button class="button primary" id="checkout">${supabase ? 'Demander une commande' : 'Simuler la commande'} <span>→</span></button>${supabase ? '<p class="muted">ENRM vous recontactera pour confirmer votre demande.</p>' : '<p class="muted">Aucune commande transmise.</p>'}</div>`
-    : '<div class="empty"><h3>Le prochain départ se prépare ici.</h3><p>Votre panier est encore vide.</p><a class="button primary" href="catalogue.html">Explorer les huiles ↗</a></div>';
+      `<div class="cart-summary"><div><span>Sous-total indicatif</span><strong>${money(total)}</strong></div><p class="muted">Le prix final, la disponibilité et les frais de livraison seront confirmés par ENRM. Aucun paiement en ligne.</p>${unavailable ? '<p class="muted">Retirez les références indisponibles avant de poursuivre.</p>' : `<button class="button primary" id="checkout">${supabase ? 'Demander une commande' : 'Simuler la commande'} <span>→</span></button>`}</div>`
+    : '<div class="empty"><h3>Le prochain départ se prépare ici.</h3><p>Votre panier est encore vide.</p><a class="button primary" href="/catalogue">Explorer les huiles ↗</a></div>';
 }
 function formField(label: string, name: string, type = 'text', required = true) {
   return `<label>${label}${required ? ' *' : ''}<input name="${name}" type="${type}" ${required ? 'required' : ''} maxlength="150" ${type === 'number' ? 'min="1950" max="2027"' : ''}></label>`;
@@ -330,7 +336,7 @@ document.addEventListener('click', (e) => {
     renderCart();
   }
   if (el.dataset.remove) {
-    cart = sanitizeCart(cart, new Set(products.map((p) => p.id)));
+    cart = cart.filter((item) => item.id !== el.dataset.remove);
     saveCart();
     renderCart();
   }
@@ -344,10 +350,20 @@ document.addEventListener('click', (e) => {
     });
   }
 });
-$('#open-cart').onclick = () => {
-  renderCart();
-  showDialog('#cart-dialog');
-};
+const openCartButton = $('#open-cart');
+if (openCartButton)
+  openCartButton.onclick = async () => {
+    try {
+      const missing = cart
+        .map((item) => item.id)
+        .filter((id) => !products.some((product) => product.id === id));
+      products = [...products, ...(await loadCatalogueProductsByIds(missing))];
+    } catch {
+      toast('Certaines références du panier sont momentanément indisponibles.');
+    }
+    renderCart();
+    showDialog('#cart-dialog');
+  };
 $('#menu-button').onclick = () => {
   const open = $('#mobile-nav').hidden;
   $('#mobile-nav').hidden = !open;
@@ -355,53 +371,42 @@ $('#menu-button').onclick = () => {
 };
 async function init() {
   try {
-    [products, categories] = await Promise.all([loadCatalogue(), loadCategories()]);
+    if (page === 'catalogue') {
+      const bootstrap = $('#catalogue-bootstrap');
+      if (!bootstrap) throw new Error('Données initiales du catalogue indisponibles.');
+      const initial = JSON.parse(bootstrap.textContent || '{}') as {
+        products: Product[];
+        categories: Category[];
+      };
+      products = initial.products;
+      categories = initial.categories;
+    } else if (page === 'home') {
+      const bootstrap = $('#home-bootstrap');
+      if (!bootstrap) throw new Error('Données initiales de l’accueil indisponibles.');
+      products = (JSON.parse(bootstrap.textContent || '{}') as { products: Product[] }).products;
+    } else if (page === 'product') {
+      const bootstrap = $('#product-bootstrap');
+      if (!bootstrap) throw new Error('Données initiales de la référence indisponibles.');
+      products = (JSON.parse(bootstrap.textContent || '{}') as { products: Product[] }).products;
+    } else {
+      products = [];
+      categories = [];
+    }
     cart = cart.filter(
-      (c) =>
-        products.some((p) => p.id === c.id) && Number.isInteger(c.qty) && c.qty > 0 && c.qty <= 99,
+      (c) => typeof c.id === 'string' && Number.isInteger(c.qty) && c.qty > 0 && c.qty <= 99,
     );
     saveCart();
     if (page === 'catalogue') {
-      const categorySelect = document.querySelector<HTMLSelectElement>('#category');
-      if (categorySelect)
-        categorySelect.innerHTML =
-          categorySelect.options[0].outerHTML +
-          categories
-            .map(
-              (category) => `<option value="${esc(category.slug)}">${esc(category.name)}</option>`,
-            )
-            .join('');
-      populate('brand', [...products.map((p) => p.marque), 'Meyle', 'Valvoline']);
-      populate(
-        'range',
-        products.map((p) => p.gamme),
-      );
-      populate(
-        'viscosity',
-        products.map((p) => p.viscosite),
-      );
-      populate(
-        'volume',
-        products.map((p) => p.litrage),
-      );
-      ['search', 'category', 'brand', 'range', 'viscosity', 'volume', 'sort'].forEach((k) => {
-        if (params.has(k))
-          document.querySelector<HTMLInputElement | HTMLSelectElement>('#' + k)!.value =
-            params.get(k) || '';
-        $('#' + k).addEventListener(k === 'search' ? 'input' : 'change', () => updateCatalogue());
-      });
-      $('#reset').onclick = resetFilters;
-      $('#load-more').onclick = () => {
-        limit += 12;
-        renderProducts();
-      };
       $('#toggle-filters').onclick = () => {
         const open = $('#filters').classList.toggle('open');
         $('#toggle-filters').setAttribute('aria-expanded', String(open));
       };
-      updateCatalogue();
     }
-    if (page === 'product') renderProduct(params.get('id'));
+    if (page === 'product')
+      renderProduct(
+        params.get('id') ||
+          productIdFromSlug(location.pathname.split('/').filter(Boolean).at(-1) || ''),
+      );
     if (page === 'home') {
       $('#hero-oils').innerHTML = ['ENRM-HM-097', 'ENRM-HM-067', 'ENRM-HM-031']
         .map((id) => {

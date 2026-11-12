@@ -1,169 +1,65 @@
-# ENRM Project Description
+# ENRM — Project Description
 
-_Last updated: 7 November 2026_
+## Purpose
 
-## Project at a glance
+ENRM is a French-language product catalogue and order-request platform for an automotive oils and related-products business in Morocco. The public site helps customers identify and request specific product variants. The business workflow is manual follow-up: customers provide contact and delivery details, then an administrator contacts them and tracks the request. The site does not collect payment or calculate final delivery charges.
 
-ENRM is a French-language storefront and lightweight administration app for browsing and requesting automotive oils and related products in Morocco. It is built as a multi-page TypeScript application with Vite, native HTML, and CSS. Supabase provides the hosted catalogue, authentication, product inventory, and real customer order requests. Cloudflare Workers Static Assets serves the production site and deploys from the GitHub repository.
+## Technology stack
 
-The storefront does not collect payment. A customer submits a request with their name, phone number, city, delivery address, and chosen products. The ENRM team contacts the customer to confirm stock, price, and delivery, then updates the request status in the admin area.
+| Layer          | Technology                                         | Responsibility                                                                                                                  |
+| -------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Web framework  | Next.js App Router                                 | Route handling, server-rendered pages, metadata, sitemap, robots, and Cloudflare-compatible output                              |
+| UI             | React and TypeScript (strict)                      | Shared layouts and interactive cart and checkout; some existing screens still run through a temporary DOM compatibility runtime |
+| Styling        | Tailwind CSS 4 plus retained ENRM stylesheets      | Utility styling and preservation of the established visual identity during migration                                            |
+| Database       | Supabase PostgreSQL                                | Categories, products, inventory, order requests, order items, and status history                                                |
+| Authentication | Supabase Auth                                      | Administrator sign-in and session handling                                                                                      |
+| Authorization  | Supabase Row Level Security and database functions | Enforce public reads, administrator writes, inventory privacy, and order-request permissions                                    |
+| Media          | Supabase Storage plus checked-in `public/assets/`  | Product media and brand assets                                                                                                  |
+| Hosting        | Cloudflare Workers via OpenNext                    | Run the Next.js server application at the Cloudflare edge                                                                       |
+| Verification   | TypeScript, Vitest, and jsdom                      | Type and workflow regression checks                                                                                             |
 
-## Goals and users
+No separate API server, Prisma layer, alternate authentication service, or payment gateway is used.
 
-- **Customers** browse product variants, compare details, add items to a cart, and send an order request for follow-up by ENRM.
-- **ENRM administrators** maintain catalogue categories, products, publication state, and stock; review incoming requests; contact customers by phone; and track status, delivery tracking, notes, and status history.
-- **The project owner** can expand the catalogue over time by adding categories and assigning products to them, without adding category names to front-end code.
+## Public customer experience
 
-The current visual identity and page content are in French. Prices are in Moroccan dirhams (MAD).
+The application serves the homepage, catalogue, product details, advice, contact, about, delivery, returns, privacy, and credits pages. The Next.js routes use server-rendered HTML for the homepage, catalogue product cards, and product detail content. Product titles, canonical URLs, Open Graph metadata, product JSON-LD, and breadcrumb JSON-LD are generated from the selected catalogue record. Unpublished or unknown IDs are not rendered as public products.
 
-## Storefront pages
+The catalogue contains 210 distinct existing variants. A variant is identified by its original product ID and preserves its formulation, packaging, price, and image references. Product URLs include a normalized descriptive label and the immutable ID suffix to avoid collisions. Existing `.html` product links are redirected or resolved to the new routes.
 
-| URL | Purpose |
-| --- | --- |
-| `/` or `/index.html` | Brand homepage with video-led hero, brand marks, featured products, and category or viscosity entry points. |
-| `/catalogue.html` | Product listing with search, filters, sorting, pagination, and URL-backed filter state. |
-| `/product.html?id=<product-id>` | Detail page for a specific catalogue variant, including packaging selection, price, product imagery, and add-to-cart actions. |
-| `/conseil.html` | Vehicle oil guidance content and advice form. |
-| `/contact.html` | Contact page. |
-| `/a-propos.html` | About ENRM. |
-| `/livraison.html` | Delivery information. |
-| `/retours.html` | Returns and terms information. |
-| `/confidentialite.html` | Privacy information for customer data submitted with an order request. |
-| `/credits.html` | Media and asset credits. |
-| `/admin.html` | Administration interface; routes include `#overview`, `#orders`, `#products`, `#categories`, `#inventory`, `#customers`, `#analytics`, `#promotions`, and `#settings`. |
+Visitors can search and filter by category, brand, range, viscosity, and package size, sort results, choose exact packaging variants, and use a browser-persisted cart. The order-request form asks for a name, phone number, city, delivery address, and privacy acknowledgment. The displayed subtotal is indicative. Checkout sends only product IDs, quantities, customer details, and a unique request ID to the existing Supabase function. It does not create a payment or finalize availability, delivery cost, or final price.
 
-The current catalogue preserves **210 distinct product variants** and their IDs, formulations, packaging sizes, and image associations. Different package sizes and drum sizes remain separate SKUs. Product photos, brand marks, fonts, and video files are stored under `public/assets/` and accompanied by `MEDIA_CREDITS.md`.
+## Administrator experience
 
-## Customer order-request flow
+`/admin` is dynamically gated on the server: the Supabase JWT is verified with `getClaims()`, then the current `profiles.role` is checked before the admin shell is returned. The login page verifies the role after password sign-in and signs out non-admin accounts. A recovery form emails a one-time link and the reset page lets the account owner set a new password. Supabase cookies are refreshed on admin/login/reset requests, and the admin has a sign-out control. Database policies and functions independently enforce the role and permissions. The interface supports product and image management, category management, inventory editing, and real order request review/status updates when connected to Supabase.
 
-1. A visitor browses the published catalogue and adds available variants to the cart.
-2. Checkout collects the visitor’s name, phone number, city, and requested delivery address. The user acknowledges the privacy information before submitting.
-3. The site sends product IDs and quantities to the Supabase `place_enrm_order` database function. The database re-reads the current catalogue prices, validates publication and category visibility, checks available stock, and creates the request and line items in one transaction.
-4. Inventory is reserved by decrementing stock when a request is accepted. A duplicate request ID is handled idempotently to avoid creating the same order twice.
-5. A request starts in **À confirmer**. An administrator contacts the customer to confirm the request and follows up on availability, final price, and delivery.
-6. The admin can move it through **À confirmer**, **À préparer**, **En préparation**, **Expédiée**, **Livrée**, and **Annulée**; add a tracking number or internal note; and see the saved status timeline. Cancelling a request restores its reserved stock once. A cancelled request cannot be reactivated.
+Orders represent customer requests and include the contact details, delivery address, order item snapshots, indicative total, status, tracking information, internal notes, and status history. ENRM manually contacts customers and advances request status. Cancellation follows the database workflow and stock reservation rules. No user-side payment state is part of the current order workflow.
 
-There is no customer-side payment, payment gateway, or payment collection. Delivery fees and final totals are not calculated at checkout; displayed totals are indicative and must be confirmed by ENRM with the customer.
+Customers and analytics derive from real order requests when connected, grouping repeat orders by normalized phone. Order totals are indicative request subtotals; there is no payment processing. Promotions and shared store settings have no persistent backend schema and are clearly marked unconfigured for connected admins.
 
-## Administration
+## Scalable category model
 
-- **Overview:** operational summary, recent requests, catalogue activity, and low-stock indicators. When Supabase admin access is active, order and inventory summaries are based on hosted data.
-- **Orders:** search and filter real order requests; view customer contact and delivery details, line items, indicative total, status history, tracking number, and internal note; update status through a secured database function; export rows.
-- **Products:** add and edit product variants, category, MAD price, publication status, and product image. Images uploaded from admin are stored in Supabase Storage.
-- **Categories:** add, rename, reorder, and show or hide categories. Category names and filters are loaded from the database. The database model includes an optional parent-category relationship for future hierarchy.
-- **Stock & inventory:** edit quantities and see low-stock or out-of-stock items. Inventory is private to authorized administrators and is not included in public catalogue queries.
-- **Customers, analytics, promotions, and some settings:** these are currently browser-local/demo features rather than hosted business records. They should not be treated as authoritative commercial data yet.
+Categories are database rows with stable IDs, unique slugs, display order, active state, and an optional parent ID. Products refer to categories by ID. Public navigation and filtering load active category records rather than using a fixed list in code. Administrators can add categories through the existing category-management interface, which allows new product families to be introduced without a frontend code change. The current management UI focuses on top-level categories; full parent/child editing is not exposed.
 
-## Application architecture
+## Supabase data and security
 
-### Front end
+The schema history lives in `supabase/migrations/`. It includes profiles and admin roles, categories, product catalogue records, private inventory, customer order requests, line items, order status history, and the `product-media` storage bucket. Public visitors use the Supabase anon key and can read only active categories and published products under RLS. The browser never receives a service-role key.
 
-- Vite builds eleven HTML entry pages into `dist/`, keeping the existing `.html` URLs.
-- TypeScript is in strict mode. Storefront, admin, and shared modules are separated by purpose.
-- Shared header, footer, and dialog markup is sourced from `src/layout/` and inserted by the Vite layout plugin.
-- CSS is organized into storefront foundation, branding, homepage, catalogue, collections, storytelling, motion, and admin stylesheets.
-- The app uses native browser APIs rather than a front-end framework runtime.
-- Cart data is stored locally in the visitor’s browser and validated when read.
-- Motion respects reduced-motion settings. Video playback pauses when content is out of view or the document is hidden.
+`place_enrm_order` is the existing transactional order boundary. It rechecks currently published products and server-side prices, validates stock and quantity, records order/item snapshots, and reserves stock according to the established database workflow. Requests are idempotent using a request UUID. Administrator mutations use existing authenticated database privileges and the order update RPC. The frontend migration has not changed hosted schema or data.
 
-### Supabase data layer
+## Hosting and configuration
 
-The browser creates a Supabase client only when both `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are present at build time. Without them, the app can use the static catalogue and browser-local demo behavior; the production Cloudflare build has these public browser variables configured.
+The application is built with the OpenNext Cloudflare adapter. `open-next.config.ts` selects the Next webpack build command to prevent the adapter from recursively invoking the package build script. `wrangler.jsonc` points to `.open-next/worker.js`, enables `nodejs_compat`, and serves `.open-next/assets` through the `ASSETS` binding.
 
-The hosted schema is created by sequential migrations under `supabase/migrations/`:
+Required public build variables are:
 
-- `profiles`: role information linked to Supabase Auth users. New users receive the `customer` role; administrator role assignment is performed through trusted project administration.
-- `categories`: stable UUID, optional parent ID, unique slug, name, ordering, and active state. Products reference category IDs rather than hard-coded labels.
-- `products`: original product IDs and catalogue details, price, publication flags, image references, and source/provenance notes.
-- `product_inventory`: a separate quantity table with non-negative stock and admin-only access.
-- `orders` and `order_items`: contact and delivery details, request status, product snapshots, prices, quantities, and indicative totals.
-- `order_status_history`: append-only-by-trigger history of initial status and subsequent status changes.
-- `product-media` storage bucket: public image reads; admin-authenticated uploads, updates, and deletes; JPEG, PNG, and WebP images up to 1 MB.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SITE_URL` (for example, `https://enrm.ma`)
 
-Row-level security limits product/category writes and inventory/order access to authenticated ENRM administrators. Public visitors can read active categories and published products. Public users submit an order through a database function; they do not receive direct table access to customer orders.
+These are browser-visible values by design; never configure a Supabase service-role key in the frontend. Cloudflare’s current build environment still needs those variable names set before a future production build. No production deployment or dashboard change is included in this migration.
 
-## Category scalability
+## Migration status and limits
 
-Categories are database records, not a fixed list in the storefront. Each product points to a category by its stable `category_id`; each category has a unique URL slug, display order, active state, and optional parent. The catalogue loads active categories dynamically, and the admin category manager lets an authorized administrator add more category records. This allows future families such as filters, fluids, or accessories to be introduced as data and assigned to products without rewriting the category navigation for each new family.
+The repository is on `fix/nextjs-migration`. App Router routing, server-side rendering for the main commerce content, category/product queries, SEO metadata, structured URLs, no-payment cart/checkout pages, and an OpenNext Worker artifact are implemented. The generated compatibility layer still embeds the original checked-in page markup, while `src/storefront/main.ts` and much of `src/admin/main.ts` remain imperative DOM applications loaded as browser modules. Therefore the build is a working migration stage, not yet a complete React component rewrite. The old Vite page entry files and test harness are retained during the transition.
 
-The current admin form manages top-level category records; although the schema has a `parent_id`, editing a nested hierarchy is not yet exposed in that form.
-
-## Security and customer-data handling
-
-- The browser receives only Supabase’s public anon key. Never put a Supabase service-role key in Vite variables or front-end code.
-- Admin authorization is checked against the authenticated Supabase profile and enforced again in database policies/functions. When Supabase is configured, unauthenticated visitors and non-admin accounts are routed to the administrator sign-in/access screen instead of the demo dashboard. Without Supabase credentials, the local demo admin remains available for development.
-- Stock is stored separately from public product data.
-- Order submissions validate fields and quantities in both the client and database. Database-side prices and stock are authoritative.
-- Checkout explains that the request sends contact details to ENRM and asks the customer to acknowledge the privacy information.
-- Admin CSV exports escape spreadsheet formulas; uploaded images have type and size restrictions.
-
-## Current production hosting
-
-- **Source repository:** `https://github.com/othmanee23/ENRM`
-- **Production branch:** `main`
-- **Build:** `npm run build` (TypeScript check, Vite production bundle, then build integrity checks)
-- **Deploy:** `npx wrangler deploy`
-- **Cloudflare config:** `wrangler.jsonc` serves `dist/` as Worker static assets.
-- **Hosted backend:** Supabase project, with production URL and anon key configured as Cloudflare build variables.
-- **Temporary public URL:** `https://enrm.othmane-dev.workers.dev`
-- **Custom domain:** `enrm.ma` is an active Cloudflare zone and is attached to the `enrm` Worker. The assigned Cloudflare nameservers are `charles.ns.cloudflare.com` and `desi.ns.cloudflare.com`. Supabase’s Site URL is set to `https://enrm.ma`. At the last browser check, the custom domain TLS handshake was still failing, so allow Cloudflare certificate provisioning to finish before considering the hostname fully verified.
-
-Cloudflare builds the connected GitHub project and runs the configured production build/deploy commands. Do not commit local `.env` files or credentials. The `VITE_` values are included in the browser bundle by design; only public Supabase URL and anon key belong there.
-
-## Local development
-
-Requires Node.js `22.22.2` or newer and npm.
-
-```sh
-npm ci
-cp .env.example .env.local
-npm run dev
-```
-
-Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local` for local access to the hosted backend. Keep the file untracked. Local static/demo behavior can be used without Supabase variables.
-
-Useful commands:
-
-```sh
-npm run typecheck
-npm test
-npm run format:check
-npm run build
-npm run backend:start
-npm run backend:status
-npm run backend:reset  # resets only the local Supabase database
-npm run backend:lint
-npm run backend:seed
-```
-
-`npm run backend:reset` is destructive to the local Docker database; it does not reset the hosted Supabase project. The canonical imported catalogue is `public/catalogue.json`; the seed generator writes the SQL seed to `supabase/seed.sql`.
-
-## Repository map
-
-- `*.html` — multi-page storefront and admin page entry points.
-- `src/layout/` — shared page chrome and dialogs.
-- `src/storefront/` — storefront bootstrap, cards, motion, and URL routing.
-- `src/admin/` — dashboard, category manager, product/order workflows, exports, and demo fixtures.
-- `src/shared/` — types, Supabase client, catalogue/category/order reads, formatting, DOM helpers, and local storage validation.
-- `src/styles/` — storefront and admin styles.
-- `public/catalogue.json` — canonical source catalogue.
-- `public/assets/` — product images, branding, fonts, and media.
-- `supabase/migrations/` — hosted schema and security policies.
-- `supabase/seed.sql`, `scripts/generate-supabase-seed.mjs` — initial catalogue seed and generator.
-- `tests/` — domain and workflow regression tests.
-- `scripts/check-build.mjs` — production output, route, asset, and catalogue consistency checks.
-- `wrangler.jsonc` — Cloudflare Worker static-assets deployment settings.
-- `vercel.json` — legacy hosting config retained in the repository; production hosting is Cloudflare.
-- `MEDIA_CREDITS.md` — image, video, font, and logo attribution notes.
-
-## Launch-readiness notes
-
-The deployment is online, but the existing project documentation and seeded catalogue describe demo/indicative commercial information. Before accepting real customer requests, ENRM should review and confirm:
-
-1. Every displayed price and all product descriptions/variant compatibility claims.
-2. Actual stock quantities; new inventory rows start at zero, so order requests for those items will fail stock checks until stock is entered.
-3. Delivery coverage, fees, timing, and customer-facing delivery/returns/privacy/contact text.
-4. Product publication state and the product photos/provenance for each item.
-5. The custom domain activation and production authentication URL once `enrm.ma` is connected.
-
-The order workflow is designed for manual customer follow-up by an administrator. It is not an automated payment, fulfillment, shipping-rate, or customer-account checkout system.
+No hosted Supabase schema migration was applied, no production data was rewritten, no service-role secret was added, and no production Worker was deployed. Before cutover, finish replacing the compatibility HTML and DOM runtime with React components, validate the experimental OpenNext Proxy session-refresh behavior in a staging Worker, test authentication and RLS with admin/non-admin accounts, validate all public routes visually, configure the new Cloudflare build variable names, and test against a non-production Supabase project.

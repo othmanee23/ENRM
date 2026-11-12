@@ -32,72 +32,77 @@
             Marques, formulations, grades et formats.<br />Explorez les 210 variantes documentées.
           </p>
         </div>
-        <div class="catalogue-toolbar">
-          <label class="search"
-            ><span aria-hidden="true">⌕</span
-            ><input
-              id="search"
-              type="search"
-              placeholder="Marque, gamme, 5W-30…"
-              aria-label="Rechercher une huile" /></label
-          ><button
-            id="toggle-filters"
-            class="outline"
-            aria-controls="filters"
-            aria-expanded="false"
-          >
-            Filtres ＋
-          </button>
-        </div>
-        <div class="catalogue-layout">
-          <aside class="filters" id="filters" aria-label="Filtres du catalogue">
-            <div class="filter-heading">
-              <h2>Affiner la sélection</h2>
-              <button class="text-link" id="reset">Tout effacer ↺</button>
-            </div>
-            <label
-              >Catégorie<select id="category">
-                <option value="">Toutes les catégories</option>
-              </select></label
-            ><label
-              >Marque<select id="brand">
-                <option value="">Toutes les marques</option>
-              </select></label
-            ><label
-              >Gamme<select id="range">
-                <option value="">Toutes les gammes</option>
-              </select></label
-            ><label
-              >Viscosité<select id="viscosity">
-                <option value="">Tous les grades</option>
-              </select></label
-            ><label
-              >Contenance<select id="volume">
-                <option value="">Tous les formats</option>
-              </select></label
+        <form id="catalogue-filters" action="/catalogue" method="get">
+          <div class="catalogue-toolbar">
+            <label class="search"
+              ><span aria-hidden="true">⌕</span
+              ><input
+                id="search"
+                name="search"
+                type="search"
+                placeholder="Marque, gamme, 5W-30…"
+                aria-label="Rechercher une huile" /></label
+            ><button
+              type="button"
+              id="toggle-filters"
+              class="outline"
+              aria-controls="filters"
+              aria-expanded="false"
             >
-          </aside>
-          <div class="catalogue-results">
-            <div class="results-bar">
-              <p id="results-count" role="status"></p>
+              Filtres ＋
+            </button>
+          </div>
+          <div class="catalogue-layout">
+            <aside class="filters" id="filters" aria-label="Filtres du catalogue">
+              <div class="filter-heading">
+                <h2>Affiner la sélection</h2>
+                <a class="text-link" id="reset" href="/catalogue">Tout effacer ↺</a>
+              </div>
               <label
-                >Trier par
-                <select id="sort">
-                  <option value="selection">Sélection ENRM</option>
-                  <option value="price-up">Prix croissant</option>
-                  <option value="price-down">Prix décroissant</option>
-                  <option value="name">Nom A–Z</option>
+                >Catégorie<select id="category" name="category">
+                  <option value="">Toutes les catégories</option>
+                </select></label
+              ><label
+                >Marque<select id="brand" name="brand">
+                  <option value="">Toutes les marques</option>
+                </select></label
+              ><label
+                >Gamme<select id="range" name="range">
+                  <option value="">Toutes les gammes</option>
+                </select></label
+              ><label
+                >Viscosité<select id="viscosity" name="viscosity">
+                  <option value="">Tous les grades</option>
+                </select></label
+              ><label
+                >Contenance<select id="volume" name="volume">
+                  <option value="">Tous les formats</option>
                 </select></label
               >
-            </div>
-            <div id="active-filters"></div>
-            <div id="product-grid" class="product-grid"></div>
-            <div class="load-area">
-              <button id="load-more" class="outline">Voir plus de références ↓</button>
-              <p class="muted">Prix de démonstration. Disponibilité à confirmer par ENRM.</p>
+              <button class="button primary" type="submit">Afficher les résultats ↗</button>
+            </aside>
+            <div class="catalogue-results">
+              <div class="results-bar">
+                <p id="results-count" role="status"></p>
+                <label
+                  >Trier par
+                  <select id="sort" name="sort">
+                    <option value="selection">Sélection ENRM</option>
+                    <option value="price-up">Prix croissant</option>
+                    <option value="price-down">Prix décroissant</option>
+                    <option value="name">Nom A–Z</option>
+                  </select></label
+                >
+              </div>
+              <div id="active-filters"></div>
+              <div id="product-grid" class="product-grid"></div>
+              <div class="load-area">
+                <button id="load-more" class="outline">Voir plus de références ↓</button>
+                <p class="muted">Prix de démonstration. Disponibilité à confirmer par ENRM.</p>
+              </div>
             </div>
           </div>
-        </div>
+        </form>
       </section>
     </main>
     <!-- layout:footer --><!-- layout:dialogs -->

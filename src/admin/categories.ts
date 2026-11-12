@@ -20,7 +20,7 @@ export function mountCategoryManager(container: HTMLElement) {
   if (!supabase) {
     container.innerHTML =
       heading() +
-      `<section class="panel settings-body"><h2>Connexion Supabase nécessaire</h2><p>Configurez VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY pour gérer les catégories partagées.</p><p>Sans ces variables, la boutique reste en mode catalogue statique.</p></section>`;
+      `<section class="panel settings-body"><h2>Connexion Supabase nécessaire</h2><p>Configurez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY pour gérer les catégories partagées.</p><p>Sans ces variables, la boutique reste en mode catalogue statique.</p></section>`;
     return;
   }
 
@@ -49,7 +49,13 @@ export function mountCategoryManager(container: HTMLElement) {
       .select('role')
       .eq('id', session.user.id)
       .maybeSingle();
-    if (profileError || profile?.role !== 'admin') {
+    if (profileError) {
+      show(
+        `<section class="panel settings-body"><h2>Vérification indisponible</h2><p>Impossible de confirmer les droits administrateur. Vérifiez la connexion puis réessayez.</p></section>`,
+      );
+      return;
+    }
+    if (profile?.role !== 'admin') {
       show(
         `<section class="panel settings-body"><h2>Accès administrateur requis</h2><p>Ce compte n’a pas le rôle ENRM administrateur.</p><button class="btn" id="category-sign-out" type="button">Se déconnecter</button></section>`,
       );

@@ -51,6 +51,8 @@ export interface Customer {
   phone?: string;
   deliveryAddress?: string;
   remote?: boolean;
+  requestCount?: number;
+  subtotal?: number;
 }
 export interface OrderItem {
   id: string;
@@ -75,6 +77,7 @@ export interface Order {
   history: HistoryEntry[];
   remoteId?: string;
   remote?: boolean;
+  city?: string;
 }
 export interface Promotion {
   id: string;

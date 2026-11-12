@@ -1,21 +1,29 @@
-const params = new URLSearchParams(location.search),
-  page = document.body.dataset.page;
-export function productUrl(id: string) {
-  const url = new URL('product.html', location.href);
-  url.searchParams.set('id', id);
-  if (page === 'catalogue')
-    url.searchParams.set('return', 'catalogue.html' + location.search + '#catalogue');
-  else if (page === 'product' && params.get('return')) url.searchParams.set('return', safeReturn());
-  return url.pathname.split('/').pop() + url.search;
+import catalogue from '../../public/catalogue.json';
+import type { Product } from '../shared/types';
+import { productSlug } from '../shared/slugs';
+
+const fallbackProducts = catalogue as Product[];
+const params = new URLSearchParams(typeof location === 'undefined' ? '' : location.search);
+const page = typeof document === 'undefined' ? '' : document.body.dataset.page;
+
+export function productUrl(id: string, currentProduct?: Product) {
+  const product = currentProduct || fallbackProducts.find((item) => item.id === id);
+  const slug = product ? productSlug(product) : `${id.toLowerCase()}--${id.toLowerCase()}`;
+  return `/produits/${slug}`;
 }
+
 export function safeReturn() {
   const r = params.get('return');
   if (r) {
     try {
-      const u = new URL(r, location.href);
-      if (u.origin === location.origin && u.pathname.endsWith('/catalogue.html'))
-        return u.pathname.split('/').pop() + u.search + u.hash;
+      const u = new URL(r, typeof location === 'undefined' ? 'https://enrm.ma' : location.href);
+      if (
+        u.origin === 'https://enrm.ma' ||
+        (typeof location !== 'undefined' && u.origin === location.origin)
+      )
+        if (u.pathname === '/catalogue' || u.pathname.endsWith('/catalogue.html'))
+          return '/catalogue' + u.search + u.hash;
     } catch {}
   }
-  return 'catalogue.html';
+  return '/catalogue';
 }
