@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { updateSupabaseSession } from './lib/supabase/proxy';
 
-export async function proxy(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+export async function middleware(request: NextRequest) {
+  const nonce = btoa(crypto.randomUUID());
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const supabaseOrigin = supabaseUrl ? new URL(supabaseUrl).origin : '';
   const isDevelopment = process.env.NODE_ENV === 'development';
