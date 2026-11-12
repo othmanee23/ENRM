@@ -195,4 +195,5 @@ No hosted environment variables, DNS, Supabase project, Cloudflare resources, or
 - The admin regression now visits each screen, filters global search and the tables, saves demo settings, creates a demo promotion, and exercises the product/order/stock workflow. It passes under the supported Node runtime.
 - The admin state event snapshot now clears both records and dashboard summary data when authorization is restricted.
 - Each client-side route change now hides previously loaded admin state until the role check completes. Restricted React panels suppress data and mutation actions; the workflow includes a restricted-snapshot regression assertion.
+- The already-running local Supabase stack has all 13 repository migrations applied; `supabase db lint --local` reports no schema errors. These were read-only checks; no migration was applied.
 - Current outstanding work is editor/mutation handler migration and verification against an already existing non-production Supabase/Cloudflare environment. No hosted service, paid resource, DNS, production data, or deployment was changed.

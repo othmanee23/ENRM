@@ -86,7 +86,7 @@ The admin UI is not yet a complete React-native data flow: all screens render th
 
 ## Verification recorded for the current work
 
-The existing local checks cover format, strict TypeScript, Vitest/jsdom workflows, Next/OpenNext build, Worker package contents, and a Wrangler dry-run. Local HTTP smoke checks cover public routes, legacy redirects, product canonicalization/not-found behavior, and unauthenticated admin redirection. They do not validate the current hosted Supabase project or Cloudflare deployment. See `MIGRATION_REPORT.md` for dated evidence and exact command results.
+The existing local checks cover format, strict TypeScript, Vitest/jsdom workflows, Next/OpenNext build, Worker package contents, and a Wrangler dry-run. The running local Supabase stack has all 13 repository migrations applied and passes `supabase db lint --local`. Local HTTP smoke checks cover public routes, legacy redirects, product canonicalization/not-found behavior, and unauthenticated admin redirection. They do not validate the current hosted Supabase project or Cloudflare deployment. See `MIGRATION_REPORT.md` for dated evidence and exact command results.
 
 ## Remaining work before calling the whole project production-ready
 
