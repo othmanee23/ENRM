@@ -7,13 +7,19 @@
     "node": ">=22.22.2"
   },
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 4173",
+    "dev": "next dev",
+    "dev:next": "npm run dev",
+    "build": "opennextjs-cloudflare build",
+    "build:next": "next build --webpack",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy",
+    "start": "next start",
     "typecheck": "tsc --noEmit",
-    "build": "npm run typecheck && vite build && node scripts/check-build.mjs",
-    "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test": "vitest run",
-    "format": "prettier --write src scripts tests *.html *.json *.ts README.md",
-    "format:check": "prettier --check src scripts tests *.html *.json *.ts README.md",
+    "check:build": "node scripts/check-build.mjs",
+    "format": "prettier --write src scripts tests *.json *.ts *.md",
+    "format:check": "prettier --check src scripts tests *.json *.ts *.md",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "backend:start": "supabase start",
     "backend:stop": "supabase stop",
     "backend:status": "supabase status",
@@ -22,15 +28,25 @@
     "backend:seed": "node scripts/generate-supabase-seed.mjs"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.17",
     "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "jsdom": "^31.0.0",
     "prettier": "^3.9.10",
     "supabase": "^3.0.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.6",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "wrangler": "^4.158.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.119.0"
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
+    "@tailwindcss/postcss": "^4.3.5",
+    "lucide-react": "^1.70.0",
+    "next": "^16.4.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.5"
   }
 }

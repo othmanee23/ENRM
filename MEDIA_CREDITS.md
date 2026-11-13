@@ -14,16 +14,16 @@ Tous les fichiers intégrés sont servis localement. Recherche et collecte : 3 n
 
 Fichiers obtenus depuis les sites des titulaires, pour identifier les marques dans cette démonstration. Aucun statut de distributeur agréé, aucune certification et aucun partenariat ne sont affirmés. Les marques restent la propriété de leurs titulaires. Avant une publication commerciale, valider les droits d’usage et les règles de présentation avec ENRM.
 
-| Marque | Fichier | Source officielle |
-| --- | --- | --- |
-| Castrol | `assets/brands/Castrol.svg` | https://www.castrol.com/apps/settings/wcm/designs/refresh/castrol/images/reignite/logo.svg |
-| Motul | `assets/brands/Motul.svg` | SVG de l’en-tête de https://www.motul.com/fr-FR ; couleur rouge du logotype appliquée à la racine du SVG |
-| LIQUI MOLY | `assets/brands/Liqui_Moly.svg` | https://www.liqui-moly.com/static/version1793275093/frontend/limo/base/default/images/logo.svg |
-| Shell | `assets/brands/Shell.svg` | Symbole Pecten officiel : https://www.shell.com/etc.clientlibs/amidala/clientlibs/theme-base/resources/favicon/favicon.svg |
-| TotalEnergies | `assets/brands/TotalEnergies.png` | https://totalenergies.com/themes/custom/totalenergies_com/dist/img/logo_totalenergies.png |
-| MEYLE | `assets/brands/Meyle.svg` | https://www.meyle.com/brand/default/logo_header.svg |
-| Petrom Maroc | `assets/brands/Petrom.svg` | https://petrom-lubrifiants.ma/wp-content/uploads/2025/04/PETROM-LOGO-SVG.svg ; site déjà cité par le catalogue fourni |
-| Valvoline | `assets/brands/Valvoline.svg` | https://www.valvolineglobal.com/493765/globalassets/vcom/us_valvoline_logo_horizontal_pms_nav.svg |
+| Marque        | Fichier                           | Source officielle                                                                                                          |
+| ------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Castrol       | `assets/brands/Castrol.svg`       | https://www.castrol.com/apps/settings/wcm/designs/refresh/castrol/images/reignite/logo.svg                                 |
+| Motul         | `assets/brands/Motul.svg`         | SVG de l’en-tête de https://www.motul.com/fr-FR ; couleur rouge du logotype appliquée à la racine du SVG                   |
+| LIQUI MOLY    | `assets/brands/Liqui_Moly.svg`    | https://www.liqui-moly.com/static/version1793275093/frontend/limo/base/default/images/logo.svg                             |
+| Shell         | `assets/brands/Shell.svg`         | Symbole Pecten officiel : https://www.shell.com/etc.clientlibs/amidala/clientlibs/theme-base/resources/favicon/favicon.svg |
+| TotalEnergies | `assets/brands/TotalEnergies.png` | https://totalenergies.com/themes/custom/totalenergies_com/dist/img/logo_totalenergies.png                                  |
+| MEYLE         | `assets/brands/Meyle.svg`         | https://www.meyle.com/brand/default/logo_header.svg                                                                        |
+| Petrom Maroc  | `assets/brands/Petrom.svg`        | https://petrom-lubrifiants.ma/wp-content/uploads/2025/04/PETROM-LOGO-SVG.svg ; site déjà cité par le catalogue fourni      |
+| Valvoline     | `assets/brands/Valvoline.svg`     | https://www.valvolineglobal.com/493765/globalassets/vcom/us_valvoline_logo_horizontal_pms_nav.svg                          |
 
 ## SuisseIntl
 
