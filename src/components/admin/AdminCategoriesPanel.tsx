@@ -7,6 +7,35 @@ import { supabase } from '../../shared/supabase';
 
 type CategoryRow = Category & { products?: { count: number }[] };
 
+function descendantIds(categories: CategoryRow[], id: string) {
+  const descendants = new Set<string>();
+  const pending = [id];
+  while (pending.length) {
+    const current = pending.pop()!;
+    for (const category of categories) {
+      if (category.parent_id === current && !descendants.has(category.id)) {
+        descendants.add(category.id);
+        pending.push(category.id);
+      }
+    }
+  }
+  return descendants;
+}
+
+function categoryPath(categories: CategoryRow[], category: CategoryRow) {
+  const labels = [category.name];
+  let parentId = category.parent_id;
+  const visited = new Set([category.id]);
+  while (parentId && !visited.has(parentId)) {
+    visited.add(parentId);
+    const parent = categories.find((item) => item.id === parentId);
+    if (!parent) break;
+    labels.unshift(parent.name);
+    parentId = parent.parent_id;
+  }
+  return labels.join(' / ');
+}
+
 function slugify(value: string) {
   return value
     .normalize('NFKD')
@@ -26,6 +55,7 @@ export function AdminCategoriesPanel() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
+  const [parentId, setParentId] = useState('');
   const [sortOrder, setSortOrder] = useState('0');
   const [active, setActive] = useState(true);
   const [view, setView] = useState('overview');
@@ -66,6 +96,7 @@ export function AdminCategoriesPanel() {
     setName('');
     setSlug('');
     setSlugTouched(false);
+    setParentId('');
     setSortOrder('0');
     setActive(true);
   }
@@ -75,6 +106,7 @@ export function AdminCategoriesPanel() {
     setName(category.name);
     setSlug(category.slug);
     setSlugTouched(true);
+    setParentId(category.parent_id || '');
     setSortOrder(String(category.sort_order));
     setActive(category.is_active);
     document
@@ -88,13 +120,20 @@ export function AdminCategoriesPanel() {
     const normalizedName = name.trim();
     const normalizedSlug = slugify(slug);
     const numericOrder = Number(sortOrder);
+    const parent = categories.find((category) => category.id === parentId);
+    const descendants = editingId ? descendantIds(categories, editingId) : new Set<string>();
     if (!normalizedName || !normalizedSlug || !Number.isInteger(numericOrder) || numericOrder < 0) {
       setMessage('Vérifiez le nom, l’identifiant URL et l’ordre d’affichage.');
+      return;
+    }
+    if ((parentId && !parent) || parentId === editingId || descendants.has(parentId)) {
+      setMessage('Choisissez une catégorie parente valide, sans créer de boucle.');
       return;
     }
     setSaving(true);
     setMessage('');
     const payload = {
+      parent_id: parentId || null,
       name: normalizedName,
       slug: normalizedSlug,
       sort_order: numericOrder,
@@ -123,6 +162,8 @@ export function AdminCategoriesPanel() {
     if (error) setMessage('Visibilité non modifiée. Vérifiez les droits puis réessayez.');
     else await load();
   }
+
+  const descendants = editingId ? descendantIds(categories, editingId) : new Set<string>();
 
   if (view !== 'categories') return null;
 
@@ -173,6 +214,25 @@ export function AdminCategoriesPanel() {
               </div>
             </div>
             <form id="category-form" className="form-grid" onSubmit={save}>
+              <label className="field">
+                Catégorie parente
+                <select
+                  name="parent_id"
+                  value={parentId}
+                  onChange={(event) => setParentId(event.currentTarget.value)}
+                >
+                  <option value="">Aucune (catégorie principale)</option>
+                  {categories
+                    .filter(
+                      (category) => category.id !== editingId && !descendants.has(category.id),
+                    )
+                    .map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {categoryPath(categories, category)}
+                      </option>
+                    ))}
+                </select>
+              </label>
               <label className="field">
                 Nom
                 <input
@@ -271,7 +331,7 @@ export function AdminCategoriesPanel() {
                     {categories.map((category) => (
                       <tr key={category.id}>
                         <td>
-                          <strong>{category.name}</strong>
+                          <strong>{categoryPath(categories, category)}</strong>
                         </td>
                         <td>
                           <code>{category.slug}</code>

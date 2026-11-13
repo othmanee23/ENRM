@@ -7,6 +7,7 @@ import { AdminProductsPanel } from './AdminProductsPanel';
 import { AdminCustomersPanel } from './AdminCustomersPanel';
 import { AdminCategoriesPanel } from './AdminCategoriesPanel';
 import { AdminDashboardPanel } from './AdminDashboardPanel';
+import { AdminEditorHost } from './AdminEditorHost';
 
 export function AdminWorkspace() {
   useEffect(() => {
@@ -98,18 +99,7 @@ export function AdminWorkspace() {
           <span id="admin-footer-note">Connexion à Supabase…</span>
         </footer>
       </div>
-      <dialog id="editor" aria-labelledby="dialog-title">
-        <div className="dialog-head">
-          <div>
-            <small id="dialog-kicker">ENRM GESTION</small>
-            <h2 id="dialog-title" />
-          </div>
-          <button className="icon-button" id="close-dialog" aria-label="Fermer">
-            ✕
-          </button>
-        </div>
-        <div id="dialog-content" />
-      </dialog>
+      <AdminEditorHost />
       <div role="status" className="toast" id="admin-toast" />
     </>
   );

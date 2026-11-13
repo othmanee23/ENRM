@@ -46,10 +46,13 @@ async function go(route: string) {
               : '#workspace h1';
   await vi.waitFor(() => expect(q(reactPanel)).not.toBeNull());
 }
-function submit(selector: string) {
-  q<HTMLFormElement>(selector).dispatchEvent(
-    new Event('submit', { bubbles: true, cancelable: true }),
-  );
+async function submit(selector: string) {
+  await act(async () => {
+    q<HTMLFormElement>(selector).dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true }),
+    );
+    await Promise.resolve();
+  });
 }
 beforeEach(() => {
   Object.defineProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT', {
@@ -176,15 +179,16 @@ it('renders every admin screen, creates a product and order, and persists the st
   expect(document.querySelector('[data-action="new-order"]')).toBeNull();
   await go('settings');
   change('#settings-form [name="threshold"]', '12');
-  submit('#settings-form');
+  await submit('#settings-form');
   await vi.waitFor(() => {
     const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
     expect(saved.settings.threshold).toBe(12);
   });
   await go('promotions');
-  q('[data-action="new-promo"]').click();
+  act(() => q('[data-action="new-promo"]').click());
+  await vi.waitFor(() => expect(q('#promo-form')).not.toBeNull());
   change('#promo-form [name="code"]', 'SPRING15');
-  submit('#promo-form');
+  await submit('#promo-form');
   await vi.waitFor(() => {
     const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
     expect(saved.promotions.some((promotion) => promotion.code === 'SPRING15')).toBe(true);
@@ -204,15 +208,26 @@ it('renders every admin screen, creates a product and order, and persists the st
   expect(document.querySelectorAll('#react-admin-products tbody tr')).toHaveLength(1);
   change('#local-query', '');
   await vi.waitFor(() => expect(q('[data-action="new-product"]')).not.toBeNull());
-  q('[data-action="new-product"]').click();
+  act(() => q('[data-action="new-product"]').click());
+  await vi.waitFor(() => expect(q('#product-form')).not.toBeNull());
   change('#product-form [name="name"]', 'Test formulation');
   change('#product-form [name="brand"]', 'ENRM Démo');
   change('#product-form [name="sku"]', 'ENRM-TEST-001');
   change('#product-form [name="viscosity"]', '5W-30');
   change('#product-form [name="price"]', '200');
   change('#product-form [name="stock"]', '10');
-  submit('#product-form');
+  await submit('#product-form');
   await vi.waitFor(() => expect(q<HTMLDialogElement>('#editor').open).toBe(false));
+  act(() => q<HTMLButtonElement>('[data-edit-product="ENRM-TEST-001"]').click());
+  await vi.waitFor(() => expect(q('#product-form')).not.toBeNull());
+  change('#product-form [name="name"]', 'Updated formulation');
+  await submit('#product-form');
+  await vi.waitFor(() => {
+    const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(saved.products.find((p) => p.id === 'ENRM-TEST-001')?.sous_reference).toBe(
+      'Updated formulation',
+    );
+  });
   await go('orders');
   change('#local-query', 'EN-1048');
   await vi.waitFor(() =>
@@ -221,12 +236,49 @@ it('renders every admin screen, creates a product and order, and persists the st
   expect(document.querySelectorAll('#react-admin-orders tbody tr')).toHaveLength(1);
   change('#local-query', '');
   expect(q('[data-action="new-order"]')).not.toBeNull();
-  q('[data-action="new-order"]').click();
+  act(() => q('[data-action="new-order"]').click());
+  await vi.waitFor(() => expect(q('#new-order')).not.toBeNull());
   change('#new-order [name="product"]', 'ENRM-TEST-001');
   change('#new-order [name="quantity"]', '2');
-  submit('#new-order');
+  await submit('#new-order');
   const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
   expect(saved.products.find((p) => p.id === 'ENRM-TEST-001')?.stock).toBe(8);
   expect(saved.orders[0].id).toBe('EN-1049');
   expect(saved.orders[0].items[0].price).toBe(200);
+  await vi.waitFor(() => expect(q('[data-order="EN-1049"]')).not.toBeNull());
+  act(() => q<HTMLButtonElement>('[data-order="EN-1049"]').click());
+  await vi.waitFor(() => expect(q('#order-update')).not.toBeNull());
+  change('#order-update [name="status"]', 'Expédiée');
+  change('#order-update [name="tracking"]', 'TRK-1049');
+  await submit('#order-update');
+  await vi.waitFor(() => {
+    const updated: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(updated.orders.find((order) => order.id === 'EN-1049')?.tracking).toBe('TRK-1049');
+    expect(updated.orders.find((order) => order.id === 'EN-1049')?.status).toBe('Expédiée');
+  });
+  await go('customers');
+  act(() => q<HTMLButtonElement>('[data-customer]').click());
+  await vi.waitFor(() => expect(q('#customer-form')).not.toBeNull());
+  change('#customer-form [name="name"]', 'Updated Demo Customer');
+  await submit('#customer-form');
+  await vi.waitFor(() => {
+    const updated: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(updated.customers.some((customer) => customer.name === 'Updated Demo Customer')).toBe(
+      true,
+    );
+  });
+  await go('promotions');
+  const promotionState: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+  const promotionId = promotionState.promotions.find(
+    (promotion) => promotion.code === 'SPRING15',
+  )!.id;
+  act(() => q<HTMLButtonElement>(`[data-promo="${promotionId}"]`).click());
+  await vi.waitFor(() => expect(q('#promo-form')).not.toBeNull());
+  change('#promo-form [name="value"]', '20');
+  expect(q<HTMLInputElement>('#promo-form [name="value"]').value).toBe('20');
+  await submit('#promo-form');
+  await vi.waitFor(() => {
+    const updated: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(updated.promotions.find((promotion) => promotion.id === promotionId)?.value).toBe(20);
+  });
 });

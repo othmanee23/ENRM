@@ -6,7 +6,7 @@ ENRM is a French-language automotive oils catalogue and order-request website fo
 
 The public site uses Next.js App Router and React. Catalogue and product pages render on the server; product metadata and canonical URLs are generated from catalogue records. Supabase provides the database, authentication, storage, and order-request RPCs. Cloudflare Workers is the deployment target through OpenNext.
 
-The storefront routes and shared controls are React components. `/admin` is guarded by a Next.js server-side auth check and has React-rendered shell/navigation, orders, products, inventory, customers, categories, overview, analytics, promotions, settings, and global search. `src/admin/main.ts` still coordinates data loading and delegates some editor/mutation workflows through DOM event handlers. Root-level HTML entry pages and admin HTML fixtures have been removed. Legacy public URLs permanently redirect to Next.js routes. See [MIGRATION_REPORT.md](./MIGRATION_REPORT.md) and [PROJECT_STRUCTURE_AUDIT.md](./PROJECT_STRUCTURE_AUDIT.md) for implementation, structure, and verification history. The current branch is `fix/nextjs-migration`; a successful local build is not a production release.
+The storefront routes and shared controls are React components. `/admin` is guarded by a Next.js server-side auth check and has React-rendered screens and modal editors. `src/admin/main.tsx` coordinates data loading and existing mutation workflows; sensitive product, order, and category writes still use the established Supabase RPC/RLS boundary. Root-level HTML entry pages and admin HTML fixtures have been removed. Legacy public URLs permanently redirect to Next.js routes. See [MIGRATION_REPORT.md](./MIGRATION_REPORT.md) and [PROJECT_STRUCTURE_AUDIT.md](./PROJECT_STRUCTURE_AUDIT.md) for implementation, structure, and verification history. The current branch is `fix/nextjs-migration`; a successful local build is not a production release.
 
 ## Stack
 
@@ -26,7 +26,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Use `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL` in `.env.local`. Only the public anon key belongs in client configuration; never expose a service-role key. Without Supabase configuration, the app uses the checked-in catalogue for browsing and disables real order submission. For local password recovery, allow `http://localhost:3000/reset-password` in Supabase Authentication → URL Configuration → Redirect URLs.
+Use `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL` in `.env.local`. For local work, point Supabase URL/key to the local `supabase start` instance; use separate production values only in `.env.production.local` or the Cloudflare production build environment. Both env files are ignored by Git. Only the public anon key belongs in client configuration; never expose a service-role key. Without Supabase configuration, the app uses the checked-in catalogue for browsing and disables real order submission. For local password recovery, allow the matching local `/reset-password` URL in Supabase Authentication → URL Configuration → Redirect URLs.
 
 ## Commands
 
@@ -47,7 +47,8 @@ npx wrangler deploy --dry-run
 - `src/app/` — App Router layouts, public routes, metadata, sitemap, robots, cart, checkout, and admin entry point.
 - `src/components/` — React storefront shell, cards, stateful cart controls, checkout, and admin screens.
 - `src/lib/` — catalogue reads, Supabase clients, SEO helpers, and product slug lookup.
-- `src/admin/main.ts` — admin data coordinator and remaining imperative editor/mutation handlers.
+- `src/admin/main.tsx` — admin data coordinator and editor save workflows.
+- `src/components/admin/AdminEditorHost.tsx` — React modal host for admin editors and alerts.
 - `tests/` — domain, SEO, storefront, and admin workflow regression coverage.
 - `public/catalogue.json` — fallback catalogue containing 210 preserved product variants.
 - `public/assets/` — brand identity, images, fonts, and videos.

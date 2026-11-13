@@ -8,6 +8,7 @@ import {
 import { publicPageMetadata } from '../../../lib/seo';
 import { brandName } from '../../../shared/format';
 import { FilterToggle } from '../../../components/storefront/StorefrontControls';
+import type { Category } from '../../../shared/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,20 @@ function filterQuery(params: SearchParams): URLSearchParams {
     if (item && !query.has(destination)) query.set(destination, item);
   }
   return query;
+}
+
+function categoryLabel(categories: Category[], category: Category) {
+  const labels = [category.name];
+  let parentId = category.parent_id;
+  const visited = new Set([category.id]);
+  while (parentId && !visited.has(parentId)) {
+    visited.add(parentId);
+    const parent = categories.find((item) => item.id === parentId);
+    if (!parent) break;
+    labels.unshift(parent.name);
+    parentId = parent.parent_id;
+  }
+  return labels.join(' / ');
 }
 
 function Pagination({
@@ -237,7 +252,7 @@ export default async function CataloguePage({
                   selected={categorySlug}
                   options={categories.map((category) => ({
                     value: category.slug,
-                    label: category.name,
+                    label: categoryLabel(categories, category),
                   }))}
                 />
                 <SelectField

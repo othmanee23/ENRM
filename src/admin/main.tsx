@@ -1,7 +1,8 @@
+import type { ReactNode } from 'react';
 import { loadAdminState, saveAdminState } from './storage';
 import { icon } from './icons';
 import { createDemoState } from './seed';
-import { thumb, badge, field, formActions, empty } from './components';
+import { empty } from './components';
 import { fmt, statuses } from './format';
 
 import { $, formData, formValues, fieldValue } from '../shared/dom';
@@ -489,10 +490,10 @@ function render() {
   $('#scrim').hidden = true;
   $('#mobile-menu').setAttribute('aria-expanded', 'false');
 }
-function openDialog(name: string, html: string) {
-  $('#dialog-title').textContent = name;
-  $('#dialog-content').innerHTML = html;
-  $('#editor').showModal();
+function openDialog(name: string, content: ReactNode) {
+  window.dispatchEvent(
+    new CustomEvent('enrm-admin-open-editor', { detail: { title: name, content } }),
+  );
 }
 function closeDialog() {
   $('#editor').close();
@@ -519,269 +520,568 @@ function productEditor(id?: string) {
     });
   openDialog(
     id ? 'Modifier le produit' : 'Nouveau produit',
-    `<form id="product-form"><div class="form-grid">${field('Nom du produit', 'name', p.sous_reference || '', 'text', 'full maxlength="100"')}${field('Marque', 'brand', p.marque || '', 'text', 'maxlength="50"')}${field('Référence / SKU', 'sku', p.id || 'ENRM-DEMO-' + Date.now().toString().slice(-6), 'text', 'maxlength="80" pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,79}"')}${field('Viscosité', 'viscosity', p.viscosite || '', 'text', 'maxlength="30"')}${field('Contenance', 'volume', p.litrage || '5 L', 'text', 'maxlength="30"')}${field('Prix · MAD', 'price', p.price, 'number', 'min="0" max="9999999" step="0.01"')}${field('Stock disponible', 'stock', p.stock, 'number', 'min="0" max="999999"')}<label class="field full">Catégorie<select name="category" required>${categories
-      .map(
-        (category) =>
-          `<option value="${esc(category.id)}" ${category.id === p.category_id ? 'selected' : ''}>${esc(category.name)}</option>`,
-      )
-      .join(
-        '',
-      )}</select></label><label class="field full">Statut<select name="status"><option ${p.status === 'Actif' ? 'selected' : ''}>Actif</option><option ${p.status === 'Brouillon' ? 'selected' : ''}>Brouillon</option></select></label><label class="field full">Photo du produit<input type="file" name="image" accept="image/jpeg,image/png,image/webp"></label></div><p class="form-note">JPG, PNG ou WebP · 1 Mo maximum. ${supabase ? 'Image partagée avec la boutique.' : 'Image enregistrée dans cette démonstration.'}</p>${formActions(id ? 'Enregistrer' : 'Ajouter le produit')}</form>`,
+    <form
+      id="product-form"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        const f = formData(e.currentTarget),
+          sku = fieldValue(f, 'sku').trim();
+        if (state.products.some((x) => x.id === sku && x.id !== id)) {
+          toast('Cette référence existe déjà.');
+          return;
+        }
+        const file = f.get('image');
+        let image = p.recto || '',
+          uploadedPath = '';
+        if (file instanceof File && file.size) {
+          if (
+            !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+            file.size > 1024 * 1024
+          ) {
+            toast('Choisissez une image JPG, PNG ou WebP de moins de 1 Mo.');
+            return;
+          }
+          if (supabase) {
+            if (!(await hasRemoteAdminAccess())) {
+              toast('Connectez-vous avec un compte administrateur dans Catégories.');
+              return;
+            }
+            const ext = file.type === 'image/jpeg' ? 'jpg' : file.type.slice('image/'.length);
+            uploadedPath = `${sku}/${crypto.randomUUID()}.${ext}`;
+            const { error } = await supabase.storage
+              .from('product-media')
+              .upload(uploadedPath, file, { contentType: file.type, upsert: false });
+            if (error) {
+              toast('La photo n’a pas été envoyée : ' + error.message);
+              return;
+            }
+            image = supabase.storage.from('product-media').getPublicUrl(uploadedPath)
+              .data.publicUrl;
+          } else {
+            image = await new Promise<string>((res, rej) => {
+              const r = new FileReader();
+              r.onload = () => res(String(r.result));
+              r.onerror = rej;
+              r.readAsDataURL(file);
+            });
+          }
+        }
+        const item: AdminProduct = {
+          ...p,
+          id: sku,
+          sous_reference: fieldValue(f, 'name').trim(),
+          marque: fieldValue(f, 'brand').trim(),
+          viscosite: fieldValue(f, 'viscosity').trim(),
+          litrage: fieldValue(f, 'volume').trim(),
+          price: Number(fieldValue(f, 'price')),
+          stock: Number(fieldValue(f, 'stock')),
+          category_id: fieldValue(f, 'category'),
+          status: fieldValue(f, 'status'),
+          recto: image,
+        };
+        item.designation = [item.marque, item.sous_reference, item.viscosite, item.litrage].join(
+          ' ',
+        );
+        const remoteError = await saveRemoteProduct(item, id || item.id);
+        if (remoteError) {
+          if (uploadedPath && supabase && !remoteError.productSaved)
+            await supabase.storage.from('product-media').remove([uploadedPath]);
+          toast(
+            remoteError.productSaved
+              ? remoteError.message
+              : 'Le produit n’a pas été enregistré : ' + remoteError.message,
+          );
+          return;
+        }
+        const backup = JSON.stringify(state);
+        if (id) {
+          const oldId = id;
+          state.products[state.products.findIndex((x) => x.id === id)] = item;
+          state.orders.forEach((o) =>
+            o.items.forEach((i) => {
+              if (i.id === oldId) i.id = sku;
+            }),
+          );
+        } else state.products.unshift(item);
+        activity(`${id ? 'Produit mis à jour' : 'Produit ajouté'} : ${item.sous_reference}`);
+        if (!persist()) {
+          state = JSON.parse(backup);
+          return;
+        }
+        closeDialog();
+        render();
+        toast(
+          id
+            ? 'Produit mis à jour.'
+            : supabase
+              ? 'Produit ajouté au catalogue.'
+              : 'Produit ajouté à la démonstration.',
+        );
+      }}
+    >
+      <div className="form-grid">
+        <label className="field full">
+          Nom du produit
+          <input name="name" defaultValue={p.sous_reference || ''} maxLength={100} required />
+        </label>
+        <label className="field">
+          Marque
+          <input name="brand" defaultValue={p.marque || ''} maxLength={50} required />
+        </label>
+        <label className="field">
+          Référence / SKU
+          <input
+            name="sku"
+            defaultValue={p.id || 'ENRM-DEMO-' + Date.now().toString().slice(-6)}
+            maxLength={80}
+            pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,79}"
+            required
+          />
+        </label>
+        <label className="field">
+          Viscosité
+          <input name="viscosity" defaultValue={p.viscosite || ''} maxLength={30} required />
+        </label>
+        <label className="field">
+          Contenance
+          <input name="volume" defaultValue={p.litrage || '5 L'} maxLength={30} required />
+        </label>
+        <label className="field">
+          Prix · MAD
+          <input
+            name="price"
+            type="number"
+            defaultValue={p.price}
+            min={0}
+            max={9999999}
+            step="0.01"
+            required
+          />
+        </label>
+        <label className="field">
+          Stock disponible
+          <input name="stock" type="number" defaultValue={p.stock} min={0} max={999999} required />
+        </label>
+        <label className="field full">
+          Catégorie
+          <select name="category" defaultValue={p.category_id} required>
+            {categories.map((category) => (
+              <option value={category.id} key={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field full">
+          Statut
+          <select name="status" defaultValue={p.status}>
+            <option>Actif</option>
+            <option>Brouillon</option>
+          </select>
+        </label>
+        <label className="field full">
+          Photo du produit
+          <input type="file" name="image" accept="image/jpeg,image/png,image/webp" />
+        </label>
+      </div>
+      <p className="form-note">
+        JPG, PNG ou WebP · 1 Mo maximum.{' '}
+        {supabase
+          ? 'Image partagée avec la boutique.'
+          : 'Image enregistrée dans cette démonstration.'}
+      </p>
+      <div className="form-actions full">
+        <button type="button" className="btn" data-action="cancel">
+          Annuler
+        </button>
+        <button className="btn primary" type="submit">
+          {id ? 'Enregistrer' : 'Ajouter le produit'} {icon('check')}
+        </button>
+      </div>
+    </form>,
   );
-  $('#product-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const f = formData(e.target),
-      sku = fieldValue(f, 'sku').trim();
-    if (state.products.some((x) => x.id === sku && x.id !== id)) {
-      toast('Cette référence existe déjà.');
-      return;
-    }
-    const file = f.get('image');
-    let image = p.recto || '',
-      uploadedPath = '';
-    if (file instanceof File && file.size) {
-      if (
-        !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
-        file.size > 1024 * 1024
-      ) {
-        toast('Choisissez une image JPG, PNG ou WebP de moins de 1 Mo.');
-        return;
-      }
-      if (supabase) {
-        if (!(await hasRemoteAdminAccess())) {
-          toast('Connectez-vous avec un compte administrateur dans Catégories.');
-          return;
-        }
-        const ext = file.type === 'image/jpeg' ? 'jpg' : file.type.slice('image/'.length);
-        uploadedPath = `${sku}/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage
-          .from('product-media')
-          .upload(uploadedPath, file, { contentType: file.type, upsert: false });
-        if (error) {
-          toast('La photo n’a pas été envoyée : ' + error.message);
-          return;
-        }
-        image = supabase.storage.from('product-media').getPublicUrl(uploadedPath).data.publicUrl;
-      } else {
-        image = await new Promise<string>((res, rej) => {
-          const r = new FileReader();
-          r.onload = () => res(String(r.result));
-          r.onerror = rej;
-          r.readAsDataURL(file);
-        });
-      }
-    }
-    const item: AdminProduct = {
-      ...p,
-      id: sku,
-      sous_reference: fieldValue(f, 'name').trim(),
-      marque: fieldValue(f, 'brand').trim(),
-      viscosite: fieldValue(f, 'viscosity').trim(),
-      litrage: fieldValue(f, 'volume').trim(),
-      price: Number(fieldValue(f, 'price')),
-      stock: Number(fieldValue(f, 'stock')),
-      category_id: fieldValue(f, 'category'),
-      status: fieldValue(f, 'status'),
-      recto: image,
-    };
-    item.designation = [item.marque, item.sous_reference, item.viscosite, item.litrage].join(' ');
-    const remoteError = await saveRemoteProduct(item, id || item.id);
-    if (remoteError) {
-      if (uploadedPath && supabase && !remoteError.productSaved)
-        await supabase.storage.from('product-media').remove([uploadedPath]);
-      toast(
-        remoteError.productSaved
-          ? remoteError.message
-          : 'Le produit n’a pas été enregistré : ' + remoteError.message,
-      );
-      return;
-    }
-    const backup = JSON.stringify(state);
-    if (id) {
-      const oldId = id;
-      state.products[state.products.findIndex((x) => x.id === id)] = item;
-      state.orders.forEach((o) =>
-        o.items.forEach((i) => {
-          if (i.id === oldId) i.id = sku;
-        }),
-      );
-    } else state.products.unshift(item);
-    activity(`${id ? 'Produit mis à jour' : 'Produit ajouté'} : ${item.sous_reference}`);
-    if (!persist()) {
-      state = JSON.parse(backup);
-      return;
-    }
-    closeDialog();
-    render();
-    toast(
-      id
-        ? 'Produit mis à jour.'
-        : supabase
-          ? 'Produit ajouté au catalogue.'
-          : 'Produit ajouté à la démonstration.',
-    );
-  };
 }
 function orderEditor(id: string) {
   const o = requireById(state.orders, id),
     c = requireById(state.customers, o.customerId);
   openDialog(
     'Commande #' + o.id,
-    `<div class="detail-summary"><div>${badge(o.status)}<p class="form-note">Créée le ${fmt(o.date)}</p></div><strong>${currency(total(o))}</strong></div><div class="detail-grid"><div><small>CLIENT</small><p>${esc(c.name)}<br>${c.phone ? `<a href="tel:${esc(c.phone.replace(/[^+\d]/g, ''))}">${esc(c.phone)}</a>` : esc(c.email)}</p></div><div><small>DESTINATION</small><p>${esc(c.city)}<br>${c.deliveryAddress ? esc(c.deliveryAddress) : 'Maroc · Livraison démo'}</p></div></div><div class="order-lines">${o.items.map((i) => `<div>${thumb(state.products.find((item) => item.id === i.id))}<div><strong>${esc(i.name)}</strong><small>${i.qty} × ${currency(i.price)} · ${esc(i.volume)}</small></div><span>${currency(i.qty * i.price)}</span></div>`).join('')}</div>${o.remote ? '<p class="form-note">Demande client · Contactez le client pour confirmer les détails.</p>' : ''}<form id="order-update"><div class="form-grid"><label class="field">Statut de la commande<select name="status" ${o.status === 'Annulée' ? 'disabled' : ''}>${statuses.map((s) => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="field full">Numéro de suivi<input name="tracking" value="${esc(o.tracking)}" maxlength="70" placeholder="Ex. suivi transporteur"></label><label class="field full">Note interne<textarea name="note" maxlength="1000">${esc(o.note)}</textarea></label></div>${formActions('Mettre à jour')}</form><h3 class="timeline-title">Historique de la commande</h3><div class="activity-list">${[
-      ...o.history,
-    ]
-      .reverse()
-      .map(
-        (h) =>
-          `<div class="activity-item"><p>${esc(h.label)}</p><small>${new Date(h.date).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</small></div>`,
-      )
-      .join('')}</div>`,
+    <>
+      <div className="detail-summary">
+        <div>
+          <span className="badge">{o.status}</span>
+          <p className="form-note">Créée le {fmt(o.date)}</p>
+        </div>
+        <strong>{currency(total(o))}</strong>
+      </div>
+      <div className="detail-grid">
+        <div>
+          <small>CLIENT</small>
+          <p>
+            {c.name}
+            <br />
+            {c.phone ? <a href={`tel:${c.phone.replace(/[^+\d]/g, '')}`}>{c.phone}</a> : c.email}
+          </p>
+        </div>
+        <div>
+          <small>DESTINATION</small>
+          <p>
+            {c.city}
+            <br />
+            {c.deliveryAddress || 'Maroc · Livraison démo'}
+          </p>
+        </div>
+      </div>
+      <div className="order-lines">
+        {o.items.map((item) => {
+          const itemProduct = state.products.find((candidate) => candidate.id === item.id);
+          return (
+            <div key={`${item.id}-${item.volume}`}>
+              {itemProduct?.recto ? (
+                <span className="thumb">
+                  <img src={itemProduct.recto} alt="" />
+                </span>
+              ) : (
+                <span className="thumb empty">{item.volume}</span>
+              )}
+              <div>
+                <strong>{item.name}</strong>
+                <small>
+                  {item.qty} × {currency(item.price)} · {item.volume}
+                </small>
+              </div>
+              <span>{currency(item.qty * item.price)}</span>
+            </div>
+          );
+        })}
+      </div>
+      {o.remote && (
+        <p className="form-note">
+          Demande client · Contactez le client pour confirmer les détails.
+        </p>
+      )}
+      <form
+        id="order-update"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const f = formData(e.currentTarget);
+          const nextStatus = o.status === 'Annulée' ? 'Annulée' : fieldValue(f, 'status');
+          const nextTracking = fieldValue(f, 'tracking').trim();
+          const nextNote = fieldValue(f, 'note').trim();
+          if (o.remote) {
+            const { error } = await supabase!.rpc('update_enrm_order', {
+              p_order_id: o.remoteId,
+              p_status: nextStatus,
+              p_tracking_number: nextTracking,
+              p_internal_note: nextNote,
+            });
+            if (error) {
+              toast('La commande n’a pas été mise à jour : ' + error.message);
+              return;
+            }
+          }
+          if (o.status !== nextStatus)
+            o.history.push({
+              label: o.remote ? `${o.status} → ${nextStatus}` : nextStatus,
+              date: new Date().toISOString(),
+            });
+          Object.assign(o, { status: nextStatus, tracking: nextTracking, note: nextNote });
+          activity(`Commande #${id} : ${o.status}`);
+          if (o.remote && nextStatus === 'Annulée') await refreshRemoteProducts();
+          persist();
+          closeDialog();
+          render();
+          toast('Commande mise à jour.');
+        }}
+      >
+        <div className="form-grid">
+          <label className="field">
+            Statut de la commande
+            <select name="status" defaultValue={o.status} disabled={o.status === 'Annulée'}>
+              {statuses.map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field full">
+            Numéro de suivi
+            <input
+              name="tracking"
+              defaultValue={o.tracking}
+              maxLength={70}
+              placeholder="Ex. suivi transporteur"
+            />
+          </label>
+          <label className="field full">
+            Note interne
+            <textarea name="note" defaultValue={o.note} maxLength={1000} />
+          </label>
+        </div>
+        <div className="form-actions full">
+          <button type="button" className="btn" data-action="cancel">
+            Annuler
+          </button>
+          <button className="btn primary" type="submit">
+            Mettre à jour {icon('check')}
+          </button>
+        </div>
+      </form>
+      <h3 className="timeline-title">Historique de la commande</h3>
+      <div className="activity-list">
+        {[...o.history].reverse().map((entry, index) => (
+          <div className="activity-item" key={`${entry.date}-${index}`}>
+            <p>{entry.label}</p>
+            <small>
+              {new Date(entry.date).toLocaleString('fr-FR', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              })}
+            </small>
+          </div>
+        ))}
+      </div>
+    </>,
   );
-  $('#order-update').onsubmit = async (e) => {
-    e.preventDefault();
-    const f = formData(e.target);
-    const nextStatus = o.status === 'Annulée' ? 'Annulée' : fieldValue(f, 'status');
-    const nextTracking = fieldValue(f, 'tracking').trim();
-    const nextNote = fieldValue(f, 'note').trim();
-    if (o.remote) {
-      const { error } = await supabase!.rpc('update_enrm_order', {
-        p_order_id: o.remoteId,
-        p_status: nextStatus,
-        p_tracking_number: nextTracking,
-        p_internal_note: nextNote,
-      });
-      if (error) {
-        toast('La commande n’a pas été mise à jour : ' + error.message);
-        return;
-      }
-    }
-    if (o.status !== nextStatus)
-      o.history.push({
-        label: o.remote ? `${o.status} → ${nextStatus}` : nextStatus,
-        date: new Date().toISOString(),
-      });
-    Object.assign(o, {
-      status: nextStatus,
-      tracking: nextTracking,
-      note: nextNote,
-    });
-    activity(`Commande #${id} : ${o.status}`);
-    if (o.remote && nextStatus === 'Annulée') await refreshRemoteProducts();
-    persist();
-    closeDialog();
-    render();
-    toast('Commande mise à jour.');
-  };
 }
 function newOrder() {
   openDialog(
     'Nouvelle commande',
-    `<form id="new-order"><div class="form-grid"><label class="field full">Client<select name="customer" required>${state.customers.map((c) => `<option value="${c.id}">${esc(c.name)} · ${esc(c.city)}</option>`).join('')}</select></label><label class="field full">Produit<select name="product" required>${state.products
-      .filter((p) => p.status === 'Actif')
-      .map(
-        (p) =>
-          `<option value="${p.id}">${esc(p.marque + ' ' + p.sous_reference + ' ' + p.viscosite + ' · ' + p.litrage)} — ${currency(p.price)}</option>`,
-      )
-      .join(
-        '',
-      )}</select></label>${field('Quantité', 'quantity', 1, 'number', 'min="1" max="999"')}</div><p class="form-note">Commande fictive. Le stock est déduit à la création.</p>${formActions('Créer la commande')}</form>`,
+    <form
+      id="new-order"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const f = formData(e.currentTarget),
+          p = product(fieldValue(f, 'product')),
+          qty = Number(fieldValue(f, 'quantity'));
+        if (p.stock < qty) {
+          toast('Stock insuffisant. Ajustez le stock ou la quantité.');
+          return;
+        }
+        p.stock -= qty;
+        const newId =
+          'EN-' + (Math.max(1048, ...state.orders.map((o) => Number(o.id.split('-')[1]))) + 1);
+        state.orders.unshift({
+          id: newId,
+          customerId: fieldValue(f, 'customer'),
+          date: new Date().toISOString(),
+          status: 'À préparer',
+          payment: '',
+          tracking: '',
+          note: '',
+          items: [
+            {
+              id: p.id,
+              name: p.marque + ' ' + p.sous_reference,
+              volume: p.litrage,
+              qty,
+              price: p.price,
+            },
+          ],
+          history: [{ label: 'Commande créée', date: new Date().toISOString() }],
+        });
+        activity(`Commande #${newId} créée`);
+        persist();
+        closeDialog();
+        render();
+        toast('Commande de démonstration créée.');
+      }}
+    >
+      <div className="form-grid">
+        <label className="field full">
+          Client
+          <select name="customer" required>
+            {state.customers.map((customer) => (
+              <option value={customer.id} key={customer.id}>
+                {customer.name} · {customer.city}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field full">
+          Produit
+          <select name="product" required>
+            {state.products
+              .filter((item) => item.status === 'Actif')
+              .map((item) => (
+                <option value={item.id} key={item.id}>
+                  {item.marque} {item.sous_reference} {item.viscosite} · {item.litrage} —{' '}
+                  {currency(item.price)}
+                </option>
+              ))}
+          </select>
+        </label>
+        <label className="field">
+          Quantité
+          <input name="quantity" type="number" defaultValue={1} min={1} max={999} required />
+        </label>
+      </div>
+      <p className="form-note">Commande fictive. Le stock est déduit à la création.</p>
+      <div className="form-actions full">
+        <button type="button" className="btn" data-action="cancel">
+          Annuler
+        </button>
+        <button className="btn primary" type="submit">
+          Créer la commande {icon('check')}
+        </button>
+      </div>
+    </form>,
   );
-  $('#new-order').onsubmit = (e) => {
-    e.preventDefault();
-    const f = formData(e.target),
-      p = product(fieldValue(f, 'product')),
-      qty = Number(fieldValue(f, 'quantity'));
-    if (p.stock < qty) {
-      toast('Stock insuffisant. Ajustez le stock ou la quantité.');
-      return;
-    }
-    p.stock -= qty;
-    const id = 'EN-' + (Math.max(1048, ...state.orders.map((o) => Number(o.id.split('-')[1]))) + 1);
-    state.orders.unshift({
-      id,
-      customerId: fieldValue(f, 'customer'),
-      date: new Date().toISOString(),
-      status: 'À préparer',
-      payment: '',
-      tracking: '',
-      note: '',
-      items: [
-        {
-          id: p.id,
-          name: p.marque + ' ' + p.sous_reference,
-          volume: p.litrage,
-          qty,
-          price: p.price,
-        },
-      ],
-      history: [{ label: 'Commande créée', date: new Date().toISOString() }],
-    });
-    activity(`Commande #${id} créée`);
-    persist();
-    closeDialog();
-    render();
-    toast('Commande de démonstration créée.');
-  };
 }
 function customerEditor(id?: string) {
   const c: Partial<Customer> = id ? requireById(state.customers, id) : {};
   openDialog(
     id ? 'Modifier le client' : 'Nouveau client',
-    `<form id="customer-form"><div class="form-grid">${field('Nom fictif', 'name', c.name || '', 'text', 'full maxlength="90"')}${field('Email fictif', 'email', c.email || '', 'email', 'full maxlength="150"')}${field('Ville', 'city', c.city || '', 'text', 'maxlength="60"')}<label class="field">Profil<select name="type"><option>Particulier</option><option ${c.type === 'Professionnel' ? 'selected' : ''}>Professionnel</option></select></label></div>${formActions()}</form>`,
+    <form
+      id="customer-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const f = formValues(formData(e.currentTarget));
+        const item: Customer = {
+          id: id || 'C' + Date.now(),
+          name: f.name,
+          email: f.email,
+          city: f.city,
+          type: f.type,
+        };
+        if (id) state.customers[state.customers.findIndex((customer) => customer.id === id)] = item;
+        else state.customers.push(item);
+        activity(`Fiche client enregistrée : ${item.name}`);
+        persist();
+        closeDialog();
+        render();
+        toast('Fiche client enregistrée.');
+      }}
+    >
+      <div className="form-grid">
+        <label className="field full">
+          Nom fictif
+          <input name="name" defaultValue={c.name || ''} maxLength={90} required />
+        </label>
+        <label className="field full">
+          Email fictif
+          <input name="email" type="email" defaultValue={c.email || ''} maxLength={150} required />
+        </label>
+        <label className="field">
+          Ville
+          <input name="city" defaultValue={c.city || ''} maxLength={60} required />
+        </label>
+        <label className="field">
+          Profil
+          <select name="type" defaultValue={c.type || 'Particulier'}>
+            <option>Particulier</option>
+            <option>Professionnel</option>
+          </select>
+        </label>
+      </div>
+      <div className="form-actions full">
+        <button type="button" className="btn" data-action="cancel">
+          Annuler
+        </button>
+        <button className="btn primary" type="submit">
+          Enregistrer {icon('check')}
+        </button>
+      </div>
+    </form>,
   );
-  $('#customer-form').onsubmit = (e) => {
-    e.preventDefault();
-    const f = formValues(formData(e.target));
-    const item: Customer = {
-      id: id || 'C' + Date.now(),
-      name: f.name,
-      email: f.email,
-      city: f.city,
-      type: f.type,
-    };
-    if (id) state.customers[state.customers.findIndex((c) => c.id === id)] = item;
-    else state.customers.push(item);
-    activity(`Fiche client enregistrée : ${item.name}`);
-    persist();
-    closeDialog();
-    render();
-    toast('Fiche client enregistrée.');
-  };
 }
 function promoEditor(id?: string) {
   const p: Partial<Promotion> = state.promotions.find((p) => p.id === id) || {};
   openDialog(
     id ? 'Modifier la promotion' : 'Nouvelle promotion',
-    `<form id="promo-form"><div class="form-grid">${field('Code promotionnel', 'code', p.code || '', 'text', 'full pattern="[A-Za-z0-9_-]+" maxlength="30"')}<label class="field">Type<select name="type"><option>Pourcentage</option><option ${p.type === 'Montant fixe' ? 'selected' : ''}>Montant fixe</option></select></label>${field('Valeur de la remise', 'value', p.value || 10, 'number', 'min="1" max="99999" step="0.01"')}${field('Date de fin', 'expiry', p.expiry || new Date(today.getTime() + 30 * 864e5).toISOString().slice(0, 10), 'date')}<label class="field">Statut<select name="status">${['Actif', 'Brouillon', 'Inactif'].map((s) => `<option ${s === p.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label></div>${formActions()}</form>`,
+    <form
+      id="promo-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const f = formValues(formData(e.currentTarget));
+        if (f.type === 'Pourcentage' && Number(f.value) > 100) {
+          toast('Une remise en pourcentage ne peut pas dépasser 100 %.');
+          return;
+        }
+        f.code = f.code.toUpperCase();
+        if (
+          state.promotions.some((promotion) => promotion.code === f.code && promotion.id !== id)
+        ) {
+          toast('Ce code existe déjà.');
+          return;
+        }
+        const item: Promotion = {
+          id: id || 'P' + Date.now(),
+          code: f.code,
+          value: Number(f.value),
+          type: f.type,
+          status: f.status,
+          expiry: f.expiry,
+        };
+        if (id)
+          state.promotions[state.promotions.findIndex((promotion) => promotion.id === id)] = item;
+        else state.promotions.push(item);
+        activity(`Promotion enregistrée : ${f.code}`);
+        persist();
+        closeDialog();
+        render();
+        toast('Promotion enregistrée.');
+      }}
+    >
+      <div className="form-grid">
+        <label className="field full">
+          Code promotionnel
+          <input
+            name="code"
+            defaultValue={p.code || ''}
+            pattern="[A-Za-z0-9_-]+"
+            maxLength={30}
+            required
+          />
+        </label>
+        <label className="field">
+          Type
+          <select name="type" defaultValue={p.type || 'Pourcentage'}>
+            <option>Pourcentage</option>
+            <option>Montant fixe</option>
+          </select>
+        </label>
+        <label className="field">
+          Valeur de la remise
+          <input
+            name="value"
+            type="number"
+            defaultValue={p.value || 10}
+            min={1}
+            max={99999}
+            step="0.01"
+            required
+          />
+        </label>
+        <label className="field">
+          Date de fin
+          <input
+            name="expiry"
+            type="date"
+            defaultValue={
+              p.expiry || new Date(today.getTime() + 30 * 864e5).toISOString().slice(0, 10)
+            }
+            required
+          />
+        </label>
+        <label className="field">
+          Statut
+          <select name="status" defaultValue={p.status || 'Actif'}>
+            {['Actif', 'Brouillon', 'Inactif'].map((status) => (
+              <option key={status}>{status}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="form-actions full">
+        <button type="button" className="btn" data-action="cancel">
+          Annuler
+        </button>
+        <button className="btn primary" type="submit">
+          Enregistrer {icon('check')}
+        </button>
+      </div>
+    </form>,
   );
-  $('#promo-form').onsubmit = (e) => {
-    e.preventDefault();
-    const f = formValues(formData(e.target));
-    if (f.type === 'Pourcentage' && Number(f.value) > 100) {
-      toast('Une remise en pourcentage ne peut pas dépasser 100 %.');
-      return;
-    }
-    f.code = f.code.toUpperCase();
-    if (state.promotions.some((x) => x.code === f.code && x.id !== id)) {
-      toast('Ce code existe déjà.');
-      return;
-    }
-    const item: Promotion = {
-      id: id || 'P' + Date.now(),
-      code: f.code,
-      value: Number(f.value),
-      type: f.type,
-      status: f.status,
-      expiry: f.expiry,
-    };
-    if (id) state.promotions[state.promotions.findIndex((x) => x.id === id)] = item;
-    else state.promotions.push(item);
-    activity(`Promotion enregistrée : ${f.code}`);
-    persist();
-    closeDialog();
-    render();
-    toast('Promotion enregistrée.');
-  };
 }
 function download(name: string, data: string, type: string) {
   const url = URL.createObjectURL(new Blob(['\ufeff', data], { type }));
@@ -954,15 +1254,31 @@ document.addEventListener('click', (e) => {
   if (action === 'reset') {
     openDialog(
       'Réinitialiser la démonstration',
-      `<p>Les modifications locales seront remplacées par les données de départ. La boutique publique reste inchangée.</p><div class="form-actions"><button class="btn" data-action="cancel">Conserver mes données</button><button class="btn danger" id="confirm-reset">Réinitialiser</button></div>`,
+      <>
+        <p>
+          Les modifications locales seront remplacées par les données de départ. La boutique
+          publique reste inchangée.
+        </p>
+        <div className="form-actions">
+          <button className="btn" data-action="cancel">
+            Conserver mes données
+          </button>
+          <button
+            className="btn danger"
+            type="button"
+            onClick={() => {
+              state = createDemoState(baseProducts, today);
+              persist();
+              closeDialog();
+              render();
+              toast('Démonstration réinitialisée.');
+            }}
+          >
+            Réinitialiser
+          </button>
+        </div>
+      </>,
     );
-    $('#confirm-reset').onclick = () => {
-      state = createDemoState(baseProducts, today);
-      persist();
-      closeDialog();
-      render();
-      toast('Démonstration réinitialisée.');
-    };
   }
 });
 document.addEventListener('input', (e) => {
@@ -1060,16 +1376,50 @@ $('#notifications').innerHTML = icon('bell');
 $('#notifications').onclick = () => {
   openDialog(
     'Vos points d’attention',
-    `<div class="stock-list"><div class="stock-item">${icon('bag')}<div><strong>${state.orders.filter((o) => ['À confirmer', 'À préparer', 'En préparation'].includes(o.status)).length} commandes à traiter</strong><small>Demandes et préparation</small></div><button class="btn" id="alert-orders">Voir</button></div><div class="stock-item">${icon('alert')}<div><strong>${lowStock().length} références à réapprovisionner</strong><small>Seuil : ${state.settings.threshold} unités</small></div><button class="btn" id="alert-stock">Voir</button></div></div>`,
+    <div className="stock-list">
+      <div className="stock-item">
+        <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('bag') }} />
+        <div>
+          <strong>
+            {
+              state.orders.filter((o) =>
+                ['À confirmer', 'À préparer', 'En préparation'].includes(o.status),
+              ).length
+            }{' '}
+            commandes à traiter
+          </strong>
+          <small>Demandes et préparation</small>
+        </div>
+        <button
+          className="btn"
+          type="button"
+          onClick={() => {
+            closeDialog();
+            navigate('orders');
+          }}
+        >
+          Voir
+        </button>
+      </div>
+      <div className="stock-item">
+        <span aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon('alert') }} />
+        <div>
+          <strong>{lowStock().length} références à réapprovisionner</strong>
+          <small>Seuil : {state.settings.threshold} unités</small>
+        </div>
+        <button
+          className="btn"
+          type="button"
+          onClick={() => {
+            closeDialog();
+            navigate('inventory');
+          }}
+        >
+          Voir
+        </button>
+      </div>
+    </div>,
   );
-  $('#alert-orders').onclick = () => {
-    closeDialog();
-    navigate('orders');
-  };
-  $('#alert-stock').onclick = () => {
-    closeDialog();
-    navigate('inventory');
-  };
 };
 $('#search-icon').innerHTML = icon('search');
 addEventListener('hashchange', async () => {
