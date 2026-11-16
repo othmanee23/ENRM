@@ -39,6 +39,8 @@ const routes = [
   ['inventory', 'Stock & inventaire', 'layers'],
   ['customers', 'Clients', 'users'],
   ['analytics', 'Statistiques', 'chart'],
+  ['promotions', 'Promotions', 'tag'],
+  ['settings', 'Paramètres', 'settings'],
 ];
 let state: AdminState,
   adminAuthenticated = !supabase,
@@ -494,6 +496,8 @@ function render() {
     'customers',
     'categories',
     'analytics',
+    'promotions',
+    'settings',
     'search',
   ].includes(view);
   workspace.hidden = reactManagedView;

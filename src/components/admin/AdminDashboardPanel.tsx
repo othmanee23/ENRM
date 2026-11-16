@@ -111,7 +111,8 @@ export function AdminDashboardPanel() {
     .filter((product) => product.status === 'Actif' && product.stock <= data.stockThreshold)
     .sort((a, b) => a.stock - b.stock);
 
-  if (!['overview', 'analytics', 'search'].includes(data.view)) return null;
+  if (!['overview', 'analytics', 'promotions', 'settings', 'search'].includes(data.view))
+    return null;
   if (data.restricted) {
     return (
       <main id="react-admin-summary">
