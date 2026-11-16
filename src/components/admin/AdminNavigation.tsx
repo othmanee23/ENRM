@@ -7,10 +7,8 @@ import {
   Layers3,
   LayoutDashboard,
   Package,
-  Settings,
   ShoppingBag,
   Tags,
-  TicketPercent,
   UsersRound,
 } from 'lucide-react';
 
@@ -22,8 +20,6 @@ const routes = [
   { id: 'inventory', label: 'Stock & inventaire', Icon: Layers3 },
   { id: 'customers', label: 'Clients', Icon: UsersRound },
   { id: 'analytics', label: 'Statistiques', Icon: ChartColumnIncreasing },
-  { id: 'promotions', label: 'Promotions', Icon: TicketPercent },
-  { id: 'settings', label: 'Paramètres', Icon: Settings },
   { id: 'search', label: 'Recherche', Icon: ClipboardList, hidden: true },
 ];
 
