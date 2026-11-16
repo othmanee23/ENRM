@@ -23,6 +23,8 @@ type Snapshot = {
   connectedAdmin: boolean;
   remoteOrdersActive: boolean;
   remoteProductsActive: boolean;
+  remoteOrdersLoading: boolean;
+  remoteDashboardLoading: boolean;
   dashboardSummary: AdminDashboardSummary | null;
   period: number;
   stockThreshold: number;
@@ -35,6 +37,8 @@ const empty: Snapshot = {
   connectedAdmin: false,
   remoteOrdersActive: false,
   remoteProductsActive: false,
+  remoteOrdersLoading: false,
+  remoteDashboardLoading: false,
   dashboardSummary: null,
   period: 30,
   stockThreshold: 10,
@@ -107,8 +111,7 @@ export function AdminDashboardPanel() {
     .filter((product) => product.status === 'Actif' && product.stock <= data.stockThreshold)
     .sort((a, b) => a.stock - b.stock);
 
-  if (!['overview', 'analytics', 'promotions', 'settings', 'search'].includes(data.view))
-    return null;
+  if (!['overview', 'analytics', 'search'].includes(data.view)) return null;
   if (data.restricted) {
     return (
       <main id="react-admin-summary">
@@ -127,8 +130,12 @@ export function AdminDashboardPanel() {
         <main id="react-admin-summary">
           <AdminHeading title="Recherche" description="Recherche des produits et demandes." />
           <section className="panel settings-body" role="status">
-            <h2>Données indisponibles</h2>
-            <p>Les demandes ne sont pas chargées. Réessayez après avoir vérifié la connexion.</p>
+            <h2>{data.remoteOrdersLoading ? 'Chargement en cours…' : 'Données indisponibles'}</h2>
+            <p>
+              {data.remoteOrdersLoading
+                ? 'Recherche des données en cours…'
+                : 'Les demandes ne sont pas chargées. Réessayez après avoir vérifié la connexion.'}
+            </p>
           </section>
         </main>
       );
@@ -381,10 +388,13 @@ export function AdminDashboardPanel() {
           }
         />
         <section className="panel settings-body" role="status">
-          <h2>Données indisponibles</h2>
+          <h2>{data.remoteDashboardLoading ? 'Chargement en cours…' : 'Données indisponibles'}</h2>
           <p>
-            Les données partagées ne sont pas disponibles. Réessayez après avoir vérifié la
-            connexion.
+            {data.remoteDashboardLoading
+              ? analytics
+                ? 'Chargement des statistiques…'
+                : 'Chargement du tableau de bord…'
+              : 'Les données partagées ne sont pas disponibles. Réessayez après avoir vérifié la connexion.'}
           </p>
         </section>
       </main>

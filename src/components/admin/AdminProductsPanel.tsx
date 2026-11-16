@@ -27,6 +27,7 @@ type ProductsSnapshot = {
   page: number;
   products: AdminProduct[];
   remoteProductsActive: boolean;
+  remoteProductsLoading: boolean;
   remoteProductsTotal: number;
   stockThreshold: number;
 };
@@ -46,6 +47,7 @@ const emptySnapshot: ProductsSnapshot = {
   page: 1,
   products: [],
   remoteProductsActive: false,
+  remoteProductsLoading: false,
   remoteProductsTotal: 0,
   stockThreshold: 5,
 };
@@ -98,8 +100,14 @@ export function AdminProductsPanel() {
       <main id="react-admin-products">
         <Heading title={title} inventory={inventory} />
         <section className="panel settings-body" role="status">
-          <h2>Données indisponibles</h2>
-          <p>Les produits et le stock ne sont pas disponibles. Réessayez dans quelques instants.</p>
+          <h2>{data.remoteProductsLoading ? 'Chargement en cours…' : 'Données indisponibles'}</h2>
+          <p>
+            {data.remoteProductsLoading
+              ? inventory
+                ? 'Chargement du stock et de l’inventaire…'
+                : 'Chargement des produits…'
+              : 'Les produits et le stock ne sont pas disponibles. Réessayez dans quelques instants.'}
+          </p>
         </section>
       </main>
     );

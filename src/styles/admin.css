@@ -1178,6 +1178,13 @@ dialog::backdrop {
 .page-enter {
   animation: page-in 0.4s ease both;
 }
+#react-admin-orders,
+#react-admin-products,
+#react-admin-customers,
+#react-admin-categories,
+#react-admin-summary {
+  animation: page-in 0.24s ease both;
+}
 @keyframes page-in {
   from {
     opacity: 0;

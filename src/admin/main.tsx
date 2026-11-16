@@ -39,8 +39,6 @@ const routes = [
   ['inventory', 'Stock & inventaire', 'layers'],
   ['customers', 'Clients', 'users'],
   ['analytics', 'Statistiques', 'chart'],
-  ['promotions', 'Promotions', 'tag'],
-  ['settings', 'Paramètres', 'settings'],
 ];
 let state: AdminState,
   adminAuthenticated = !supabase,
@@ -48,8 +46,10 @@ let state: AdminState,
   productCategories: Category[] = [],
   remoteProductIds = new Set<string>(),
   remoteProductsActive = false,
+  remoteProductsLoading = false,
   remoteOrdersActive = false,
   remoteOrdersLoading = false,
+  remoteDashboardLoading = false,
   remoteOrdersTotal = 0,
   remoteActionableCount = 0,
   remoteProductsTotal = 0,
@@ -156,7 +156,10 @@ async function refreshRemoteOrders(
 ) {
   const wasRemoteOrdersActive = remoteOrdersActive || state.orders.some((order) => order.remote);
   remoteOrdersActive = false;
-  if (!options && !(await refreshRemoteProducts({ all: true }))) return false;
+  if (!options) {
+    if (!(await refreshRemoteProducts({ all: true }, requestId))) return false;
+    if (requestId !== undefined && requestId !== remotePageRequest) return true;
+  }
   const loaded = await loadAdminOrders(options || { all: true });
   if (requestId !== undefined && requestId !== remotePageRequest) return true;
   if (!loaded) return false;
@@ -346,8 +349,10 @@ async function refreshCurrentRemotePage() {
     if (selection !== null) input.setSelectionRange(selection, selection);
   };
   if (view === 'orders' || view === 'customers') remoteOrdersActive = false;
-  remoteOrdersLoading = view === 'orders';
-  if (view === 'products' || view === 'inventory') remoteProductsActive = false;
+  remoteOrdersLoading = view === 'orders' || view === 'customers';
+  remoteProductsLoading = view === 'products' || view === 'inventory';
+  if (remoteProductsLoading) remoteProductsActive = false;
+  remoteDashboardLoading = view === 'overview' || view === 'analytics';
   render();
   restoreFocus();
   try {
@@ -360,10 +365,14 @@ async function refreshCurrentRemotePage() {
           : await refreshRemoteProducts(options, requestId);
     if (requestId !== remotePageRequest) return;
     remoteOrdersLoading = false;
+    remoteProductsLoading = false;
+    remoteDashboardLoading = false;
     if (!ok) toast('Les données ne sont pas disponibles. Réessayez.');
   } catch (error) {
     if (requestId !== remotePageRequest) return;
     remoteOrdersLoading = false;
+    remoteProductsLoading = false;
+    remoteDashboardLoading = false;
     if (view === 'orders' || view === 'customers') remoteOrdersActive = false;
     if (view === 'products' || view === 'inventory') remoteProductsActive = false;
     toast(error instanceof Error ? error.message : 'Les données ne sont pas disponibles.');
@@ -421,8 +430,12 @@ function render() {
     supabase &&
     adminAuthenticated &&
     ((['overview', 'orders', 'customers', 'analytics', 'search'].includes(view) &&
+      !remoteDashboardLoading &&
+      !remoteOrdersLoading &&
       !remoteOrdersActive) ||
-      (['products', 'inventory'].includes(view) && !remoteProductsActive)),
+      (['products', 'inventory'].includes(view) &&
+        !remoteProductsLoading &&
+        !remoteProductsActive)),
   );
   if (environmentTag)
     environmentTag.innerHTML = `<i></i>${restricted ? 'Connexion requise' : remoteDataUnavailable ? 'Données indisponibles' : supabase ? 'Espace privé' : 'Démo locale'}`;
@@ -456,6 +469,8 @@ function render() {
         connectedAdmin: Boolean(supabase && adminAuthenticated),
         remoteOrdersActive,
         remoteOrdersLoading,
+        remoteProductsLoading,
+        remoteDashboardLoading,
         remoteOrdersTotal,
         remoteCustomersTotal,
         query,
@@ -479,8 +494,6 @@ function render() {
     'customers',
     'categories',
     'analytics',
-    'promotions',
-    'settings',
     'search',
   ].includes(view);
   workspace.hidden = reactManagedView;
@@ -1427,15 +1440,17 @@ addEventListener('hashchange', async () => {
   remotePageRequest += 1;
   const requestedRoute = location.hash.slice(1).split('?')[0];
   if (!state) return;
-  // Hide every previously loaded admin record until the current role is reverified.
-  adminAuthenticated = !supabase;
+  // Keep the verified admin shell mounted while the role is rechecked. Panels
+  // hide old remote data and show loading states until this route is refreshed.
   query = '';
   filter = 'Tous';
   page = 1;
   if (requestedRoute === 'products' || requestedRoute === 'inventory') remoteProductsActive = false;
   if (['orders', 'overview', 'customers', 'analytics', 'search'].includes(requestedRoute))
     remoteOrdersActive = false;
-  remoteOrdersLoading = requestedRoute === 'orders';
+  remoteOrdersLoading = ['orders', 'customers', 'search'].includes(requestedRoute);
+  remoteProductsLoading = requestedRoute === 'products' || requestedRoute === 'inventory';
+  remoteDashboardLoading = ['overview', 'analytics'].includes(requestedRoute);
   if (['overview', 'analytics'].includes(requestedRoute)) {
     remoteProductsActive = false;
     dashboardSummary = null;
@@ -1443,9 +1458,13 @@ addEventListener('hashchange', async () => {
   // Render the requested route with remote data marked unavailable before any
   // network checks, so a slow database cannot leave the previous page visible.
   render();
+  const requestId = remotePageRequest;
   const hasAccess = !supabase || (await hasRemoteAdminAccess());
+  if (requestId !== remotePageRequest) return;
   if (!hasAccess && !adminAuthenticated && requestedRoute !== 'categories') {
     remoteOrdersLoading = false;
+    remoteProductsLoading = false;
+    remoteDashboardLoading = false;
     navigate('categories');
     return;
   }
@@ -1453,25 +1472,29 @@ addEventListener('hashchange', async () => {
   try {
     if (route === 'products' || route === 'inventory') {
       productCategories = await loadCategories();
-      if (!(await refreshRemoteProducts({ page, query, filter }))) {
+      if (requestId !== remotePageRequest) return;
+      if (!(await refreshRemoteProducts({ page, query, filter }, requestId))) {
         toast('Les produits et le stock ne sont pas disponibles. Réessayez.');
       }
     } else if (route === 'orders') {
-      if (!(await refreshRemoteOrders({ page, query, filter })))
+      if (!(await refreshRemoteOrders({ page, query, filter }, requestId)))
         toast('Les demandes ne sont pas disponibles. Réessayez.');
     } else if (route === 'customers') {
-      if (!(await refreshRemoteCustomers({ page, query })))
+      if (!(await refreshRemoteCustomers({ page, query }, requestId)))
         toast('Les clients ne sont pas disponibles. Réessayez.');
     } else if (['overview', 'analytics'].includes(route)) {
-      if (!(await refreshRemoteDashboard(remotePageRequest)))
+      if (!(await refreshRemoteDashboard(requestId)))
         toast('Le tableau de bord ne répond pas. Réessayez.');
     } else if (route === 'search') {
-      if (!(await refreshRemoteOrders())) {
+      if (!(await refreshRemoteOrders(undefined, requestId))) {
         toast('Les demandes ne sont pas disponibles. Réessayez.');
       }
     }
   } catch (error) {
+    if (requestId !== remotePageRequest) return;
     remoteOrdersLoading = false;
+    remoteProductsLoading = false;
+    remoteDashboardLoading = false;
     if (route === 'products' || route === 'inventory') remoteProductsActive = false;
     if (['orders', 'overview', 'customers', 'analytics', 'search'].includes(route))
       remoteOrdersActive = false;
@@ -1481,7 +1504,10 @@ addEventListener('hashchange', async () => {
     }
     toast(error instanceof Error ? error.message : 'Les données ne sont pas disponibles.');
   }
+  if (requestId !== remotePageRequest) return;
   remoteOrdersLoading = false;
+  remoteProductsLoading = false;
+  remoteDashboardLoading = false;
   render();
 });
 addEventListener('enrm-admin-authenticated', async () => {
