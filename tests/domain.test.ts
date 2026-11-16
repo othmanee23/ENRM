@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import type { Product } from '../src/shared/types';
 import { isProduct, productGroup, requireProduct, loadCatalogue } from '../src/shared/catalogue';
 import { esc, norm } from '../src/shared/format';
+import { productIdFromSlug, productSlug, slugify } from '../src/shared/slugs';
 import { sanitizeCart, readJson, writeJson, CART_KEY, ADMIN_KEY } from '../src/shared/storage';
 import { createDemoState } from '../src/admin/seed';
 import { loadAdminState, isAdminState, saveAdminState } from '../src/admin/storage';
@@ -41,6 +42,20 @@ describe('catalogue integrity', () => {
       vi.fn().mockResolvedValue({ ok: true, json: async () => [{ id: 'wrong' }] }),
     );
     await expect(loadCatalogue()).rejects.toThrow('Catalogue invalide');
+  });
+});
+describe('catalogue slugs', () => {
+  it('creates accent-insensitive category and stable product URL slugs', () => {
+    expect(slugify('Filtres à huile')).toBe('filtres-a-huile');
+    const product = { ...products[0], id: 'SKU-Ab_12', marque: 'Liqui_Moly' };
+    const slug = productSlug(product);
+    expect(slug).toContain('--SKU-Ab_12');
+    expect(productIdFromSlug(slug)).toBe('SKU-Ab_12');
+  });
+  it('parses legacy lowercase SKU suffixes and identifiers containing double hyphens', () => {
+    expect(productIdFromSlug('produit--enrm-hm-031')).toBe('enrm-hm-031');
+    expect(productIdFromSlug('huile--SKU--SPECIAL')).toBe('SKU--SPECIAL');
+    expect(productIdFromSlug('huile--bad.sku')).toBeNull();
   });
 });
 describe('cart compatibility and persistence', () => {

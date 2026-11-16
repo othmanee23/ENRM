@@ -956,11 +956,16 @@ td small {
   border-top: 1px solid var(--line);
 }
 dialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  overflow: auto;
   border: 1px solid #e1e7ec;
   border-radius: 13px;
   padding: 0;
   width: min(620px, calc(100% - 30px));
-  max-height: 90svh;
+  max-height: min(90vh, 90svh);
   box-shadow: 0 25px 100px #091b2925;
   color: var(--ink);
 }
@@ -1172,6 +1177,13 @@ dialog::backdrop {
 }
 .page-enter {
   animation: page-in 0.4s ease both;
+}
+#react-admin-orders,
+#react-admin-products,
+#react-admin-customers,
+#react-admin-categories,
+#react-admin-summary {
+  animation: page-in 0.24s ease both;
 }
 @keyframes page-in {
   from {

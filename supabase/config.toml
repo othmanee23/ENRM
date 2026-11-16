@@ -37,10 +37,10 @@ inspector_port = 55329
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:4173"
-additional_redirect_urls = ["http://localhost:4173", "http://127.0.0.1:4173"]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/reset-password", "http://127.0.0.1:3000/reset-password", "http://localhost:4173", "http://127.0.0.1:4173"]
 jwt_expiry = 3600
-enable_signup = true
+enable_signup = false
 
 [auth.email]
 enabled = true

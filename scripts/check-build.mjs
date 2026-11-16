@@ -1,39 +1,43 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
-const root = resolve('dist');
-const pages = readdirSync(root).filter((f) => f.endsWith('.html'));
+
+const worker = resolve('.open-next/worker.js');
+const assets = resolve('.open-next/assets');
+const outputCatalogue = resolve(assets, 'catalogue.json');
+const sourceCatalogue = resolve('public/catalogue.json');
 const errors = [];
-for (const page of pages) {
-  const html = readFileSync(resolve(root, page), 'utf8');
-  for (const [, ref] of html.matchAll(/\b(?:href|src|poster)="([^"]+)"/g)) {
-    if (/^(?:[a-z]+:|#|\/\/)/i.test(ref)) continue;
-    const path = decodeURIComponent(ref.split(/[?#]/)[0]).replace(/^\//, '');
-    if (path && !existsSync(resolve(root, path))) errors.push(`${page}: ${ref}`);
-  }
-  if (/layout:|src\/.*\.ts|app\.js\?/.test(html))
-    errors.push(`${page}: unresolved source reference`);
+
+if (!existsSync(worker)) errors.push('Missing OpenNext Worker bundle: .open-next/worker.js');
+if (!existsSync(resolve(assets, 'BUILD_ID')))
+  errors.push('Missing OpenNext static asset manifest.');
+if (!existsSync(outputCatalogue)) errors.push('Missing copied catalogue in OpenNext assets.');
+
+const catalogue = JSON.parse(readFileSync(sourceCatalogue, 'utf8'));
+if (catalogue.length !== 210 || new Set(catalogue.map((product) => product.id)).size !== 210)
+  errors.push('Source catalogue must contain 210 unique product IDs.');
+
+if (existsSync(outputCatalogue)) {
+  const sourceHash = createHash('sha256').update(readFileSync(sourceCatalogue)).digest('hex');
+  const outputHash = createHash('sha256').update(readFileSync(outputCatalogue)).digest('hex');
+  if (sourceHash !== outputHash) errors.push('Catalogue changed while creating the Worker bundle.');
 }
-const catalogue = JSON.parse(readFileSync(resolve(root, 'catalogue.json'), 'utf8'));
-if (catalogue.length !== 210 || new Set(catalogue.map((p) => p.id)).size !== 210)
-  errors.push('Catalogue identity mismatch');
-for (const p of catalogue)
-  for (const field of ['recto', 'verso'])
-    if (p[field] && !existsSync(resolve(root, p[field]))) errors.push(`${p.id}: ${p[field]}`);
+
 for (const file of [
-  'assets/fonts/inter-tight.css',
   'assets/logo.svg',
+  'assets/fonts/inter-tight.css',
   'assets/media/hero-oil.mp4',
-  'admin.html',
-])
-  if (!existsSync(resolve(root, file))) errors.push(`Missing ${file}`);
-if (pages.length !== 11) errors.push(`Expected 11 pages, found ${pages.length}`);
-const sourceHash = createHash('sha256').update(readFileSync('public/catalogue.json')).digest('hex');
-const outputHash = createHash('sha256')
-  .update(readFileSync(resolve(root, 'catalogue.json')))
-  .digest('hex');
-if (sourceHash !== outputHash) errors.push('Catalogue changed during build');
+  'assets/brands/Castrol.svg',
+]) {
+  if (!existsSync(resolve(assets, file))) errors.push(`Missing deployed asset: ${file}`);
+}
+
+for (const product of catalogue) {
+  for (const field of ['recto', 'verso']) {
+    if (product[field] && !existsSync(resolve(assets, product[field])))
+      errors.push(`${product.id}: missing packaged ${field} image ${product[field]}`);
+  }
+}
+
 if (errors.length) throw new Error(errors.join('\n'));
-console.log(
-  `PASS — ${pages.length} production pages, 210 unchanged variants, local links and media verified.`,
-);
+console.log('PASS — OpenNext Worker, public assets, and all 210 catalogue records verified.');

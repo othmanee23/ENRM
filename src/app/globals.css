@@ -1,0 +1,5 @@
+@import 'tailwindcss';
+@import '../../public/assets/fonts/inter-tight.css';
+@import '../styles/storefront.css';
+
+@import '../styles/next-pages.css';

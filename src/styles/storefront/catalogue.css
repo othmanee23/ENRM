@@ -58,6 +58,16 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 40px 22px;
 }
+.catalogue-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 20px;
+}
+.catalogue-pagination [aria-disabled='true'] {
+  opacity: 0.45;
+}
 .catalogue-results .product-image {
   height: 290px;
 }

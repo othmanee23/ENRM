@@ -1,6 +1,9 @@
-.vercel/
 node_modules/
 dist/
+.next/
+.open-next/
+.wrangler/
+tsconfig.tsbuildinfo
 artifacts/
 .env*
 !.env.example

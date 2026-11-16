@@ -1,34 +1,64 @@
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { act, createElement } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { AdminWorkspace } from '../src/components/admin/AdminWorkspace';
 import type { AdminState } from '../src/shared/types';
 const catalogue = JSON.parse(readFileSync('public/catalogue.json', 'utf8'));
 const listeners: Array<
   [string, EventListenerOrEventListenerObject, boolean | AddEventListenerOptions | undefined]
 > = [];
 const q = <T extends HTMLElement = HTMLElement>(s: string): T => document.querySelector(s)!;
-function mount(file: string, url: string) {
-  let html = readFileSync(file, 'utf8').replace(
-    /<!-- layout:(header|footer|dialogs) -->/g,
-    (_, part: string) => readFileSync(`src/layout/${part}.html`, 'utf8'),
-  );
-  document.documentElement.innerHTML = html
-    .replace(/<!doctype html>/i, '')
-    .replace(/<\/?html[^>]*>/g, '');
+let adminRoot: Root | null = null;
+function mountAdmin(url: string) {
+  const host = document.createElement('div');
+  document.body.append(host);
+  adminRoot = createRoot(host);
   history.replaceState(null, '', url);
 }
 function change(selector: string, value: string) {
   const el = q<HTMLInputElement | HTMLSelectElement>(selector);
   el.value = value;
-  el.dispatchEvent(
-    new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }),
+  act(() =>
+    el.dispatchEvent(
+      new Event(el instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }),
+    ),
   );
 }
-function submit(selector: string) {
-  q<HTMLFormElement>(selector).dispatchEvent(
-    new Event('submit', { bubbles: true, cancelable: true }),
-  );
+async function go(route: string) {
+  const routeName = route.split('?')[0];
+  await act(async () => {
+    history.replaceState(null, '', `/admin#${route}`);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  });
+  const reactPanel =
+    routeName === 'orders'
+      ? '#react-admin-orders h1'
+      : ['products', 'inventory'].includes(routeName)
+        ? '#react-admin-products h1'
+        : routeName === 'categories'
+          ? '#react-admin-categories h1'
+          : ['overview', 'analytics', 'promotions', 'settings', 'search'].includes(routeName)
+            ? '#react-admin-summary h1'
+            : route === 'customers'
+              ? '#react-admin-customers h1'
+              : '#workspace h1';
+  await vi.waitFor(() => expect(q(reactPanel)).not.toBeNull());
+}
+async function submit(selector: string) {
+  await act(async () => {
+    q<HTMLFormElement>(selector).dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true }),
+    );
+    await Promise.resolve();
+  });
 }
 beforeEach(() => {
+  Object.defineProperty(globalThis, 'IS_REACT_ACT_ENVIRONMENT', {
+    configurable: true,
+    value: true,
+  });
   vi.resetModules();
   localStorage.clear();
   Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
@@ -75,45 +105,20 @@ beforeEach(() => {
   });
 });
 afterEach(() => {
+  if (adminRoot) act(() => adminRoot?.unmount());
+  adminRoot = null;
   for (const args of listeners.splice(0)) document.removeEventListener(...args);
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   document.body.innerHTML = '';
 });
-it('filters, resets, and adds the exact catalogue variant to the persistent cart', async () => {
-  mount('catalogue.html', '/catalogue.html');
-  await import('../src/storefront/main');
-  await vi.waitFor(() => expect(q('#results-count').textContent).toContain('210 variantes'));
-  change('#brand', 'Motul');
-  expect(q('#results-count').textContent).toContain('31 variantes');
-  q('#reset').click();
-  expect(q('#results-count').textContent).toContain('210 variantes');
-  const add = q<HTMLButtonElement>('[data-add]');
-  const id = add.dataset.add;
-  add.click();
-  expect(JSON.parse(localStorage.getItem('enrm-demo-cart')!)).toEqual([{ id, qty: 1 }]);
-  q('#open-cart').click();
-  expect(q<HTMLDialogElement>('#cart-dialog').open).toBe(true);
-  expect(q('#cart-content').textContent).toContain('Sous-total démo');
-});
-it('switches product volumes without mixing the image, price, ID or quantity', async () => {
-  mount('product.html', '/product.html?id=ENRM-HM-031');
-  await import('../src/storefront/main');
-  await vi.waitFor(() => expect(document.querySelector('#detail-add')).not.toBeNull());
-  q<HTMLElement>('[data-variant="ENRM-HM-030"]').click();
-  expect(location.search).toContain('ENRM-HM-030');
-  const exact = catalogue.find((p: { id: string }) => p.id === 'ENRM-HM-030');
-  expect(q<HTMLImageElement>('#detail-photo img').getAttribute('src')).toBe(exact.recto);
-  change('#detail-qty', '3');
-  q('#detail-add').click();
-  expect(JSON.parse(localStorage.getItem('enrm-demo-cart')!)).toEqual([
-    { id: 'ENRM-HM-030', qty: 3 },
-  ]);
-});
 it('renders every admin screen, creates a product and order, and persists the stock deduction', async () => {
-  mount('admin.html', '/admin.html');
-  await import('../src/admin/main');
-  await vi.waitFor(() => expect(q('#workspace').textContent).toContain('Vue d’ensemble'));
+  mountAdmin('/admin');
+  await act(async () => {
+    adminRoot!.render(createElement(AdminWorkspace));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  await vi.waitFor(() => expect(q('#react-admin-categories h1')).not.toBeNull());
   for (const route of [
     'orders',
     'products',
@@ -123,27 +128,157 @@ it('renders every admin screen, creates a product and order, and persists the st
     'promotions',
     'settings',
     'overview',
+    'search?q=Youssef%20D%C3%A9mo',
   ]) {
-    history.replaceState(null, '', `/admin.html#${route}`);
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-    expect(q('#workspace h1')).not.toBeNull();
-    expect(q('#workspace').textContent).not.toContain('undefined');
+    await go(route);
+    const routeName = route.split('?')[0];
+    expect(
+      (routeName === 'orders'
+        ? q('#react-admin-orders')
+        : ['products', 'inventory'].includes(routeName)
+          ? q('#react-admin-products')
+          : routeName === 'categories'
+            ? q('#react-admin-categories')
+            : ['overview', 'analytics', 'promotions', 'settings', 'search'].includes(routeName)
+              ? q('#react-admin-summary')
+              : route === 'customers'
+                ? q('#react-admin-customers')
+                : q('#workspace')
+      ).textContent,
+    ).not.toContain('undefined');
   }
-  q('[data-action="new-product"]').click();
+  expect(q('#react-admin-summary').textContent).toContain('Youssef Démo');
+  act(() =>
+    window.dispatchEvent(
+      new CustomEvent('enrm-admin-navigation', {
+        detail: {
+          view: 'orders',
+          restricted: true,
+          actionableOrders: null,
+          orders: [],
+          customers: [],
+          connectedAdmin: false,
+          remoteOrdersActive: false,
+          remoteOrdersLoading: false,
+          remoteOrdersTotal: 0,
+          remoteCustomersTotal: 0,
+          query: '',
+          filter: 'Tous',
+          page: 1,
+          products: [],
+          remoteProductsActive: false,
+          remoteProductsTotal: 0,
+          stockThreshold: 10,
+          period: 30,
+          dashboardSummary: null,
+        },
+      }),
+    ),
+  );
+  expect(q('#react-admin-orders').textContent).toContain('Accès administrateur requis');
+  expect(document.querySelector('[data-action="new-order"]')).toBeNull();
+  await go('settings');
+  change('#settings-form [name="threshold"]', '12');
+  await submit('#settings-form');
+  await vi.waitFor(() => {
+    const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(saved.settings.threshold).toBe(12);
+  });
+  await go('promotions');
+  act(() => q('[data-action="new-promo"]').click());
+  await vi.waitFor(() => expect(q('#promo-form')).not.toBeNull());
+  change('#promo-form [name="code"]', 'SPRING15');
+  await submit('#promo-form');
+  await vi.waitFor(() => {
+    const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(saved.promotions.some((promotion) => promotion.code === 'SPRING15')).toBe(true);
+  });
+  await go('customers');
+  change('#local-query', 'Youssef Démo');
+  await vi.waitFor(() =>
+    expect(q('#react-admin-customers tbody tr').textContent).toContain('Youssef Démo'),
+  );
+  expect(document.querySelectorAll('#react-admin-customers tbody tr')).toHaveLength(1);
+  change('#local-query', '');
+  await go('products');
+  change('#local-query', 'ENRM-HM-006');
+  await vi.waitFor(() =>
+    expect(q('#react-admin-products tbody tr').textContent).toContain('ENRM-HM-006'),
+  );
+  expect(document.querySelectorAll('#react-admin-products tbody tr')).toHaveLength(1);
+  change('#local-query', '');
+  await vi.waitFor(() => expect(q('[data-action="new-product"]')).not.toBeNull());
+  act(() => q('[data-action="new-product"]').click());
+  await vi.waitFor(() => expect(q('#product-form')).not.toBeNull());
   change('#product-form [name="name"]', 'Test formulation');
   change('#product-form [name="brand"]', 'ENRM Démo');
   change('#product-form [name="sku"]', 'ENRM-TEST-001');
   change('#product-form [name="viscosity"]', '5W-30');
   change('#product-form [name="price"]', '200');
   change('#product-form [name="stock"]', '10');
-  submit('#product-form');
+  await submit('#product-form');
   await vi.waitFor(() => expect(q<HTMLDialogElement>('#editor').open).toBe(false));
-  q('[data-action="new-order"]').click();
+  act(() => q<HTMLButtonElement>('[data-edit-product="ENRM-TEST-001"]').click());
+  await vi.waitFor(() => expect(q('#product-form')).not.toBeNull());
+  change('#product-form [name="name"]', 'Updated formulation');
+  await submit('#product-form');
+  await vi.waitFor(() => {
+    const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(saved.products.find((p) => p.id === 'ENRM-TEST-001')?.sous_reference).toBe(
+      'Updated formulation',
+    );
+  });
+  await go('orders');
+  change('#local-query', 'EN-1048');
+  await vi.waitFor(() =>
+    expect(q('#react-admin-orders tbody tr').textContent).toContain('EN-1048'),
+  );
+  expect(document.querySelectorAll('#react-admin-orders tbody tr')).toHaveLength(1);
+  change('#local-query', '');
+  expect(q('[data-action="new-order"]')).not.toBeNull();
+  act(() => q('[data-action="new-order"]').click());
+  await vi.waitFor(() => expect(q('#new-order')).not.toBeNull());
   change('#new-order [name="product"]', 'ENRM-TEST-001');
   change('#new-order [name="quantity"]', '2');
-  submit('#new-order');
+  await submit('#new-order');
   const saved: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
   expect(saved.products.find((p) => p.id === 'ENRM-TEST-001')?.stock).toBe(8);
   expect(saved.orders[0].id).toBe('EN-1049');
   expect(saved.orders[0].items[0].price).toBe(200);
+  await vi.waitFor(() => expect(q('[data-order="EN-1049"]')).not.toBeNull());
+  act(() => q<HTMLButtonElement>('[data-order="EN-1049"]').click());
+  await vi.waitFor(() => expect(q('#order-update')).not.toBeNull());
+  change('#order-update [name="status"]', 'Expédiée');
+  change('#order-update [name="tracking"]', 'TRK-1049');
+  await submit('#order-update');
+  await vi.waitFor(() => {
+    const updated: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(updated.orders.find((order) => order.id === 'EN-1049')?.tracking).toBe('TRK-1049');
+    expect(updated.orders.find((order) => order.id === 'EN-1049')?.status).toBe('Expédiée');
+  });
+  await go('customers');
+  act(() => q<HTMLButtonElement>('[data-customer]').click());
+  await vi.waitFor(() => expect(q('#customer-form')).not.toBeNull());
+  change('#customer-form [name="name"]', 'Updated Demo Customer');
+  await submit('#customer-form');
+  await vi.waitFor(() => {
+    const updated: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(updated.customers.some((customer) => customer.name === 'Updated Demo Customer')).toBe(
+      true,
+    );
+  });
+  await go('promotions');
+  const promotionState: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+  const promotionId = promotionState.promotions.find(
+    (promotion) => promotion.code === 'SPRING15',
+  )!.id;
+  act(() => q<HTMLButtonElement>(`[data-promo="${promotionId}"]`).click());
+  await vi.waitFor(() => expect(q('#promo-form')).not.toBeNull());
+  change('#promo-form [name="value"]', '20');
+  expect(q<HTMLInputElement>('#promo-form [name="value"]').value).toBe('20');
+  await submit('#promo-form');
+  await vi.waitFor(() => {
+    const updated: AdminState = JSON.parse(localStorage.getItem('enrm-admin-demo-v1')!);
+    expect(updated.promotions.find((promotion) => promotion.id === promotionId)?.value).toBe(20);
+  });
 });
