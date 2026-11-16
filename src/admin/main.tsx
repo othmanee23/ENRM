@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Check } from 'lucide-react';
 import { loadAdminState, saveAdminState } from './storage';
 import { icon } from './icons';
 import { createDemoState } from './seed';
@@ -695,7 +696,7 @@ function productEditor(id?: string) {
           Annuler
         </button>
         <button className="btn primary" type="submit">
-          {id ? 'Enregistrer' : 'Ajouter le produit'} {icon('check')}
+          {id ? 'Enregistrer' : 'Ajouter le produit'} <Check aria-hidden="true" />
         </button>
       </div>
     </form>,
@@ -822,7 +823,7 @@ function orderEditor(id: string) {
             Annuler
           </button>
           <button className="btn primary" type="submit">
-            Mettre à jour {icon('check')}
+            Mettre à jour <Check aria-hidden="true" />
           </button>
         </div>
       </form>
@@ -921,7 +922,7 @@ function newOrder() {
           Annuler
         </button>
         <button className="btn primary" type="submit">
-          Créer la commande {icon('check')}
+          Créer la commande <Check aria-hidden="true" />
         </button>
       </div>
     </form>,
@@ -978,7 +979,7 @@ function customerEditor(id?: string) {
           Annuler
         </button>
         <button className="btn primary" type="submit">
-          Enregistrer {icon('check')}
+          Enregistrer <Check aria-hidden="true" />
         </button>
       </div>
     </form>,
@@ -1077,7 +1078,7 @@ function promoEditor(id?: string) {
           Annuler
         </button>
         <button className="btn primary" type="submit">
-          Enregistrer {icon('check')}
+          Enregistrer <Check aria-hidden="true" />
         </button>
       </div>
     </form>,
