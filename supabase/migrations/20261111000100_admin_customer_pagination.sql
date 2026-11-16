@@ -133,3 +133,6 @@ revoke all on function public.list_enrm_admin_customers(integer, integer, text) 
 grant execute on function public.list_enrm_admin_customers(integer, integer, text) to authenticated;
 revoke all on function public.list_enrm_admin_products(integer, integer, text, text) from public, anon;
 grant execute on function public.list_enrm_admin_products(integer, integer, text, text) to authenticated;
+
+-- Publish RPC signatures to PostgREST immediately after migration.
+notify pgrst, 'reload schema';

@@ -96,3 +96,6 @@ revoke all on function public.get_enrm_catalogue_facets() from public;
 grant execute on function public.get_enrm_catalogue_facets() to anon, authenticated;
 revoke all on function public.get_enrm_catalogue_page(integer, integer, text, uuid, text, text, text, text, text) from public;
 grant execute on function public.get_enrm_catalogue_page(integer, integer, text, uuid, text, text, text, text, text) to anon, authenticated;
+
+-- Publish RPC signatures to PostgREST immediately after migration.
+notify pgrst, 'reload schema';

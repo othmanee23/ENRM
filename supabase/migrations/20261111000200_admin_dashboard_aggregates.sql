@@ -103,3 +103,6 @@ $$;
 
 revoke all on function public.get_enrm_admin_dashboard(integer, timestamptz, integer) from public, anon;
 grant execute on function public.get_enrm_admin_dashboard(integer, timestamptz, integer) to authenticated;
+
+-- Publish RPC signatures to PostgREST immediately after migration.
+notify pgrst, 'reload schema';

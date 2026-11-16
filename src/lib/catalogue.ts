@@ -281,11 +281,82 @@ export async function getPublicCataloguePage(options: {
       const fallback = await getPublicCataloguePageFallback({ ...options, page, pageSize, sort });
       return fallback;
     }
+    // A newly-created Postgres RPC can briefly be absent from PostgREST's schema cache.
+    // Use the equivalent paginated table query during that specific rollout condition so
+    // a stale RPC cache cannot turn public catalogue pages into HTTP 500 responses.
+    if (error.code === 'PGRST202') {
+      console.warn(
+        'Catalogue RPC is not in the PostgREST schema cache; using paginated table query.',
+      );
+      return getPublicCataloguePageFromTable(supabase, { ...options, page, pageSize, sort });
+    }
     throw new Error(`Catalogue inaccessible: ${error.message}`);
   }
   const payload = data as { rows?: unknown; total?: number } | null;
   if (!payload || !Array.isArray(payload.rows)) throw new Error('Catalogue invalide.');
   return { rows: payload.rows as Product[], total: Number(payload.total || 0), page, pageSize };
+}
+
+async function getPublicCataloguePageFromTable(
+  supabase: NonNullable<ReturnType<typeof createSupabasePublicClient>>,
+  options: {
+    page: number;
+    pageSize: number;
+    query?: string;
+    categoryId?: string;
+    brand?: string;
+    range?: string;
+    viscosity?: string;
+    volume?: string;
+    sort: string;
+  },
+): Promise<PublicCataloguePage> {
+  const queryText = (options.query || '')
+    .replace(/[^\p{L}\p{N}\s_-]/gu, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .slice(0, 100);
+  let request = supabase
+    .from('products')
+    .select('*', { count: 'exact' })
+    .eq('is_published', true)
+    .eq('show_on_website', true);
+  if (options.categoryId) request = request.eq('category_id', options.categoryId);
+  if (options.brand) request = request.eq('marque', options.brand);
+  if (options.range) request = request.eq('gamme', options.range);
+  if (options.viscosity) request = request.eq('viscosite', options.viscosity);
+  if (options.volume) request = request.eq('litrage', options.volume);
+  if (queryText) {
+    const pattern = `*${queryText.replace(/\s+/g, '*')}*`;
+    request = request.or(
+      [
+        `marque.ilike.${pattern}`,
+        `gamme.ilike.${pattern}`,
+        `sous_reference.ilike.${pattern}`,
+        `viscosite.ilike.${pattern}`,
+        `litrage.ilike.${pattern}`,
+        `designation.ilike.${pattern}`,
+        `references_articles.ilike.${pattern}`,
+        `id.ilike.${pattern}`,
+      ].join(','),
+    );
+  }
+  if (options.sort === 'price-up') request = request.order('price').order('id');
+  else if (options.sort === 'price-down')
+    request = request.order('price', { ascending: false }).order('id');
+  else if (options.sort === 'name')
+    request = request.order('marque').order('sous_reference').order('id');
+  else request = request.order('id');
+
+  const from = (options.page - 1) * options.pageSize;
+  const { data, error, count } = await request.range(from, from + options.pageSize - 1);
+  if (error) throw new Error(`Catalogue inaccessible: ${error.message}`);
+  return {
+    rows: (data || []) as Product[],
+    total: count || 0,
+    page: options.page,
+    pageSize: options.pageSize,
+  };
 }
 
 async function getPublicCataloguePageFallback(options: {

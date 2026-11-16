@@ -13,10 +13,12 @@ end;
 $$;
 revoke all on function public.enforce_product_sku_route_format() from public, anon, authenticated;
 
+drop trigger if exists products_enforce_sku_route_format_insert on public.products;
 create trigger products_enforce_sku_route_format_insert
 before insert on public.products
 for each row execute procedure public.enforce_product_sku_route_format();
 
+drop trigger if exists products_enforce_sku_route_format_update on public.products;
 create trigger products_enforce_sku_route_format_update
 before update of id on public.products
 for each row
