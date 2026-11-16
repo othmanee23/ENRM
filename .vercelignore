@@ -1,8 +1,0 @@
-.git
-artifacts
-node_modules
-README.md
-MEDIA_CREDITS.md
-public/assets/media/*-source.*
-public/assets/media/driving.mp4
-public/assets/media/oil-service.mp4
