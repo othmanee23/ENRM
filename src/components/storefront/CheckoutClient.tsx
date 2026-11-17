@@ -2,14 +2,13 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '../../shared/types';
+import { formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { getSupabaseBrowserClient } from '../../lib/supabase/client';
 import { loadCatalogueProductsByIds } from '../../shared/catalogue';
 import { useCart } from './CartProvider';
 
 type CheckoutResult = { orderNumber: string; total: number } | null;
-const mad = (price: number) =>
-  `${new Intl.NumberFormat('fr-MA', { maximumFractionDigits: 2 }).format(price)} MAD`;
 
 export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boolean }) {
   const { items, ready, clearCart } = useCart();
@@ -88,11 +87,11 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
           Référence : <strong>{result.orderNumber}</strong>
         </p>
         <p>
-          Sous-total indicatif : <strong>{mad(result.total)}</strong>
+          Sous-total indicatif : <strong>{formatMad(result.total)} MAD</strong>
         </p>
         <p className="muted">
-          La disponibilité, le prix final et la livraison restent à confirmer. Aucun paiement n’a
-          été effectué.
+          ENRM vous contactera pour confirmer le prix final, la disponibilité et la livraison. Aucun
+          paiement n’a été effectué.
         </p>
         <a className="button primary" href="/catalogue">
           Retourner au catalogue ↗
@@ -202,7 +201,7 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
                           {product.litrage}
                         </a>
                         <span>
-                          {item.qty} × {mad(product.price)}
+                          {item.qty} × {formatMad(product.price)} MAD
                         </span>
                       </>
                     ) : (
@@ -216,11 +215,12 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
               })}
               <div className="checkout-total">
                 <span>Sous-total indicatif</span>
-                <strong>{mad(subtotal)}</strong>
+                <strong>{formatMad(subtotal)} MAD</strong>
               </div>
               <p>
-                ENRM vous contacte pour confirmer la disponibilité, le prix final et la livraison.
-                Aucun paiement en ligne n’est demandé.
+                Les prix affichés sont indicatifs. ENRM vous contactera pour confirmer le prix
+                final, la disponibilité et les modalités de livraison. Aucun paiement en ligne n’est
+                demandé.
               </p>
               {unavailable.length > 0 && (
                 <p className="error">

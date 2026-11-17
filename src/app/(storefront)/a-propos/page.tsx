@@ -22,19 +22,19 @@ export default function Page() {
           </div>
           <h2>Le choix mérite de la clarté.</h2>
           <p>
-            ENRM Solutions &amp; Services prépare un espace consacré aux huiles moteur pour les
-            conducteurs et les professionnels au Maroc.
+            ENRM Solutions &amp; Services met à disposition un catalogue de références d’huiles
+            moteur destiné aux conducteurs et aux professionnels au Maroc.
           </p>
           <p>
-            L’objectif de cette démonstration : explorer les grandes marques, comparer des
-            références précises et choisir une contenance sans perdre de vue les besoins de son
-            moteur.
+            Parcourez les marques, gammes, viscosités et contenances recensées, puis transmettez
+            votre sélection à ENRM pour confirmer les conditions de la demande.
           </p>
           <h2>Une référence, dans son détail.</h2>
           <p>
-            Chaque formulation et chaque format restent distincts. Les photos disponibles sont
-            associées au bon conditionnement. Les informations techniques doivent être confirmées à
-            partir de la documentation fabricant.
+            Chaque formulation et chaque format correspondent à une référence distincte. Certaines
+            photos ou références fabricant restent à compléter. Vérifiez toujours les normes et
+            homologations à partir de la documentation du fabricant et des préconisations du
+            constructeur de votre véhicule.
           </p>
           <a className="button primary" href="/catalogue">
             Découvrir les huiles ↗

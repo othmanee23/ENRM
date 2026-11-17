@@ -10,7 +10,7 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
         Aller au contenu
       </a>
       <div className="demo-bar">
-        ENRM · LE MOUVEMENT COMMENCE ICI <span>Prix indicatifs · disponibilité à confirmer</span>
+        ENRM · LE MOUVEMENT COMMENCE ICI <span>Prix et disponibilité à confirmer par ENRM</span>
       </div>
       <header>
         <a className="brand-home" href="/" aria-label="ENRM accueil">
@@ -110,7 +110,7 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
             <p>
               Demande de commande
               <br />
-              Prix indicatifs · conditions à confirmer
+              Prix, disponibilité et livraison à confirmer par ENRM
             </p>
             <span>© 2026 ENRM</span>
           </div>

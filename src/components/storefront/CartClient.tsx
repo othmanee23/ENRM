@@ -2,13 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Product } from '../../shared/types';
+import { formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { loadCatalogueProductsByIds } from '../../shared/catalogue';
 import { resolveMediaUrl } from '../../lib/seo';
 import { useCart } from './CartProvider';
-const mad = (price: number) =>
-  `${new Intl.NumberFormat('fr-MA', { maximumFractionDigits: 2 }).format(price)} MAD`;
-
 export function CartClient() {
   const { items, ready, setQuantity, removeItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
@@ -75,7 +73,9 @@ export function CartClient() {
                   </article>
                 );
               const name = `${product.marque.replaceAll('_', ' ')} ${product.sous_reference}`;
-              const imageUrl = resolveMediaUrl(product.recto);
+              const imageUrl = product.statut_recto.includes('générique')
+                ? null
+                : resolveMediaUrl(product.recto);
               return (
                 <article className="cart-item" key={item.id}>
                   <a href={`/produits/${productSlug(product)}`} className="cart-photo">
@@ -89,7 +89,7 @@ export function CartClient() {
                     ) : (
                       <div className="placeholder">
                         <b>{product.litrage}</b>
-                        <span>Visuel exact à venir</span>
+                        <span>Photo non disponible</span>
                       </div>
                     )}
                   </a>
@@ -100,7 +100,7 @@ export function CartClient() {
                     <p>
                       {product.viscosite} · {product.litrage} · {product.id}
                     </p>
-                    <strong>{mad(product.price * item.qty)}</strong>
+                    <strong>{formatMad(product.price * item.qty)} MAD</strong>
                     <div className="cart-controls">
                       <button
                         onClick={() => setQuantity(item.id, item.qty - 1)}
@@ -128,18 +128,18 @@ export function CartClient() {
           <aside className="cart-summary">
             <div>
               <span>Sous-total indicatif</span>
-              <strong>{mad(subtotal)}</strong>
+              <strong>{formatMad(subtotal)} MAD</strong>
             </div>
             <p>
-              Le montant est indicatif. Le prix final, la disponibilité et les frais de livraison
-              seront confirmés par ENRM. Aucun paiement n’est prélevé sur ce site.
+              Les prix affichés sont indicatifs. ENRM confirmera le prix final, la disponibilité et
+              les frais de livraison. Aucun paiement en ligne n’est effectué.
             </p>
             <a
               className={`button primary ${stale.length ? 'disabled' : ''}`}
               aria-disabled={stale.length > 0}
               href={stale.length ? undefined : '/commande'}
             >
-              Continuer vers ma demande <span>→</span>
+              Continuer ma demande <span>→</span>
             </a>
           </aside>
         </>

@@ -14,30 +14,32 @@ export default function Page() {
           <br /> Vos informations.
         </h1>
         <div className="info-content">
-          <h2>Un panier conservé sur cet appareil.</h2>
+          <h2>Un panier conservé sur votre appareil.</h2>
           <p>
-            Le panier de démonstration utilise le stockage local du navigateur pour mémoriser les
-            identifiants de variantes et leurs quantités. Vous pouvez vider ce panier en retirant
-            ses lignes ou effacer les données du site dans votre navigateur.
+            Le panier utilise le stockage local de votre navigateur pour mémoriser les références
+            sélectionnées et leurs quantités. Vous pouvez retirer chaque ligne ou effacer les
+            données du site dans les réglages de votre navigateur.
           </p>
           <h2>Commandes enregistrées.</h2>
           <p>
-            Lorsque le catalogue est connecté à Supabase, une commande transmet à ENRM le nom, le
-            téléphone, la ville, l’adresse de livraison, les références, quantités et prix des
-            articles ainsi que le total calculé. Ces informations sont conservées dans la base de
-            données pour permettre le traitement de la commande et sont accessibles aux comptes ENRM
-            administrateurs. Les données de carte bancaire ne sont pas demandées et aucun paiement
-            en ligne n’est effectué. Les coordonnées du responsable, la durée de conservation et les
-            modalités de demande ou suppression doivent être précisées par ENRM avant l’ouverture
-            commerciale.
+            Lorsque vous envoyez une demande, ENRM reçoit votre nom, votre téléphone, votre ville,
+            l’adresse souhaitée pour la livraison, les références choisies et leurs quantités. Le
+            serveur recalcule le sous-total à partir du catalogue au moment de l’envoi; aucun
+            paiement n’est effectué sur le site. Les données nécessaires au suivi sont enregistrées
+            dans la base ENRM et accessibles aux administrateurs autorisés. Le responsable du
+            traitement, la durée de conservation et les modalités d’exercice de vos droits doivent
+            être précisés par ENRM.
           </p>
           <h2>Les autres formulaires.</h2>
-          <p>Le formulaire de conseil reste une simulation locale et n’est pas transmis.</p>
+          <p>
+            Le formulaire de conseil reste dans votre navigateur et ne transmet pas les informations
+            saisies.
+          </p>
           <h2>Des médias locaux.</h2>
           <p>
             Les photographies, logos et vidéos du site sont servis depuis le projet. Aucun outil de
-            publicité ni de mesure d’audience n’est intégré. La politique de confidentialité du
-            futur service commercial sera précisée avant son lancement.
+            publicité ni de mesure d’audience n’est intégré. Les informations légales du responsable
+            du traitement et les modalités de conservation restent à compléter par ENRM.
           </p>
         </div>
       </section>

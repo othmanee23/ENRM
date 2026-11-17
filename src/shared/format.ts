@@ -17,3 +17,5 @@ export const brandName = (name: string): string => (name === 'Liqui_Moly' ? 'LIQ
 export const money = (value: number): string =>
   new Intl.NumberFormat('fr-MA', { maximumFractionDigits: 0 }).format(value);
 export const currency = (value: number): string => `${money(value)} MAD`;
+export const formatMad = (value: number): string =>
+  new Intl.NumberFormat('fr-MA', { maximumFractionDigits: 2 }).format(value);

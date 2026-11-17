@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { resolveMediaUrl, shouldIndexSite } from '../src/lib/seo';
+import { publicPageMetadata, resolveMediaUrl, shouldIndexSite } from '../src/lib/seo';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -46,5 +46,20 @@ describe('production indexing gate', () => {
   it('keeps indexing disabled when the site URL is unset', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', '');
     expect(shouldIndexSite()).toBe(false);
+  });
+});
+
+describe('page metadata', () => {
+  it('creates a page-specific canonical and social metadata', () => {
+    const metadata = publicPageMetadata(
+      'Castrol EDGE 5W-30 — 5 L',
+      'Référence catalogue ENRM.',
+      '/produits/castrol-edge-5w-30-5-l--enrm-hm-010',
+    );
+    expect(metadata.alternates?.canonical).toBe('/produits/castrol-edge-5w-30-5-l--enrm-hm-010');
+    expect(metadata.openGraph).toMatchObject({
+      title: 'Castrol EDGE 5W-30 — 5 L',
+      url: '/produits/castrol-edge-5w-30-5-l--enrm-hm-010',
+    });
   });
 });

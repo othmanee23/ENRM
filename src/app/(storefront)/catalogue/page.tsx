@@ -105,7 +105,7 @@ function Pagination({
           </span>
         )}
       </nav>
-      <p className="muted">Prix de démonstration. Disponibilité à confirmer par ENRM.</p>
+      <p className="muted">Prix et disponibilité à confirmer par ENRM.</p>
     </div>
   );
 }

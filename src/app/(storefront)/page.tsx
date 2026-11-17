@@ -103,8 +103,15 @@ export default async function HomePage() {
                 Le mouvement.
                 <br />À l’état pur.
               </h1>
+              <p className="hero-intro">
+                Parcourez les références par marque, viscosité et contenance. ENRM vous confirmera
+                le prix et la disponibilité après réception de votre demande.
+              </p>
               <a className="button light" href="/catalogue">
                 Explorer les huiles <span>↗</span>
+              </a>
+              <a className="hero-advice-link" href="/conseil">
+                Les repères pour choisir <span>↗</span>
               </a>
             </div>
             <div className="hero-bottom">
@@ -213,7 +220,7 @@ export default async function HomePage() {
           <RailControls id="featured-products" label="Produits" />
           <ProductRail id="featured-products" products={featured} label="Sélection de produits" />
           <div className="rail-foot">
-            <span>Prix de démonstration par conditionnement.</span>
+            <span>Prix et disponibilité à confirmer par ENRM.</span>
             <a href="/catalogue">Tout le catalogue ↗</a>
           </div>
         </section>
