@@ -6,13 +6,13 @@ import {
   getPublicProductContext,
   productSlug,
 } from '../../../../lib/catalogue';
+import { brandName, formatMad } from '../../../../shared/format';
 import {
   DEFAULT_SOCIAL_IMAGE,
   getSiteUrl,
   publicPageMetadata,
   resolveMediaUrl,
 } from '../../../../lib/seo';
-import { brandName } from '../../../../shared/format';
 import { AddToCartButton } from '../../../../components/storefront/AddToCartButton';
 import { ProductGallery } from '../../../../components/storefront/StorefrontControls';
 
@@ -140,7 +140,7 @@ export default async function ProductPage({ params }: Props) {
                 <span>{product.viscosite}</span>
               </h1>
               <p className="detail-reference">{product.id} · Disponibilité à confirmer</p>
-              <p className="detail-price">Prix à confirmer</p>
+              <p className="detail-price">{formatMad(product.price)} MAD</p>
               <fieldset className="variant-fieldset">
                 <legend>Votre contenance</legend>
                 <div className="volume-options">
@@ -180,7 +180,8 @@ export default async function ProductPage({ params }: Props) {
                 </AddToCartButton>
               </div>
               <p className="muted">
-                ENRM confirmera le prix et la disponibilité. Aucun paiement en ligne n’est demandé.
+                Prix indicatif. ENRM confirmera le prix final et la disponibilité. Aucun paiement en
+                ligne n’est demandé.
               </p>
               <a href="/#conseil" className="detail-advice">
                 Un doute sur votre moteur ? <span>Parlons-en ↗</span>

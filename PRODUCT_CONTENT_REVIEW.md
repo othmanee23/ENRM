@@ -4,14 +4,14 @@
 
 ## Catalogue-wide results
 
-| Check                                                          | Result | Handling                                                                                |
-| -------------------------------------------------------------- | -----: | --------------------------------------------------------------------------------------- |
-| Catalogue variants                                             |    210 | Every record is included in `PRODUCT_CONTENT_REVIEW.csv`                                |
-| Missing manufacturer article/reference (`references_articles`) |    186 | Requires manufacturer or ENRM confirmation                                              |
-| Missing image reference (`reference_image`)                    |    169 | Requires exact SKU/package mapping                                                      |
-| Recto marked “À obtenir”                                       |     72 | No verified front product image                                                         |
-| Recto marked “Illustration générique”                          |      6 | Generic image suppressed on public product card/detail/cart                             |
-| Numeric prices in snapshot                                     |    210 | Kept in data/backend; hidden from public price presentation pending commercial approval |
+| Check                                                          | Result | Handling                                                                           |
+| -------------------------------------------------------------- | -----: | ---------------------------------------------------------------------------------- |
+| Catalogue variants                                             |    210 | Every record is included in `PRODUCT_CONTENT_REVIEW.csv`                           |
+| Missing manufacturer article/reference (`references_articles`) |    186 | Requires manufacturer or ENRM confirmation                                         |
+| Missing image reference (`reference_image`)                    |    169 | Requires exact SKU/package mapping                                                 |
+| Recto marked “À obtenir”                                       |     72 | No verified front product image                                                    |
+| Recto marked “Illustration générique”                          |      6 | Generic image suppressed on public product card/detail/cart                        |
+| Numeric prices in snapshot                                     |    210 | Shown as indicative MAD prices at ENRM's direction; keep catalogue amounts current |
 
 ## Review file
 
@@ -28,8 +28,8 @@ The sample shows why the CSV draft is intentionally conservative and not yet pub
 
 ## Public handling applied
 
-- Product page/card/cart no longer display catalogue numeric prices. The backend order request still runs as before and the server still recalculates its total; there was no database or RPC change.
-- Catalogue price sorting was removed because the public values are not approved for customer-facing comparison.
+- Product page/card/cart display catalogue MAD prices, with indicative wording in cart/checkout. The backend order request still runs as before and the server recalculates its total; there was no database or RPC change.
+- Catalogue price sorting is available alongside the displayed prices.
 - “Illustration générique” imagery is not rendered as if it were the selected SKU. Missing-image states use neutral text.
 - Existing designations and product records remain intact. No generated description, technical standard, compatibility, availability or approval was written to Supabase or the static catalogue.
 

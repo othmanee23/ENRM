@@ -308,6 +308,8 @@ export default async function CataloguePage({
                       defaultValue={value(params, 'sort') || 'selection'}
                     >
                       <option value="selection">Sélection ENRM</option>
+                      <option value="price-up">Prix croissant</option>
+                      <option value="price-down">Prix décroissant</option>
                       <option value="name">Nom A–Z</option>
                     </select>
                   </label>

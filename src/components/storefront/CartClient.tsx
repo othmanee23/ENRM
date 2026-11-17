@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { Product } from '../../shared/types';
+import { formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { loadCatalogueProductsByIds } from '../../shared/catalogue';
 import { resolveMediaUrl } from '../../lib/seo';
@@ -26,6 +27,7 @@ export function CartClient() {
     };
   }, [items, ready]);
   const stale = items.filter((item) => !byId.has(item.id));
+  const subtotal = items.reduce((sum, item) => sum + (byId.get(item.id)?.price || 0) * item.qty, 0);
 
   return (
     <main id="main" className="section cart-page">
@@ -98,7 +100,7 @@ export function CartClient() {
                     <p>
                       {product.viscosite} · {product.litrage} · {product.id}
                     </p>
-                    <strong>Prix à confirmer</strong>
+                    <strong>{formatMad(product.price * item.qty)} MAD</strong>
                     <div className="cart-controls">
                       <button
                         onClick={() => setQuantity(item.id, item.qty - 1)}
@@ -124,9 +126,13 @@ export function CartClient() {
             })}
           </div>
           <aside className="cart-summary">
+            <div>
+              <span>Sous-total indicatif</span>
+              <strong>{formatMad(subtotal)} MAD</strong>
+            </div>
             <p>
-              ENRM vous confirmera le prix, la disponibilité et les frais de livraison avant toute
-              validation. L’envoi de la demande n’entraîne aucun paiement en ligne.
+              Les prix affichés sont indicatifs. ENRM confirmera le prix final, la disponibilité et
+              les frais de livraison. Aucun paiement en ligne n’est effectué.
             </p>
             <a
               className={`button primary ${stale.length ? 'disabled' : ''}`}

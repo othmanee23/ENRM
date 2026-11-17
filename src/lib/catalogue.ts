@@ -21,10 +21,6 @@ export const hasSupabaseConfig = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
 );
 
-export function formatMad(value: number): string {
-  return new Intl.NumberFormat('fr-MA', { maximumFractionDigits: 2 }).format(value);
-}
-
 export async function getPublicCatalogue(): Promise<Product[]> {
   const supabase = createSupabasePublicClient();
   if (!supabase) return fallbackCatalogue;

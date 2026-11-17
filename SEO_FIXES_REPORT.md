@@ -8,7 +8,7 @@
 - Product titles now use brand, sub-reference, viscosity and package size; the meta description avoids unsupported technical claims and directs buyers to manufacturer and vehicle specifications.
 - Product JSON-LD has SKU/brand/identity and only a verified image. It contains no offer/price, stock availability, ratings or reviews. Breadcrumb JSON-LD remains.
 - Missing or generic product artwork is suppressed as a product photo; no incorrect package-size substitution is made.
-- Removed customer-facing numeric prices and price sort while values await commercial validation.
+- Customer-facing pages display catalogue MAD prices as directed by ENRM; cart/checkout totals are labelled indicative. Product JSON-LD does not publish offers or prices.
 - Existing sitemap is dynamic and includes 9 static public paths plus `getPublicCatalogue()` product routes. Existing robots metadata points at the production sitemap and disallows `/api/`.
 - Product route uses `notFound()` for absent products and `permanentRedirect()` for a noncanonical slug. Next 16’s installed not-found docs describe not-found responses as 404 before streaming and automatic noindex.
 - Existing metadata/robots/sitemap and legacy `.html` redirects were inspected; no redirect rule was changed.

@@ -2,12 +2,13 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '../../shared/types';
+import { formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { getSupabaseBrowserClient } from '../../lib/supabase/client';
 import { loadCatalogueProductsByIds } from '../../shared/catalogue';
 import { useCart } from './CartProvider';
 
-type CheckoutResult = { orderNumber: string } | null;
+type CheckoutResult = { orderNumber: string; total: number } | null;
 
 export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boolean }) {
   const { items, ready, clearCart } = useCart();
@@ -32,6 +33,7 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
     };
   }, [items, ready]);
   const unavailable = items.filter((item) => !byId.has(item.id));
+  const subtotal = items.reduce((sum, item) => sum + (byId.get(item.id)?.price || 0) * item.qty, 0);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,7 +73,7 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
       );
       return;
     }
-    setResult({ orderNumber: data[0].order_number });
+    setResult({ orderNumber: data[0].order_number, total: Number(data[0].total) });
     clearCart();
   }
 
@@ -84,8 +86,11 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
         <p>
           Référence : <strong>{result.orderNumber}</strong>
         </p>
+        <p>
+          Sous-total indicatif : <strong>{formatMad(result.total)} MAD</strong>
+        </p>
         <p className="muted">
-          ENRM vous contactera pour confirmer le prix, la disponibilité et la livraison. Aucun
+          ENRM vous contactera pour confirmer le prix final, la disponibilité et la livraison. Aucun
           paiement n’a été effectué.
         </p>
         <a className="button primary" href="/catalogue">
@@ -195,7 +200,9 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
                           {product.marque.replaceAll('_', ' ')} {product.sous_reference} ·{' '}
                           {product.litrage}
                         </a>
-                        <span>{item.qty} × Prix à confirmer</span>
+                        <span>
+                          {item.qty} × {formatMad(product.price)} MAD
+                        </span>
                       </>
                     ) : (
                       <>
@@ -206,9 +213,14 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
                   </div>
                 );
               })}
+              <div className="checkout-total">
+                <span>Sous-total indicatif</span>
+                <strong>{formatMad(subtotal)} MAD</strong>
+              </div>
               <p>
-                ENRM vous contactera pour confirmer les prix, la disponibilité et les modalités de
-                livraison. Aucun paiement en ligne n’est demandé.
+                Les prix affichés sont indicatifs. ENRM vous contactera pour confirmer le prix
+                final, la disponibilité et les modalités de livraison. Aucun paiement en ligne n’est
+                demandé.
               </p>
               {unavailable.length > 0 && (
                 <p className="error">

@@ -126,7 +126,7 @@ describe('storefront React interactions', () => {
     expect(host.textContent).toContain('Aucune information n’a été transmise à ENRM.');
   });
 
-  it('does not display an unvalidated catalogue price on product cards', () => {
+  it('displays the catalogue price on product cards', () => {
     const product: Product = {
       id: 'ENRM-HM-TEST',
       marque: 'Castrol',
@@ -154,8 +154,8 @@ describe('storefront React interactions', () => {
     act(() =>
       root.render(createElement(CartProvider, null, createElement(ProductCard, { product }))),
     );
-    expect(host.textContent).toContain('Prix à confirmer');
-    expect(host.textContent).not.toContain('12 345');
+    expect(host.textContent).toContain('MAD');
+    expect(host.textContent).not.toContain('Prix à confirmer');
   });
 
   it('uses a neutral fallback instead of generic imagery as a product photo', () => {
