@@ -1,6 +1,7 @@
 # ENRM.ma content refinement report
 
-**Review date:** 17 November 2026  
+**Review date:** 17 November 2026
+
 **Scope:** public storefront source and live pages observed on 16 November 2026. No production write or deployment was performed.
 
 ## Editorial inventory
