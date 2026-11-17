@@ -67,7 +67,7 @@ export function ProductGallery({
         ) : (
           <div className="placeholder">
             <b>Visuel</b>
-            <span>Visuel exact à venir</span>
+            <span>Photo non disponible</span>
           </div>
         )}
       </div>

@@ -5,7 +5,6 @@ import {
   getPublicProductBySlug,
   getPublicProductContext,
   productSlug,
-  formatMad,
 } from '../../../../lib/catalogue';
 import {
   DEFAULT_SOCIAL_IMAGE,
@@ -26,11 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getPublicProductBySlug(slug);
   if (!product) return { title: 'Référence introuvable', robots: { index: false, follow: false } };
-  const title = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} ${product.litrage}`;
-  const description =
-    product.designation?.trim() ||
-    `${title} — référence de catalogue ENRM au Maroc. Envoyez votre demande pour confirmer la disponibilité et le prix.`;
-  const image = resolveMediaUrl(product.recto) || DEFAULT_SOCIAL_IMAGE;
+  const title = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} — ${product.litrage}`;
+  const description = `Référence ${title} au catalogue ENRM. Vérifiez les spécifications du fabricant et les préconisations du constructeur. Prix et disponibilité à confirmer.`;
+  const image =
+    (product.statut_recto.includes('générique') ? null : resolveMediaUrl(product.recto)) ||
+    DEFAULT_SOCIAL_IMAGE;
   return publicPageMetadata(
     title,
     description.slice(0, 160),
@@ -71,9 +70,9 @@ export default async function ProductPage({ params }: Props) {
         candidate.id !== product.id && candidate.marque === product.marque && candidate.recto,
     )
     .slice(0, 4);
-  const image = resolveMediaUrl(product.recto);
+  const image = product.statut_recto.includes('générique') ? null : resolveMediaUrl(product.recto);
   const siteUrl = getSiteUrl();
-  const productName = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} ${product.litrage}`;
+  const productName = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} — ${product.litrage}`;
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -129,11 +128,9 @@ export default async function ProductPage({ params }: Props) {
                 alt={productName}
               />
               <p className="media-caption">
-                {product.recto
-                  ? product.statut_recto.includes('générique')
-                    ? 'Illustration générique du contenant.'
-                    : `Visuel du conditionnement ${product.litrage}.`
-                  : 'La photo exacte de cette variante reste à compléter.'}
+                {image
+                  ? `Visuel du conditionnement ${product.litrage}.`
+                  : 'Aucune photographie vérifiée n’est disponible pour cette référence.'}
               </p>
             </div>
             <div className="detail-copy">
@@ -143,8 +140,7 @@ export default async function ProductPage({ params }: Props) {
                 <span>{product.viscosite}</span>
               </h1>
               <p className="detail-reference">{product.id} · Disponibilité à confirmer</p>
-              <div className="detail-price">{formatMad(product.price)}</div>
-              <p className="muted">Prix indicatif pour {product.litrage} · à confirmer par ENRM</p>
+              <p className="detail-price">Prix à confirmer</p>
               <fieldset className="variant-fieldset">
                 <legend>Votre contenance</legend>
                 <div className="volume-options">
@@ -176,15 +172,15 @@ export default async function ProductPage({ params }: Props) {
                 </label>
                 <AddToCartButton
                   id={product.id}
-                  label="Ajouter au panier"
+                  label="Ajouter cette référence à ma demande"
                   className="button primary"
                   quantityFieldId="detail-qty"
                 >
-                  Ajouter au panier <span>＋</span>
+                  Ajouter à ma demande <span>＋</span>
                 </AddToCartButton>
               </div>
               <p className="muted">
-                Votre demande sera confirmée par ENRM. Aucun paiement en ligne.
+                ENRM confirmera le prix et la disponibilité. Aucun paiement en ligne n’est demandé.
               </p>
               <a href="/#conseil" className="detail-advice">
                 Un doute sur votre moteur ? <span>Parlons-en ↗</span>

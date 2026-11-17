@@ -82,8 +82,22 @@ body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
 .single-hero .hero-slide-copy h1 {
   animation: hero-word-in 1.1s 0.25s var(--ease) both;
 }
+.single-hero .hero-slide-copy .hero-intro {
+  max-width: 650px;
+  margin-top: 22px;
+  font-size: clamp(15px, 1.2vw, 19px);
+  line-height: 1.55;
+  color: #fff;
+  animation: hero-word-in 0.85s 0.4s var(--ease) both;
+}
 .single-hero .hero-slide-copy .button {
   animation: hero-word-in 0.85s 0.5s var(--ease) both;
+}
+.single-hero .hero-slide-copy .hero-advice-link {
+  display: inline-block;
+  margin: 35px 0 0 18px;
+  color: #fff;
+  text-underline-offset: 4px;
 }
 .single-hero .hero-bottom {
   bottom: 42px;
@@ -476,10 +490,20 @@ body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
     letter-spacing: 0.7px;
     max-width: none;
   }
+  .single-hero .hero-slide-copy .hero-intro {
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
   .single-hero .hero-slide-copy .button {
     min-height: 54px;
     font-size: 16px;
-    margin-top: 25px;
+    margin-top: 20px;
+  }
+  .single-hero .hero-slide-copy .hero-advice-link {
+    display: block;
+    width: fit-content;
+    margin: 16px 0 0;
   }
   .single-hero .hero-bottom {
     bottom: 35px;
@@ -611,7 +635,9 @@ body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
 @media (prefers-reduced-motion: reduce) {
   .single-hero .hero-slide-copy .eyebrow,
   .single-hero .hero-slide-copy h1,
+  .single-hero .hero-slide-copy .hero-intro,
   .single-hero .hero-slide-copy .button,
+  .single-hero .hero-slide-copy .hero-advice-link,
   .showcase-copy h2 > span,
   .oil-showcase .hero-oil-item,
   .advice-studio-form {

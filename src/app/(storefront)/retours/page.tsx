@@ -23,14 +23,14 @@ export default function Page() {
           </p>
           <h2>Retours et garanties.</h2>
           <p>
-            Les conditions de retour, d’échange, de remboursement et de garantie seront rédigées et
-            validées par ENRM avant le lancement. Aucun délai ni droit commercial supplémentaire
-            n’est inventé dans cette démo.
+            Les modalités de retour, d’échange, de remboursement et de garantie ne sont pas
+            précisées sur cette page. ENRM doit publier ses conditions commerciales et légales avant
+            toute confirmation de vente.
           </p>
           <h2>À valider avant publication.</h2>
           <p>
-            Les informations légales de l’entreprise, les conditions générales de vente et les
-            modalités de paiement devront être complétées pour un usage commercial.
+            L’identité légale de l’entreprise, les conditions générales de vente et les modalités de
+            paiement restent à compléter et à valider par ENRM.
           </p>
           <a className="text-link" href="/contact">
             Nous contacter ↗

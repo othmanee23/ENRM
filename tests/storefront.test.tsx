@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { AddToCartButton } from '../src/components/storefront/AddToCartButton';
 import { CartCount } from '../src/components/storefront/CartCount';
 import { CartProvider } from '../src/components/storefront/CartProvider';
+import { ProductCard } from '../src/components/storefront/ProductCard';
 import {
   MobileMenu,
   ProductGallery,
@@ -11,6 +12,7 @@ import {
 } from '../src/components/storefront/StorefrontControls';
 import { AdviceMiniForm } from '../src/components/storefront/AdviceMiniForm';
 import { AdminNavigation } from '../src/components/admin/AdminNavigation';
+import type { Product } from '../src/shared/types';
 
 let host: HTMLDivElement;
 let root: Root;
@@ -121,7 +123,71 @@ describe('storefront React interactions', () => {
         .querySelector('form')!
         .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })),
     );
-    expect(host.textContent).toContain('cette démonstration n’envoie pas votre demande');
+    expect(host.textContent).toContain('Aucune information n’a été transmise à ENRM.');
+  });
+
+  it('does not display an unvalidated catalogue price on product cards', () => {
+    const product: Product = {
+      id: 'ENRM-HM-TEST',
+      marque: 'Castrol',
+      gamme: 'EDGE',
+      sous_reference: 'EDGE',
+      viscosite: '5W-30',
+      litrage: '5 L',
+      designation: 'Castrol EDGE 5W-30',
+      price: 12345,
+      recto: '',
+      verso: '',
+      statut_recto: 'À obtenir',
+      statut_verso: 'À obtenir',
+      references_articles: '',
+      reference_image: '',
+      origine_image: '',
+      preuves_maroc: '',
+      source_recto: '',
+      source_verso: '',
+      url_recto: '',
+      url_verso: '',
+      photo_revendeur_url: '',
+      note: '',
+    };
+    act(() =>
+      root.render(createElement(CartProvider, null, createElement(ProductCard, { product }))),
+    );
+    expect(host.textContent).toContain('Prix à confirmer');
+    expect(host.textContent).not.toContain('12 345');
+  });
+
+  it('uses a neutral fallback instead of generic imagery as a product photo', () => {
+    const product: Product = {
+      id: 'ENRM-HM-TEST',
+      marque: 'Motul',
+      gamme: '8100',
+      sous_reference: '8100',
+      viscosite: '5W-30',
+      litrage: '5 L',
+      designation: 'Motul 8100 5W-30',
+      price: 100,
+      recto: '/assets/generic-container.jpg',
+      verso: '',
+      statut_recto: 'Illustration générique',
+      statut_verso: 'À obtenir',
+      references_articles: '',
+      reference_image: '',
+      origine_image: '',
+      preuves_maroc: '',
+      source_recto: '',
+      source_verso: '',
+      url_recto: '',
+      url_verso: '',
+      photo_revendeur_url: '',
+      note: '',
+    };
+    act(() =>
+      root.render(createElement(CartProvider, null, createElement(ProductCard, { product }))),
+    );
+    expect(host.querySelector('.product-image img')).toBeNull();
+    expect(host.textContent).toContain('Visuel à valider');
   });
 
   it('renders admin navigation state from the explicit React event boundary', () => {

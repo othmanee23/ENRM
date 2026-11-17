@@ -32,13 +32,15 @@ export function AdviceMiniForm() {
           </label>
         </div>
         <button className="button primary" type="submit">
-          Préparer mon conseil <span>↗</span>
+          Préparer mon récapitulatif <span>↗</span>
         </button>
-        <p className="muted">Demande préparée sur le site. Aucun diagnostic automatique.</p>
+        <p className="muted">
+          Ce formulaire reste sur votre appareil et ne transmet pas de demande.
+        </p>
         {submitted && (
           <p className="notice" role="status">
-            Vos informations sont prêtes. Contactez ENRM pour confirmer la compatibilité ; cette
-            démonstration n’envoie pas votre demande.
+            Récapitulatif préparé sur cette page. Aucune information n’a été transmise à ENRM. La
+            compatibilité doit être vérifiée avec la documentation du constructeur et du fabricant.
           </p>
         )}
       </form>

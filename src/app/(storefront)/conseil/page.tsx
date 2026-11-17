@@ -1,7 +1,7 @@
 import { publicPageMetadata } from '../../../lib/seo';
 export const metadata = publicPageMetadata(
   'Conseil moteur',
-  'Préparez les informations sur votre véhicule pour demander conseil à ENRM.',
+  'Réunissez les informations du véhicule et vérifiez les préconisations constructeur avant de choisir une huile.',
   '/conseil',
 );
 export default function Page() {
@@ -18,17 +18,20 @@ export default function Page() {
             <div>
               <h2>Le bon choix commence avec les bons repères.</h2>
               <p>
-                Marque, modèle, année et motorisation : réunissez les informations de votre véhicule
-                avant de choisir votre huile.
+                Marque, modèle, année et motorisation : réunissez ces informations avant de
+                rechercher une référence dans le catalogue.
               </p>
               <p>
                 La viscosité seule ne confirme pas une compatibilité. Les normes et homologations
                 constructeur doivent aussi être vérifiées.
               </p>
-              <a className="button primary" href="/#conseil">
-                Préparer ma demande <span>↗</span>
+              <a className="button primary" href="/catalogue">
+                Explorer le catalogue <span>↗</span>
               </a>
-              <p className="muted">Simulation locale. Aucun envoi à un conseiller ou à WhatsApp.</p>
+              <p className="muted">
+                Le formulaire ci-dessous sert à réunir vos informations. Il ne transmet pas de
+                demande à ENRM.
+              </p>
             </div>
             <img
               src="/assets/media/oil-poster.jpg"

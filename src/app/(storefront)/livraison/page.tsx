@@ -1,7 +1,7 @@
 import { publicPageMetadata } from '../../../lib/seo';
 export const metadata = publicPageMetadata(
   'Livraison',
-  'Informations de livraison ENRM au Maroc. Les conditions finales sont confirmées avec le client.',
+  'Les frais, délais et zones de livraison sont à confirmer avec ENRM avant validation d’une demande.',
   '/livraison',
 );
 export default function Page() {
@@ -16,19 +16,19 @@ export default function Page() {
         <div className="info-content">
           <h2>Conditions en cours de définition.</h2>
           <p>
-            Les zones desservies, transporteurs, délais et frais de livraison seront précisés par
-            ENRM avant toute ouverture commerciale.
+            Les zones desservies, transporteurs, délais et frais ne sont pas publiés ici. ENRM doit
+            les confirmer avant toute validation de commande.
           </p>
           <h2>Bidons et grands formats.</h2>
           <p>
             Les conditions pourront varier selon la destination, le poids et le conditionnement. Les
             fûts de 205 L et de 208 L restent deux formats distincts.
           </p>
-          <h2>Dans cette démonstration.</h2>
+          <h2>Avant toute confirmation.</h2>
           <p>
-            Le panier affiche un sous-total indicatif. Les frais inconnus ne sont pas traités comme
-            une livraison gratuite. Une demande connectée est enregistrée sans paiement; aucun
-            montant final ni délai garanti n’est annoncé.
+            L’envoi d’une demande ne déclenche aucun paiement. Le prix final, la disponibilité, les
+            frais et le délai de livraison doivent être confirmés par ENRM; cette page n’annonce
+            aucune livraison gratuite ni aucun délai garanti.
           </p>
           <a className="text-link" href="/contact">
             Consulter les informations de contact ↗
