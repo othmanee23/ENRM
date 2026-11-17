@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useCart } from './CartProvider';
+import { getSupabaseBrowserClient } from '../../lib/supabase/client';
 import type { ReactNode } from 'react';
 
 export function AddToCartButton({
@@ -17,12 +19,30 @@ export function AddToCartButton({
   children?: ReactNode;
 }) {
   const { addItem } = useCart();
+  const [available, setAvailable] = useState<boolean | null>(null);
+  useEffect(() => {
+    let active = true;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return () => { active = false; };
+    void supabase
+      .from('public_product_availability')
+      .select('in_stock')
+      .eq('product_id', id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (active) setAvailable(!error && data?.in_stock === true);
+      });
+    return () => { active = false; };
+  }, [id]);
   return (
     <button
       className={className}
       type="button"
-      aria-label={label}
+      aria-label={available === false ? 'Indisponible' : label}
+      disabled={available !== true}
+      title={available === false ? 'Indisponible' : undefined}
       onClick={() => {
+        if (available !== true) return;
         const field = quantityFieldId
           ? (document.getElementById(quantityFieldId) as HTMLInputElement | null)
           : null;
@@ -32,7 +52,7 @@ export function AddToCartButton({
         addItem(id, quantity);
       }}
     >
-      {children ?? '＋'}
+      {available === false ? 'Indisponible' : (children ?? '＋')}
     </button>
   );
 }
