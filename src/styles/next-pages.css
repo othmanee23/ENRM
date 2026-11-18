@@ -72,10 +72,17 @@
   resize: vertical;
 }
 .checkout-form .privacy-ack {
-  display: flex;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
   align-items: start;
-  gap: 10px;
+  column-gap: 10px;
   font-weight: 400;
+}
+.checkout-form .privacy-ack input[type='checkbox'] {
+  margin: 3px 0 0;
+}
+.checkout-form .privacy-ack span {
+  min-width: 0;
 }
 .checkout-summary {
   padding: 24px;

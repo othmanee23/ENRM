@@ -158,11 +158,14 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
                 />
               </label>
               <label className="privacy-ack full">
-                <input name="privacy_ack" type="checkbox" required /> J’ai lu l’
-                <a href="/confidentialite" target="_blank" rel="noopener noreferrer">
-                  information de confidentialité
-                </a>{' '}
-                et j’accepte l’utilisation de ces données pour traiter ma demande.
+                <input name="privacy_ack" type="checkbox" required />
+                <span>
+                  J’ai lu l’{' '}
+                  <a href="/confidentialite" target="_blank" rel="noopener noreferrer">
+                    information de confidentialité
+                  </a>{' '}
+                  et j’accepte l’utilisation de ces données pour traiter ma demande.
+                </span>
               </label>
               {!supabaseConfigured && (
                 <p className="notice full">

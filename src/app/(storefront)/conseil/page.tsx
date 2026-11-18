@@ -28,10 +28,6 @@ export default function Page() {
               <a className="button primary" href="/catalogue">
                 Explorer le catalogue <span>↗</span>
               </a>
-              <p className="muted">
-                Le formulaire ci-dessous sert à réunir vos informations. Il ne transmet pas de
-                demande à ENRM.
-              </p>
             </div>
             <img
               src="/assets/media/oil-poster.jpg"

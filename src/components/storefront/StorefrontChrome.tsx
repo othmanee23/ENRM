@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { CartCount } from './CartCount';
 import { MobileMenu } from './StorefrontControls';
-import { AdviceMiniForm } from './AdviceMiniForm';
+import { ContactForm } from './ContactForm';
 
 export function StorefrontChrome({ children }: { children: ReactNode }) {
   return (
@@ -50,21 +50,19 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
         </div>
       </header>
       {children}
-      <section className="advice-studio section motion-scene" id="conseil">
+      <section className="advice-studio section motion-scene" id="site-contact">
         <div className="advice-studio-heading">
           <h2>
-            Le bon choix
+            Parlons
             <br />
-            commence <em>ici.</em>
+            de votre <em>besoin.</em>
           </h2>
         </div>
         <div className="advice-studio-form">
           <h3>
-            Faisons connaissance
-            <br />
-            avec votre moteur.
+            Contactez notre équipe
           </h3>
-          <AdviceMiniForm />
+          <ContactForm />
         </div>
       </section>
       <footer className="footer-v5" id="footer">
@@ -90,6 +88,9 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
             <a href="/credits">Crédits</a>
           </div>
           <div className="footer-column footer-actions">
+            <h2>Un échange direct</h2>
+            <a href="tel:+212661428406" className="footer-contact-phone">+212 6 61 42 84 06 · Appeler</a>
+            <a href="mailto:Nizarafifi1551@gmail.com">Nizarafifi1551@gmail.com</a>
             <a href="/conseil" className="footer-pill">
               Un conseil <span>↗</span>
             </a>

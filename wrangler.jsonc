@@ -9,6 +9,13 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "destination_address": "Nizarafifi1551@gmail.com",
+      "allowed_sender_addresses": ["contact@enrm.ma"]
+    }
+  ],
   "observability": {
     "enabled": true,
     "traces": { "enabled": true }

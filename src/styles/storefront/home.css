@@ -397,6 +397,80 @@ body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
   margin-top: 15px;
   font-size: 13px;
 }
+.site-contact-form {
+  display: grid;
+  gap: 20px;
+}
+.site-contact-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.site-contact-form label span {
+  color: #8a9294;
+}
+.site-contact-form input:not([type='checkbox']),
+.site-contact-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid #c4cbc8;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  resize: vertical;
+}
+.site-contact-form input:focus,
+.site-contact-form textarea:focus {
+  border-color: var(--gold);
+  outline: 2px solid transparent;
+}
+.site-contact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.site-contact-consent {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 10px !important;
+  color: var(--ink) !important;
+  line-height: 1.5;
+}
+.site-contact-consent input {
+  margin-top: 3px;
+  accent-color: var(--gold);
+}
+.site-contact-form .button {
+  width: 100%;
+  cursor: pointer;
+}
+.site-contact-form .button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.site-contact-status {
+  min-height: 1.4em;
+  margin: -10px 0 0;
+  font-size: 14px;
+}
+.site-contact-honeypot {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.contact-call-cta {
+  display: inline-block;
+  margin: 22px 0 0 18px;
+  color: var(--ink);
+}
 .footer-return {
   width: 54px;
   height: 54px;
@@ -616,6 +690,14 @@ body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
   }
   .advice-mini-row {
     gap: 22px;
+  }
+  .site-contact-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .contact-call-cta {
+    display: block;
+    margin: 18px 0 0;
   }
   .advice-studio-form .button {
     margin-top: 30px;

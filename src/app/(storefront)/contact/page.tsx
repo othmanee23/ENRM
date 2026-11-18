@@ -1,7 +1,7 @@
 import { publicPageMetadata } from '../../../lib/seo';
 export const metadata = publicPageMetadata(
   'Contact',
-  'Parcourez le catalogue ENRM et transmettez une demande de commande. Les coordonnées publiques restent à compléter.',
+  'Contactez ENRM pour une question sur nos huiles moteur, une référence ou une demande de commande.',
   '/contact',
 );
 export default function Page() {
@@ -11,21 +11,20 @@ export default function Page() {
         <p className="eyebrow">NOUS CONTACTER</p>
         <h1>Prenons le temps d’en parler.</h1>
         <div className="info-content">
-          <h2>Une référence à retrouver&nbsp;?</h2>
+          <h2>Comment pouvons-nous vous aider&nbsp;?</h2>
           <p>
-            Vous pouvez transmettre une demande de commande depuis le catalogue. Indiquez les
-            références voulues et vos coordonnées; ENRM vous recontactera pour confirmer les
-            détails.
+            Une question sur une huile, une référence ou votre demande de commande&nbsp;? Écrivez à
+            notre équipe via le formulaire de contact.
           </p>
-          <a className="button primary" href="/catalogue">
-            Parcourir le catalogue ↗
+          <a className="button primary" href="#site-contact">
+            Accéder au formulaire ↗
           </a>
-          <h2>Coordonnées ENRM</h2>
-          <p>
-            Aucun numéro de téléphone, adresse e-mail, adresse physique, horaire ou contact WhatsApp
-            n’est publié sur cette page. Le formulaire de conseil aide à préparer les informations
-            sur votre véhicule, mais ne les transmet pas à ENRM.
-          </p>
+          <a className="contact-call-cta" href="tel:+212661428406">
+            Appeler ENRM · +212 6 61 42 84 06
+          </a>
+          <a className="contact-email-cta" href="mailto:Nizarafifi1551@gmail.com">
+            Écrire à Nizarafifi1551@gmail.com
+          </a>
         </div>
       </section>
     </main>
