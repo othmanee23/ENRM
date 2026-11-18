@@ -3,6 +3,7 @@ import { brandName, formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { resolveMediaUrl } from '../../lib/seo';
 import { AddToCartButton } from './AddToCartButton';
+import { ProductAvailabilityBadge } from './ProductAvailabilityBadge';
 
 export function ProductCard({ product }: { product: Product }) {
   const title = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} ${product.litrage}`;
@@ -14,6 +15,7 @@ export function ProductCard({ product }: { product: Product }) {
         <span className="image-tag">
           {product.statut_recto.includes('générique') ? 'Visuel à valider' : product.litrage}
         </span>
+        <ProductAvailabilityBadge productId={product.id} />
         {image ? (
           <img src={image} alt={title} loading="lazy" width={370} height={370} />
         ) : (

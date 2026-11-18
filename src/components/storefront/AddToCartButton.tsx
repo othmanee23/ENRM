@@ -52,7 +52,7 @@ export function AddToCartButton({
         addItem(id, quantity);
       }}
     >
-      {available === false ? 'Indisponible' : (children ?? '＋')}
+      {children ?? '＋'}
     </button>
   );
 }
