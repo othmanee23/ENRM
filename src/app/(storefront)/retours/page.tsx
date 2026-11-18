@@ -27,10 +27,10 @@ export default function Page() {
             précisées sur cette page. ENRM doit publier ses conditions commerciales et légales avant
             toute confirmation de vente.
           </p>
-          <h2>À valider avant publication.</h2>
+          <h2>Conditions commerciales.</h2>
           <p>
-            L’identité légale de l’entreprise, les conditions générales de vente et les modalités de
-            paiement restent à compléter et à valider par ENRM.
+            Les conditions de retour, d’échange, de remboursement et de garantie sont communiquées
+            par ENRM avant toute confirmation définitive de vente.
           </p>
           <a className="text-link" href="/contact">
             Nous contacter ↗

@@ -105,7 +105,10 @@ function Pagination({
           </span>
         )}
       </nav>
-      <p className="muted">Prix et disponibilité à confirmer par ENRM.</p>
+      <p className="muted">
+        Les prix et disponibilités sont confirmés par ENRM avant validation définitive de la
+        commande.
+      </p>
     </div>
   );
 }
@@ -164,7 +167,7 @@ export async function generateMetadata({
   return {
     ...publicPageMetadata(
       'Catalogue des huiles moteur',
-      'Parcourez les références d’huiles moteur ENRM au Maroc par marque, formulation, viscosité et conditionnement.',
+      'Explorez la sélection ENRM de lubrifiants automobiles par marque, viscosité et conditionnement.',
       !hasFilters && requestedPage > 1 ? `/catalogue?page=${requestedPage}` : '/catalogue',
     ),
     ...(hasFilters ? { robots: { index: false, follow: true } } : {}),
@@ -210,15 +213,14 @@ export default async function CataloguePage({
             <div>
               <p className="eyebrow">LE CATALOGUE ENRM</p>
               <h1>
-                Votre moteur.
+                Les huiles moteur.
                 <br />
-                Votre référence.
+                Les références qu’il vous faut.
               </h1>
             </div>
             <p>
-              Marques, formulations, grades et formats.
-              <br />
-              Explorez {result.total} variantes documentées.
+              Explorez notre sélection de lubrifiants automobiles. Recherchez une marque, comparez
+              les viscosités et choisissez le conditionnement adapté à vos besoins.
             </p>
           </div>
           <form id="catalogue-filters" action="/catalogue" method="get">
@@ -229,7 +231,7 @@ export default async function CataloguePage({
                   id="search"
                   name="search"
                   type="search"
-                  placeholder="Marque, gamme, 5W-30…"
+                  placeholder="Rechercher une marque, une huile, une viscosité…"
                   aria-label="Rechercher une huile"
                   defaultValue={value(params, 'search', 'q')}
                 />
@@ -239,9 +241,9 @@ export default async function CataloguePage({
             <div className="catalogue-layout">
               <aside className="filters" id="filters" aria-label="Filtres du catalogue">
                 <div className="filter-heading">
-                  <h2>Affiner la sélection</h2>
+                  <h2>Affiner votre recherche</h2>
                   <a className="text-link" id="reset" href="/catalogue">
-                    Tout effacer ↺
+                    Effacer les filtres ↺
                   </a>
                 </div>
                 <SelectField
@@ -291,7 +293,7 @@ export default async function CataloguePage({
                   options={facets.volumes.map((item) => ({ value: item, label: item }))}
                 />
                 <button className="button primary" type="submit">
-                  Afficher les résultats ↗
+                  Voir les résultats ↗
                 </button>
               </aside>
               <div className="catalogue-results">
@@ -334,14 +336,16 @@ export default async function CataloguePage({
                   </div>
                 ) : (
                   <div id="product-grid" className="empty">
-                    <h2>
-                      {['Meyle', 'Valvoline'].includes(selectedBrand)
-                        ? 'Le catalogue arrive prochainement.'
-                        : 'Aucune référence trouvée.'}
-                    </h2>
-                    <p>Les références et visuels sont ajoutés après validation par ENRM.</p>
+                    <h2>{'Aucune huile ne correspond à votre recherche.'}</h2>
+                    <p>
+                      Essayez d’élargir vos critères ou contactez notre équipe pour être accompagné
+                      dans votre recherche.
+                    </p>
                     <a className="text-link" href="/catalogue">
-                      Explorer les autres références ↗
+                      Effacer les filtres ↗
+                    </a>{' '}
+                    <a className="text-link" href="/conseil">
+                      Demander conseil ↗
                     </a>
                   </div>
                 )}

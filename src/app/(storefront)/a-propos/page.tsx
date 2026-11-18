@@ -1,7 +1,7 @@
 import { publicPageMetadata } from '../../../lib/seo';
 export const metadata = publicPageMetadata(
   'À propos d’ENRM',
-  'Découvrez ENRM, Solutions & Services.',
+  'ENRM Solutions & Services, spécialiste des huiles moteur et lubrifiants automobiles au Maroc.',
   '/a-propos',
 );
 export default function Page() {
@@ -20,24 +20,39 @@ export default function Page() {
               height={800}
             />
           </div>
-          <h2>Le choix mérite de la clarté.</h2>
+          <h2>Votre partenaire en lubrifiants automobiles.</h2>
           <p>
-            ENRM Solutions &amp; Services met à disposition un catalogue de références d’huiles
-            moteur destiné aux conducteurs et aux professionnels au Maroc.
+            ENRM Solutions &amp; Services est une entreprise basée à Rabat, spécialisée dans la
+            vente, la distribution et la livraison d’huiles moteur et de lubrifiants automobiles au
+            Maroc.
           </p>
           <p>
-            Parcourez les marques, gammes, viscosités et contenances recensées, puis transmettez
-            votre sélection à ENRM pour confirmer les conditions de la demande.
+            Nous accompagnons les particuliers et les professionnels avec un catalogue de références
+            de différentes marques et des solutions adaptées aux quantités recherchées.
           </p>
-          <h2>Une référence, dans son détail.</h2>
+          <h2>Le bon produit commence par la bonne information.</h2>
           <p>
-            Chaque formulation et chaque format correspondent à une référence distincte. Certaines
-            photos ou références fabricant restent à compléter. Vérifiez toujours les normes et
-            homologations à partir de la documentation du fabricant et des préconisations du
-            constructeur de votre véhicule.
+            Choisir une huile moteur ne se résume pas à sélectionner une marque ou une viscosité.
+            Chaque formulation répond à des caractéristiques précises. Les normes, les homologations
+            constructeur et les recommandations techniques aident à identifier une référence
+            appropriée. Nous accordons une importance particulière à la clarté des informations et à
+            l’accompagnement de nos clients.
+          </p>
+          <h2>Des solutions pour les particuliers et les professionnels.</h2>
+          <p>
+            Que vous recherchiez un bidon pour l’entretien de votre véhicule ou des quantités
+            destinées à votre activité professionnelle, ENRM vous accompagne. Notre catalogue
+            s’adresse aux automobilistes, aux ateliers et aux professionnels de l’entretien
+            automobile.
+          </p>
+          <h2>Un service proche de vos besoins.</h2>
+          <p>
+            Basée à Rabat, notre équipe assure un service de proximité et propose des solutions de
+            livraison vers différentes villes du Maroc, avec des conditions commerciales clairement
+            communiquées.
           </p>
           <a className="button primary" href="/catalogue">
-            Découvrir les huiles ↗
+            Découvrir nos huiles moteur ↗
           </a>
         </div>
       </section>

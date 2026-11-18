@@ -8,7 +8,7 @@ import { RailScrollButton, VideoControl } from '../../components/storefront/Stor
 
 export const metadata = publicPageMetadata(
   'Huiles moteur au Maroc',
-  'Découvrez le catalogue ENRM de références d’huiles moteur au Maroc et envoyez votre demande à notre équipe.',
+  'Des huiles moteur et lubrifiants automobiles sélectionnés pour les particuliers et les professionnels au Maroc.',
   '/',
 );
 
@@ -104,14 +104,14 @@ export default async function HomePage() {
                 <br />À l’état pur.
               </h1>
               <p className="hero-intro">
-                Parcourez les références par marque, viscosité et contenance. ENRM vous confirmera
-                le prix et la disponibilité après réception de votre demande.
+                Des huiles moteur et lubrifiants automobiles sélectionnés pour répondre aux besoins
+                des particuliers et des professionnels au Maroc.
               </p>
               <a className="button light" href="/catalogue">
                 Explorer les huiles <span>↗</span>
               </a>
               <a className="hero-advice-link" href="/conseil">
-                Les repères pour choisir <span>↗</span>
+                Demander conseil <span>↗</span>
               </a>
             </div>
             <div className="hero-bottom">
@@ -178,8 +178,8 @@ export default async function HomePage() {
                 <span>La précision.</span>
                 <span>Dans le détail.</span>
               </h2>
-              <a className="button primary" href="/catalogue">
-                Découvrir la sélection <span>↗</span>
+              <a className="button primary" href="/a-propos">
+                Découvrir ENRM <span>↗</span>
               </a>
             </div>
             <div id="hero-oils" className="hero-oils" aria-label="Huiles moteur en format 5 litres">
@@ -208,19 +208,26 @@ export default async function HomePage() {
           <div className="section-heading">
             <div>
               <h2>
-                De belles références.
+                Des marques reconnues.
                 <br />
-                Un choix précis.
+                Des références à explorer.
               </h2>
+              <p>
+                Retrouvez notre catalogue de lubrifiants automobiles, organisé par marque, viscosité
+                et contenance.
+              </p>
             </div>
-            <a className="text-link" href="/catalogue">
-              Explorer les 210 variantes <span>↗</span>
+            <a className="text-link" href="/#marques">
+              Toutes les marques <span>↗</span>
             </a>
           </div>
           <RailControls id="featured-products" label="Produits" />
           <ProductRail id="featured-products" products={featured} label="Sélection de produits" />
           <div className="rail-foot">
-            <span>Prix et disponibilité à confirmer par ENRM.</span>
+            <span>
+              Les prix et disponibilités sont confirmés par ENRM avant validation définitive de la
+              commande.
+            </span>
             <a href="/catalogue">Tout le catalogue ↗</a>
           </div>
         </section>
@@ -235,12 +242,12 @@ export default async function HomePage() {
             />
             <div>
               <h2>
-                Le goût
+                L’exigence
                 <br />
                 du détail.
               </h2>
-              <a className="button light" href="/conseil">
-                Trouver ma référence <span>↗</span>
+              <a className="button light" href="/catalogue">
+                Explorer le catalogue <span>↗</span>
               </a>
             </div>
             <span className="detail-light-pass" aria-hidden="true"></span>
@@ -249,13 +256,19 @@ export default async function HomePage() {
         <section className="collection section extra-collection" id="grade-530-section">
           <div className="section-heading">
             <h2>
-              Le grade 5W-30.
+              Le 5W-30.
               <br />
-              Des références à explorer.
+              Une viscosité, plusieurs formulations.
             </h2>
-            <a className="text-link" href="/catalogue?viscosity=5W-30&volume=5+L">
-              Voir les huiles 5W-30 <span>↗</span>
-            </a>
+            <div>
+              <p>
+                Explorez nos références 5W-30 et comparez leurs caractéristiques pour identifier
+                celles qui répondent aux préconisations de votre constructeur.
+              </p>
+              <a className="text-link" href="/catalogue?viscosity=5W-30&volume=5+L">
+                Découvrir les huiles 5W-30 <span>↗</span>
+              </a>
+            </div>
           </div>
           <RailControls id="grade-530" label="Huiles 5W-30" />
           <ProductRail id="grade-530" products={grade530} label="Voir les huiles 5W-30" />
@@ -264,14 +277,14 @@ export default async function HomePage() {
           <div className="section-heading">
             <div>
               <h2>
-                À votre rythme.
-                <br />À votre format.
+                À chaque besoin.
+                <br />
+                Son format.
               </h2>
             </div>
             <p>
-              Pour les conducteurs et les professionnels.
-              <br />
-              Chaque contenance garde sa référence.
+              Du bidon pour l’entretien courant aux grands conditionnements destinés aux
+              professionnels, explorez les formats disponibles chez ENRM.
             </p>
           </div>
           <div className="atelier-layout">
@@ -292,9 +305,9 @@ export default async function HomePage() {
               <div>
                 <span>LES FORMATS DU QUOTIDIEN</span>
                 <h3>
-                  Le prochain départ
+                  Le bon format.
                   <br />
-                  se prépare ici.
+                  Pour chaque besoin.
                 </h3>
                 <a className="story-link" href="/catalogue?volume=5+L">
                   Explorer les bidons 5 L ↗
@@ -315,11 +328,17 @@ export default async function HomePage() {
             <h2>
               Le format 1 litre.
               <br />
-              Tout aussi précis.
+              L’essentiel, à portée de main.
             </h2>
-            <a className="text-link" href="/catalogue?volume=1+L">
-              Explorer les formats 1 L <span>↗</span>
-            </a>
+            <div>
+              <p>
+                Découvrez les références en format 1 litre pour l’entretien de votre véhicule, selon
+                ses spécifications.
+              </p>
+              <a className="text-link" href="/catalogue?volume=1+L">
+                Explorer les formats 1 L <span>↗</span>
+              </a>
+            </div>
           </div>
           <RailControls id="litre-products" label="Formats 1 L" />
           <ProductRail id="litre-products" products={litre} label="Explorer les formats 1 L" />
@@ -327,13 +346,19 @@ export default async function HomePage() {
         <section className="collection section extra-collection" id="grade-540-section">
           <div className="section-heading">
             <h2>
-              Le choix du 5W-40.
+              Le 5W-40.
               <br />
-              Dans chaque détail.
+              Le bon choix commence par les bonnes normes.
             </h2>
-            <a className="text-link" href="/catalogue?viscosity=5W-40&volume=5+L">
-              Voir les huiles 5W-40 <span>↗</span>
-            </a>
+            <div>
+              <p>
+                Retrouvez nos huiles moteur 5W-40 et consultez les caractéristiques de chaque
+                formulation.
+              </p>
+              <a className="text-link" href="/catalogue?viscosity=5W-40&volume=5+L">
+                Découvrir les huiles 5W-40 <span>↗</span>
+              </a>
+            </div>
           </div>
           <RailControls id="grade-540" label="Huiles 5W-40" />
           <ProductRail id="grade-540" products={grade540} label="Voir les huiles 5W-40" />
@@ -341,37 +366,56 @@ export default async function HomePage() {
         <section className="choice-section section">
           <div>
             <h2>
-              Trois repères.
+              Trois engagements.
               <br />
-              Une référence à vous.
+              Une même exigence.
             </h2>
           </div>
           <div className="choice-list">
             <a href="/catalogue">
               <span>01</span>
               <div>
-                <h3>La formulation avant tout.</h3>
-                <p>
-                  Comparez la sous-référence et vérifiez les normes prévues par le constructeur.
-                </p>
+                <h3>Des références identifiées.</h3>
+                <p>Un catalogue organisé par marque, formulation, viscosité et contenance.</p>
               </div>
               <span>↗</span>
             </a>
             <a href="/catalogue">
               <span>02</span>
               <div>
-                <h3>Le grade, avec précision.</h3>
-                <p>5W-30, 5W-40… La viscosité est un repère, pas une preuve de compatibilité.</p>
+                <h3>Un conseil à votre écoute.</h3>
+                <p>Notre équipe vous accompagne dans votre recherche et répond à vos questions.</p>
               </div>
               <span>↗</span>
             </a>
-            <a href="/conseil">
+            <a href="/livraison">
               <span>03</span>
               <div>
-                <h3>Un doute ? Parlons moteur.</h3>
-                <p>Préparez votre véhicule, sa motorisation et votre question.</p>
+                <h3>Une livraison adaptée.</h3>
+                <p>
+                  Livraison gratuite à Rabat et solutions vers d’autres villes, selon les conditions
+                  confirmées.
+                </p>
               </div>
               <span>↗</span>
+            </a>
+          </div>
+        </section>
+        <section className="collection section" id="livraison">
+          <div className="section-heading">
+            <div>
+              <h2>
+                Votre commande.
+                <br />
+                Livrée selon votre destination.
+              </h2>
+              <p>
+                Profitez de la livraison gratuite à Rabat et dès 1 000 MAD de commande. Découvrez
+                nos conditions pour Casablanca, Kénitra et les autres destinations desservies.
+              </p>
+            </div>
+            <a className="text-link" href="/livraison">
+              Voir les conditions de livraison <span>↗</span>
             </a>
           </div>
         </section>

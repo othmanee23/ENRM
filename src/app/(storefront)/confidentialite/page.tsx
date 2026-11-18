@@ -1,45 +1,60 @@
 import { publicPageMetadata } from '../../../lib/seo';
 export const metadata = publicPageMetadata(
   'Confidentialité',
-  'Comment ENRM utilise les informations communiquées pour traiter une demande de commande.',
+  'Informations sur les données personnelles transmises à ENRM depuis ce site.',
   '/confidentialite',
 );
 export default function Page() {
   return (
     <main id="main">
       <section className="info-page section">
-        <p className="eyebrow">CONFIDENTIALITÉ</p>
+        <p className="eyebrow">PROTECTION DES DONNÉES</p>
         <h1>
-          Votre visite.
-          <br /> Vos informations.
+          Vos informations.
+          <br />
+          Notre responsabilité.
         </h1>
         <div className="info-content">
-          <h2>Un panier conservé sur votre appareil.</h2>
+          <h2>Qui traite vos informations&nbsp;?</h2>
           <p>
-            Le panier utilise le stockage local de votre navigateur pour mémoriser les références
-            sélectionnées et leurs quantités. Vous pouvez retirer chaque ligne ou effacer les
-            données du site dans les réglages de votre navigateur.
+            ENRM Solutions &amp; Services utilise certaines données personnelles afin de répondre
+            aux demandes des visiteurs et de gérer les commandes transmises depuis son site.
           </p>
-          <h2>Commandes enregistrées.</h2>
           <p>
-            Lorsque vous envoyez une demande, ENRM reçoit votre nom, votre téléphone, votre ville,
-            l’adresse souhaitée pour la livraison, les références choisies et leurs quantités. Le
-            serveur recalcule le sous-total à partir du catalogue au moment de l’envoi; aucun
-            paiement n’est effectué sur le site. Les données nécessaires au suivi sont enregistrées
-            dans la base ENRM et accessibles aux administrateurs autorisés. Le responsable du
-            traitement, la durée de conservation et les modalités d’exercice de vos droits doivent
-            être précisés par ENRM.
+            <strong>Entreprise :</strong> ENRM Solutions &amp; Services
+            <br />
+            <strong>Adresse :</strong> Avenue de la Résistance, quartier de l’Océan, Rabat, Maroc
+            <br />
+            <strong>ICE :</strong> 003702111000048
+            <br />
+            <strong>Contact :</strong>{' '}
+            <a href="mailto:Nizarafifi1551@gmail.com">Nizarafifi1551@gmail.com</a>
           </p>
-          <h2>Les autres formulaires.</h2>
+          <h2>Les informations collectées</h2>
           <p>
-            Le formulaire de conseil reste dans votre navigateur et ne transmet pas les informations
-            saisies.
+            Selon les fonctionnalités utilisées, ENRM peut recevoir votre nom, adresse e-mail,
+            numéro de téléphone, ville, adresse de livraison et les produits demandés.
           </p>
-          <h2>Des médias locaux.</h2>
+          <h2>Pourquoi ces informations sont-elles utilisées&nbsp;?</h2>
           <p>
-            Les photographies, logos et vidéos du site sont servis depuis le projet. Aucun outil de
-            publicité ni de mesure d’audience n’est intégré. Les informations légales du responsable
-            du traitement et les modalités de conservation restent à compléter par ENRM.
+            Les informations nécessaires aux commandes permettent de contacter les clients, vérifier
+            les détails de leurs demandes et organiser leur traitement. Les informations envoyées au
+            moyen du formulaire de contact servent à répondre aux messages.
+          </p>
+          <h2>Votre panier</h2>
+          <p>
+            Le site peut conserver les références sélectionnées dans le stockage local de votre
+            navigateur afin de retrouver votre panier lors d’une prochaine visite.
+          </p>
+          <h2>Accès aux données</h2>
+          <p>
+            Les informations relatives aux commandes sont destinées aux personnes autorisées à
+            assurer leur traitement chez ENRM.
+          </p>
+          <h2>Vos questions concernant vos données</h2>
+          <p>
+            Pour toute question concernant les données personnelles communiquées à ENRM, écrivez à{' '}
+            <a href="mailto:Nizarafifi1551@gmail.com">Nizarafifi1551@gmail.com</a>.
           </p>
         </div>
       </section>

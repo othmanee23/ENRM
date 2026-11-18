@@ -14,6 +14,14 @@ export default function Page() {
           <br /> du mouvement.
         </h1>
         <div className="info-content">
+          <h2>Photographies et vidéos</h2>
+          <p>
+            Les visuels présents sur ce site illustrent l’univers de l’automobile, de l’entretien et
+            des lubrifiants. Certaines photographies et vidéos proviennent de bibliothèques de
+            médias ou de contenus mis à disposition pour le projet ENRM. Les crédits et attributions
+            nécessaires sont conservés conformément aux conditions d’utilisation des médias
+            concernés.
+          </p>
           <h2>Médias fournis pour cette version.</h2>
           <p>
             Héros : vidéo fournie{' '}
@@ -85,7 +93,14 @@ export default function Page() {
             leurs titulaires. Leur présence sert à identifier les références et n’affirme aucun
             statut de distributeur agréé ou partenariat.
           </p>
-          <h2>Typographie.</h2>
+          <h2>Marques et produits.</h2>
+          <p>
+            Les marques, noms commerciaux et logos présentés sur le site appartiennent à leurs
+            propriétaires respectifs. Leur présence permet d’identifier les références proposées
+            dans le catalogue et ne constitue pas, à elle seule, une déclaration de partenariat ou
+            de distribution agréée.
+          </p>
+          <h2>Typographie et conception.</h2>
           <p>
             Inter Tight, distribuée par Google Fonts sous licence SIL Open Font License. Les
             fichiers de police et leur licence sont servis localement.

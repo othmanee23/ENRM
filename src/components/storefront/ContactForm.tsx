@@ -21,7 +21,7 @@ export function ContactForm() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Envoi impossible. Réessayez plus tard.');
       form.reset();
-      setStatus('Votre message a bien été envoyé. Notre équipe vous répondra bientôt.');
+      setStatus('Votre message a bien été envoyé. Merci de nous avoir contactés.');
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Envoi impossible. Réessayez plus tard.');
     } finally {
@@ -41,8 +41,8 @@ export function ContactForm() {
           <input name="email" type="email" autoComplete="email" maxLength={254} required />
         </label>
         <label>
-          Téléphone <span>(facultatif)</span>
-          <input name="phone" type="tel" autoComplete="tel" maxLength={30} />
+          Téléphone
+          <input name="phone" type="tel" autoComplete="tel" maxLength={30} required />
         </label>
       </div>
       <label>
@@ -51,7 +51,9 @@ export function ContactForm() {
       </label>
       <label className="site-contact-consent">
         <input name="consent" type="checkbox" required />
-        <span>J’accepte que mes informations soient utilisées pour répondre à ma demande.</span>
+        <span>
+          J’accepte que mes informations soient utilisées pour traiter ma demande et me recontacter.
+        </span>
       </label>
       <label className="site-contact-honeypot" aria-hidden="true">
         Ne pas remplir <input name="website" tabIndex={-1} autoComplete="off" />
@@ -59,7 +61,9 @@ export function ContactForm() {
       <button className="button primary" type="submit" disabled={sending}>
         {sending ? 'Envoi en cours…' : 'Envoyer le message'} <span aria-hidden="true">↗</span>
       </button>
-      <p className="site-contact-status" role="status" aria-live="polite">{status}</p>
+      <p className="site-contact-status" role="status" aria-live="polite">
+        {status}
+      </p>
     </form>
   );
 }

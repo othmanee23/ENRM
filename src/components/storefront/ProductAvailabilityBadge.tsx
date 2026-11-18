@@ -8,7 +8,10 @@ export function ProductAvailabilityBadge({ productId }: { productId: string }) {
   useEffect(() => {
     let active = true;
     const supabase = getSupabaseBrowserClient();
-    if (!supabase) return () => { active = false; };
+    if (!supabase)
+      return () => {
+        active = false;
+      };
     void supabase
       .from('public_product_availability')
       .select('in_stock')
@@ -17,7 +20,9 @@ export function ProductAvailabilityBadge({ productId }: { productId: string }) {
       .then(({ data, error }) => {
         if (active) setUnavailable(!error && data?.in_stock === false);
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [productId]);
-  return unavailable ? <span className="availability-badge">Indisponible</span> : null;
+  return unavailable ? <span className="availability-badge">Indisponible actuellement</span> : null;
 }

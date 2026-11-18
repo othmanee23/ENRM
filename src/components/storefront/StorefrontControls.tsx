@@ -23,6 +23,7 @@ export function MobileMenu() {
         <a href="/#marques">Les marques ↗</a>
         <a href="/conseil">Trouver mon huile ↗</a>
         <a href="/a-propos">À propos d’ENRM ↗</a>
+        <a href="/contact">Nous contacter ↗</a>
       </nav>
     </>
   );
