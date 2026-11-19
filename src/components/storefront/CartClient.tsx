@@ -5,6 +5,7 @@ import type { Product } from '../../shared/types';
 import { formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { loadCatalogueProductsByIds } from '../../shared/catalogue';
+import { getBundledProductById } from '../../shared/catalogue-assets';
 import { resolveMediaUrl } from '../../lib/seo';
 import { useCart } from './CartProvider';
 export function CartClient() {
@@ -57,9 +58,24 @@ export function CartClient() {
           <div className="cart-list" aria-live="polite">
             {items.map((item) => {
               const product = byId.get(item.id);
+              const bundledProduct = getBundledProductById(item.id);
+              const imageProduct = bundledProduct ?? product;
+              const imageUrl = imageProduct?.statut_recto.includes('générique')
+                ? null
+                : resolveMediaUrl(imageProduct?.recto);
               if (!product)
                 return (
                   <article className="cart-item unavailable" key={item.id}>
+                    <div className="cart-photo">
+                      {imageUrl && bundledProduct ? (
+                        <img
+                          src={resolveMediaUrl(bundledProduct.recto) || undefined}
+                          alt={`${bundledProduct.marque.replaceAll('_', ' ')} ${bundledProduct.sous_reference} ${bundledProduct.viscosite} ${bundledProduct.litrage}`}
+                          width="96"
+                          height="96"
+                        />
+                      ) : null}
+                    </div>
                     <div>
                       <h2>Référence indisponible</h2>
                       <p>
@@ -73,9 +89,6 @@ export function CartClient() {
                   </article>
                 );
               const name = `${product.marque.replaceAll('_', ' ')} ${product.sous_reference}`;
-              const imageUrl = product.statut_recto.includes('générique')
-                ? null
-                : resolveMediaUrl(product.recto);
               return (
                 <article className="cart-item" key={item.id}>
                   <a href={`/produits/${productSlug(product)}`} className="cart-photo">

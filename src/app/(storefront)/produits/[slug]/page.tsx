@@ -15,6 +15,8 @@ import {
 } from '../../../../lib/seo';
 import { AddToCartButton } from '../../../../components/storefront/AddToCartButton';
 import { ProductGallery } from '../../../../components/storefront/StorefrontControls';
+import { getBundledProductById } from '../../../../shared/catalogue-assets';
+import { productIdFromSlug } from '../../../../shared/slugs';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -24,8 +26,19 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getPublicProductBySlug(slug);
-  if (!product) return { title: 'Référence introuvable', robots: { index: false, follow: false } };
-  const title = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} — ${product.litrage}`;
+  const bundledProduct = product ?? getBundledProductById(productIdFromSlug(slug) || '');
+  if (!bundledProduct)
+    return { title: 'Référence introuvable', robots: { index: false, follow: false } };
+  const title = `${brandName(bundledProduct.marque)} ${bundledProduct.sous_reference} ${bundledProduct.viscosite} — ${bundledProduct.litrage}`;
+  if (!product) {
+    const image = resolveMediaUrl(bundledProduct.recto) || DEFAULT_SOCIAL_IMAGE;
+    return {
+      title: `${title} — Référence indisponible | ENRM`,
+      description: 'Cette référence ne figure plus au catalogue ENRM.',
+      robots: { index: false, follow: true },
+      openGraph: { images: [{ url: image, alt: title }] },
+    };
+  }
   const description = `Référence ${title} au catalogue ENRM. Vérifiez les spécifications du fabricant et les préconisations du constructeur. Prix et disponibilité à confirmer.`;
   const image =
     (product.statut_recto.includes('générique') ? null : resolveMediaUrl(product.recto)) ||
@@ -52,7 +65,41 @@ function safeSource(value: string): string | undefined {
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const product = await getPublicProductBySlug(slug);
-  if (!product) notFound();
+  if (!product) {
+    const bundledProduct = getBundledProductById(productIdFromSlug(slug) || '');
+    if (!bundledProduct) notFound();
+    const image = resolveMediaUrl(bundledProduct.recto);
+    return (
+      <main id="main" className="section cart-page">
+        <div className="product-breadcrumb">
+          <a href="/catalogue">← Revenir au catalogue</a>
+          <span>Référence indisponible</span>
+        </div>
+        <section className="product-layout">
+          <div className="detail-visual">
+            <ProductGallery
+              recto={image}
+              verso={null}
+              alt={`${bundledProduct.marque} ${bundledProduct.sous_reference}`}
+            />
+            <p className="media-caption">Visuel du conditionnement {bundledProduct.litrage}.</p>
+          </div>
+          <div className="detail-copy">
+            <p className="eyebrow">{brandName(bundledProduct.marque)}</p>
+            <h1>
+              {bundledProduct.sous_reference}
+              <span>{bundledProduct.viscosite}</span>
+            </h1>
+            <p className="detail-reference">{bundledProduct.id} · Référence retirée du catalogue</p>
+            <p>Cette référence n’est plus disponible dans le catalogue ENRM.</p>
+            <a className="button primary" href="/catalogue">
+              Voir le catalogue <span>↗</span>
+            </a>
+          </div>
+        </section>
+      </main>
+    );
+  }
   const canonicalSlug = productSlug(product);
   if (slug !== canonicalSlug) permanentRedirect(`/produits/${canonicalSlug}`);
 
@@ -70,7 +117,11 @@ export default async function ProductPage({ params }: Props) {
         candidate.id !== product.id && candidate.marque === product.marque && candidate.recto,
     )
     .slice(0, 4);
-  const image = product.statut_recto.includes('générique') ? null : resolveMediaUrl(product.recto);
+  const bundledProduct = getBundledProductById(product.id);
+  const staticImageProduct = bundledProduct ?? product;
+  const image = staticImageProduct.statut_recto.includes('générique')
+    ? null
+    : resolveMediaUrl(staticImageProduct.recto) || resolveMediaUrl(product.recto);
   const siteUrl = getSiteUrl();
   const productName = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} — ${product.litrage}`;
   const productJsonLd = {
@@ -124,7 +175,7 @@ export default async function ProductPage({ params }: Props) {
             <div className="detail-visual">
               <ProductGallery
                 recto={image}
-                verso={resolveMediaUrl(product.verso)}
+                verso={resolveMediaUrl(staticImageProduct.verso) || resolveMediaUrl(product.verso)}
                 alt={productName}
               />
               <p className="media-caption">

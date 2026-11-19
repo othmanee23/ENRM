@@ -6,6 +6,8 @@ import { formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { getSupabaseBrowserClient } from '../../lib/supabase/client';
 import { loadCatalogueProductsByIds } from '../../shared/catalogue';
+import { getBundledProductById } from '../../shared/catalogue-assets';
+import { resolveMediaUrl } from '../../lib/seo';
 import { useCart } from './CartProvider';
 
 type CheckoutResult = { orderNumber: string; total: number } | null;
@@ -195,24 +197,32 @@ export function CheckoutClient({ supabaseConfigured }: { supabaseConfigured: boo
               <h2>Votre demande</h2>
               {items.map((item) => {
                 const product = byId.get(item.id);
+                const bundledProduct = getBundledProductById(item.id);
+                const imageProduct = bundledProduct ?? product;
+                const imageUrl = imageProduct?.statut_recto.includes('générique')
+                  ? null
+                  : resolveMediaUrl(imageProduct?.recto);
                 return (
                   <div className="checkout-line" key={item.id}>
-                    {product ? (
-                      <>
-                        <a href={`/produits/${productSlug(product)}`}>
-                          {product.marque.replaceAll('_', ' ')} {product.sous_reference} ·{' '}
-                          {product.litrage}
-                        </a>
-                        <span>
-                          {item.qty} × {formatMad(product.price)} MAD
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Indisponible · {item.id}</span>
-                        <span>Retirez du panier</span>
-                      </>
-                    )}
+                    <div className="checkout-line-product">
+                      {imageUrl && <img src={imageUrl} alt="" width="48" height="48" />}
+                      {product ? (
+                        <>
+                          <a href={`/produits/${productSlug(product)}`}>
+                            {product.marque.replaceAll('_', ' ')} {product.sous_reference} ·{' '}
+                            {product.litrage}
+                          </a>
+                          <span>
+                            {item.qty} × {formatMad(product.price)} MAD
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Indisponible · {item.id}</span>
+                          <span>Retirez du panier</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 );
               })}

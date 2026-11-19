@@ -100,6 +100,19 @@
   padding-block: 12px;
   border-bottom: 1px solid var(--line);
 }
+.checkout-line-product {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.checkout-line-product img {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  object-fit: contain;
+}
 .checkout-total {
   margin-top: 8px;
   font-weight: 700;

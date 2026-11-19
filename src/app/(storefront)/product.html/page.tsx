@@ -1,5 +1,6 @@
 import { permanentRedirect, notFound } from 'next/navigation';
 import { getProductById, productSlug } from '../../../lib/catalogue';
+import { getBundledProductById } from '../../../shared/catalogue-assets';
 
 type SearchParams = Promise<{ id?: string }>;
 export default async function LegacyProductRedirect({
@@ -9,7 +10,7 @@ export default async function LegacyProductRedirect({
 }) {
   const { id } = await searchParams;
   if (!id) notFound();
-  const product = await getProductById(id);
+  const product = (await getProductById(id)) ?? getBundledProductById(id);
   if (!product) notFound();
   permanentRedirect(`/produits/${productSlug(product)}`);
 }
