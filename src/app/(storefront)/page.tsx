@@ -1,8 +1,7 @@
 import type { Product } from '../../shared/types';
 import { brandName } from '../../shared/format';
-import { productSlug } from '../../shared/slugs';
 import { getPublicHomeProducts } from '../../lib/catalogue';
-import { publicPageMetadata, resolveMediaUrl } from '../../lib/seo';
+import { publicPageMetadata } from '../../lib/seo';
 import { ProductCard } from '../../components/storefront/ProductCard';
 import { RailScrollButton, VideoControl } from '../../components/storefront/StorefrontControls';
 
@@ -23,6 +22,20 @@ const brands = [
   'Meyle',
   'Petrom',
   'Valvoline',
+];
+const heroImages = [
+  {
+    src: '/assets/Images/Petrom/xpro_extra_5l_fd42bd33.png',
+    alt: 'Bidon Petrom XPRO Extra 20W-50, 5 L',
+  },
+  {
+    src: '/assets/Images/Motul/motul_102889_8100_Eco_clean_5L_0W30_png_0961a7dd.png',
+    alt: 'Bidon Motul 8100 ECO-CLEAN 0W-30, 5 L',
+  },
+  {
+    src: '/assets/Images/Liqui_Moly/9507_Longtime_High_Tech_5W_30_5l_90fa_fa35c8e6.png',
+    alt: 'Bidon Liqui Moly Longtime High Tech 5W-30, 5 L',
+  },
 ];
 const featuredIds = [
   'ENRM-HM-006',
@@ -69,7 +82,6 @@ export default async function HomePage() {
   const products = await getPublicHomeProducts();
   const byId = new Map(products.map((product) => [product.id, product]));
   const selected = (ids: string[]) => ids.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
-  const heroProducts = selected(['ENRM-HM-097', 'ENRM-HM-067', 'ENRM-HM-031']);
   const featured = selected(featuredIds);
   const formats = selected(['ENRM-HM-069', 'ENRM-HM-156', 'ENRM-HM-031', 'ENRM-HM-097']);
   const grade530 = products
@@ -183,23 +195,16 @@ export default async function HomePage() {
               </a>
             </div>
             <div id="hero-oils" className="hero-oils" aria-label="Huiles moteur en format 5 litres">
-              {heroProducts.map((product) => (
-                <a
-                  className="hero-oil-item"
-                  href={`/produits/${productSlug(product)}`}
-                  aria-label={`${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} ${product.litrage}`}
-                  key={product.id}
-                >
-                  {resolveMediaUrl(product.recto) && (
-                    <img
-                      src={resolveMediaUrl(product.recto)!}
-                      alt=""
-                      width={370}
-                      height={370}
-                      fetchPriority="high"
-                    />
-                  )}
-                </a>
+              {heroImages.map((image) => (
+                <div className="hero-oil-item" key={image.src}>
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    width={370}
+                    height={370}
+                    fetchPriority="high"
+                  />
+                </div>
               ))}
             </div>
           </div>
