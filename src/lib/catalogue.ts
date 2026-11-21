@@ -100,6 +100,7 @@ export async function getPublicProductContext(product: Product): Promise<Product
       (candidate) =>
         candidate.marque === product.marque &&
         candidate.gamme === product.gamme &&
+        candidate.sous_reference === product.sous_reference &&
         candidate.viscosite === product.viscosite,
     );
   if (!supabase) {
@@ -118,7 +119,12 @@ export async function getPublicProductContext(product: Product): Promise<Product
       .eq('show_on_website', true)
       .eq('marque', product.marque);
   const [variantResult, relatedResult] = await Promise.all([
-    base().eq('gamme', product.gamme).eq('viscosite', product.viscosite).order('id').limit(60),
+    base()
+      .eq('gamme', product.gamme)
+      .eq('sous_reference', product.sous_reference)
+      .eq('viscosite', product.viscosite)
+      .order('id')
+      .limit(60),
     base().neq('id', product.id).order('id').limit(5),
   ]);
   if (variantResult.error || relatedResult.error) {

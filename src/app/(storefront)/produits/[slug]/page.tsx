@@ -109,7 +109,16 @@ export default async function ProductPage({ params }: Props) {
     (candidate) =>
       candidate.marque === product.marque &&
       candidate.gamme === product.gamme &&
+      candidate.sous_reference === product.sous_reference &&
       candidate.viscosite === product.viscosite,
+  );
+  const volumeVariants = [product, ...variants.filter((item) => item.id !== product.id)].filter(
+    (variant, index, all) =>
+      all.findIndex(
+        (candidate) =>
+          candidate.litrage.trim().toLocaleLowerCase().replace(/\s+/g, '') ===
+          variant.litrage.trim().toLocaleLowerCase().replace(/\s+/g, ''),
+      ) === index,
   );
   const related = relatedContext
     .filter(
@@ -195,18 +204,16 @@ export default async function ProductPage({ params }: Props) {
               <fieldset className="variant-fieldset">
                 <legend>Votre contenance</legend>
                 <div className="volume-options">
-                  {[product, ...variants.filter((item) => item.id !== product.id)].map(
-                    (variant) => (
-                      <a
-                        href={`/produits/${productSlug(variant)}`}
-                        className={variant.id === product.id ? 'selected' : undefined}
-                        aria-current={variant.id === product.id ? 'true' : undefined}
-                        key={variant.id}
-                      >
-                        {variant.litrage}
-                      </a>
-                    ),
-                  )}
+                  {volumeVariants.map((variant) => (
+                    <a
+                      href={`/produits/${productSlug(variant)}`}
+                      className={variant.id === product.id ? 'selected' : undefined}
+                      aria-current={variant.id === product.id ? 'true' : undefined}
+                      key={variant.id}
+                    >
+                      {variant.litrage}
+                    </a>
+                  ))}
                 </div>
               </fieldset>
               <div className="buy-line">
