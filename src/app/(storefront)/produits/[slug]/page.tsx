@@ -40,9 +40,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
   const description = `Référence ${title} au catalogue ENRM. Vérifiez les spécifications du fabricant et les préconisations du constructeur. Prix et disponibilité à confirmer.`;
+  const bundledImage =
+    bundledProduct && !bundledProduct.statut_recto.toLocaleLowerCase('fr').includes('générique')
+      ? resolveMediaUrl(bundledProduct.recto)
+      : null;
   const image =
-    (product.statut_recto.includes('générique') ? null : resolveMediaUrl(product.recto)) ||
-    DEFAULT_SOCIAL_IMAGE;
+    (product.statut_recto.toLocaleLowerCase('fr').includes('générique')
+      ? null
+      : resolveMediaUrl(product.recto) || bundledImage) || DEFAULT_SOCIAL_IMAGE;
   return publicPageMetadata(
     title,
     description.slice(0, 160),
@@ -128,9 +133,15 @@ export default async function ProductPage({ params }: Props) {
     .slice(0, 4);
   const bundledProduct = getBundledProductById(product.id);
   const staticImageProduct = bundledProduct ?? product;
-  const image = staticImageProduct.statut_recto.includes('générique')
+  const productImage = product.statut_recto.toLocaleLowerCase('fr').includes('générique')
     ? null
-    : resolveMediaUrl(staticImageProduct.recto) || resolveMediaUrl(product.recto);
+    : resolveMediaUrl(product.recto);
+  const bundledImage = resolveMediaUrl(staticImageProduct.recto);
+  const image = productImage || bundledImage;
+  const genericVisual =
+    !productImage &&
+    staticImageProduct.statut_recto.toLocaleLowerCase('fr').includes('générique') &&
+    Boolean(bundledImage);
   const siteUrl = getSiteUrl();
   const productName = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} — ${product.litrage}`;
   const productJsonLd = {
@@ -185,12 +196,18 @@ export default async function ProductPage({ params }: Props) {
               <ProductGallery
                 recto={image}
                 verso={resolveMediaUrl(staticImageProduct.verso) || resolveMediaUrl(product.verso)}
-                alt={productName}
+                alt={
+                  genericVisual
+                    ? `Illustration générique ${brandName(product.marque)} du contenant ${product.litrage}; référence exacte à confirmer`
+                    : productName
+                }
               />
               <p className="media-caption">
-                {image
-                  ? `Visuel du conditionnement ${product.litrage}.`
-                  : 'Aucune photographie vérifiée n’est disponible pour cette référence.'}
+                {genericVisual
+                  ? `Illustration générique du contenant ${product.litrage} ; la référence exacte reste à confirmer.`
+                  : image
+                    ? `Visuel du conditionnement ${product.litrage}.`
+                    : 'Aucune photographie vérifiée n’est disponible pour cette référence.'}
               </p>
             </div>
             <div className="detail-copy">

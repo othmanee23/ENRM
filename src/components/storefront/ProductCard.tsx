@@ -2,22 +2,36 @@ import type { Product } from '../../shared/types';
 import { brandName, formatMad } from '../../shared/format';
 import { productSlug } from '../../shared/slugs';
 import { resolveMediaUrl } from '../../lib/seo';
+import { getBundledProductById } from '../../shared/catalogue-assets';
 import { AddToCartButton } from './AddToCartButton';
 import { ProductAvailabilityBadge } from './ProductAvailabilityBadge';
 
 export function ProductCard({ product }: { product: Product }) {
   const title = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} ${product.litrage}`;
   const href = `/produits/${productSlug(product)}`;
-  const image = product.statut_recto.includes('générique') ? null : resolveMediaUrl(product.recto);
+  const bundledProduct = getBundledProductById(product.id);
+  const imageProduct = product.recto ? product : bundledProduct;
+  const genericVisual = Boolean(
+    imageProduct?.statut_recto.toLocaleLowerCase('fr').includes('générique'),
+  );
+  const image = imageProduct ? resolveMediaUrl(imageProduct.recto) : null;
   return (
     <article className="product-card">
       <a className="product-image" href={href}>
-        <span className="image-tag">
-          {product.statut_recto.includes('générique') ? 'Visuel à valider' : product.litrage}
-        </span>
+        <span className="image-tag">{genericVisual ? 'Visuel à valider' : product.litrage}</span>
         <ProductAvailabilityBadge productId={product.id} />
         {image ? (
-          <img src={image} alt={title} loading="lazy" width={370} height={370} />
+          <img
+            src={image}
+            alt={
+              genericVisual
+                ? `Illustration générique ${brandName(imageProduct?.marque ?? product.marque)} du contenant ${product.litrage}; référence exacte à confirmer`
+                : title
+            }
+            loading="lazy"
+            width={370}
+            height={370}
+          />
         ) : (
           <div className="placeholder">
             <b>{product.litrage}</b>
