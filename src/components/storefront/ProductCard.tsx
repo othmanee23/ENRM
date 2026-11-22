@@ -10,28 +10,15 @@ export function ProductCard({ product }: { product: Product }) {
   const title = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} ${product.litrage}`;
   const href = `/produits/${productSlug(product)}`;
   const bundledProduct = getBundledProductById(product.id);
-  const imageProduct = product.recto ? product : bundledProduct;
-  const genericVisual = Boolean(
-    imageProduct?.statut_recto.toLocaleLowerCase('fr').includes('générique'),
-  );
+  const imageProduct = bundledProduct?.recto ? bundledProduct : product;
   const image = imageProduct ? resolveMediaUrl(imageProduct.recto) : null;
   return (
     <article className="product-card">
       <a className="product-image" href={href}>
-        <span className="image-tag">{genericVisual ? 'Visuel à valider' : product.litrage}</span>
+        <span className="image-tag">{product.litrage}</span>
         <ProductAvailabilityBadge productId={product.id} />
         {image ? (
-          <img
-            src={image}
-            alt={
-              genericVisual
-                ? `Illustration générique ${brandName(imageProduct?.marque ?? product.marque)} du contenant ${product.litrage}; référence exacte à confirmer`
-                : title
-            }
-            loading="lazy"
-            width={370}
-            height={370}
-          />
+          <img src={image} alt={title} loading="lazy" width={370} height={370} />
         ) : (
           <div className="placeholder">
             <b>{product.litrage}</b>

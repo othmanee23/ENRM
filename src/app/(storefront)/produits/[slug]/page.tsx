@@ -17,6 +17,7 @@ import { AddToCartButton } from '../../../../components/storefront/AddToCartButt
 import { ProductGallery } from '../../../../components/storefront/StorefrontControls';
 import { getBundledProductById } from '../../../../shared/catalogue-assets';
 import { productIdFromSlug } from '../../../../shared/slugs';
+import { hasApprovedProductImage } from '../../../../lib/catalogue-image-policy';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -31,7 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Référence introuvable', robots: { index: false, follow: false } };
   const title = `${brandName(bundledProduct.marque)} ${bundledProduct.sous_reference} ${bundledProduct.viscosite} — ${bundledProduct.litrage}`;
   if (!product) {
-    const image = resolveMediaUrl(bundledProduct.recto) || DEFAULT_SOCIAL_IMAGE;
+    const image =
+      (hasApprovedProductImage(bundledProduct) && resolveMediaUrl(bundledProduct.recto)) ||
+      DEFAULT_SOCIAL_IMAGE;
     return {
       title: `${title} — Référence indisponible | ENRM`,
       description: 'Cette référence ne figure plus au catalogue ENRM.',
@@ -41,13 +44,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const description = `Référence ${title} au catalogue ENRM. Vérifiez les spécifications du fabricant et les préconisations du constructeur. Prix et disponibilité à confirmer.`;
   const bundledImage =
-    bundledProduct && !bundledProduct.statut_recto.toLocaleLowerCase('fr').includes('générique')
+    bundledProduct && hasApprovedProductImage(bundledProduct)
       ? resolveMediaUrl(bundledProduct.recto)
       : null;
-  const image =
-    (product.statut_recto.toLocaleLowerCase('fr').includes('générique')
-      ? null
-      : resolveMediaUrl(product.recto) || bundledImage) || DEFAULT_SOCIAL_IMAGE;
+  const image = bundledImage || DEFAULT_SOCIAL_IMAGE;
   return publicPageMetadata(
     title,
     description.slice(0, 160),
@@ -73,7 +73,9 @@ export default async function ProductPage({ params }: Props) {
   if (!product) {
     const bundledProduct = getBundledProductById(productIdFromSlug(slug) || '');
     if (!bundledProduct) notFound();
-    const image = resolveMediaUrl(bundledProduct.recto);
+    const image = hasApprovedProductImage(bundledProduct)
+      ? resolveMediaUrl(bundledProduct.recto)
+      : null;
     return (
       <main id="main" className="section cart-page">
         <div className="product-breadcrumb">
@@ -133,15 +135,10 @@ export default async function ProductPage({ params }: Props) {
     .slice(0, 4);
   const bundledProduct = getBundledProductById(product.id);
   const staticImageProduct = bundledProduct ?? product;
-  const productImage = product.statut_recto.toLocaleLowerCase('fr').includes('générique')
-    ? null
-    : resolveMediaUrl(product.recto);
-  const bundledImage = resolveMediaUrl(staticImageProduct.recto);
-  const image = productImage || bundledImage;
-  const genericVisual =
-    !productImage &&
-    staticImageProduct.statut_recto.toLocaleLowerCase('fr').includes('générique') &&
-    Boolean(bundledImage);
+  const bundledImage = hasApprovedProductImage(staticImageProduct)
+    ? resolveMediaUrl(staticImageProduct.recto)
+    : null;
+  const image = bundledImage;
   const siteUrl = getSiteUrl();
   const productName = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} — ${product.litrage}`;
   const productJsonLd = {
@@ -193,21 +190,11 @@ export default async function ProductPage({ params }: Props) {
           </div>
           <section className="product-layout">
             <div className="detail-visual">
-              <ProductGallery
-                recto={image}
-                verso={resolveMediaUrl(staticImageProduct.verso) || resolveMediaUrl(product.verso)}
-                alt={
-                  genericVisual
-                    ? `Illustration générique ${brandName(product.marque)} du contenant ${product.litrage}; référence exacte à confirmer`
-                    : productName
-                }
-              />
+              <ProductGallery recto={image} verso={null} alt={productName} />
               <p className="media-caption">
-                {genericVisual
-                  ? `Illustration générique du contenant ${product.litrage} ; la référence exacte reste à confirmer.`
-                  : image
-                    ? `Visuel du conditionnement ${product.litrage}.`
-                    : 'Aucune photographie vérifiée n’est disponible pour cette référence.'}
+                {image
+                  ? `Visuel du conditionnement ${product.litrage}.`
+                  : 'Aucune photographie vérifiée n’est disponible pour cette référence.'}
               </p>
             </div>
             <div className="detail-copy">

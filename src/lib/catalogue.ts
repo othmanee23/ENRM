@@ -4,6 +4,11 @@ import importedCatalogue from '../../public/catalogue.json';
 import { createSupabasePublicClient } from './supabase/public';
 import type { Category, Product } from '../shared/types';
 import { productIdFromSlug, productSlug } from '../shared/slugs';
+import {
+  hasApprovedProductImage,
+  publicProductImageIds,
+  withCuratedProductImages,
+} from './catalogue-image-policy';
 export { productSlug } from '../shared/slugs';
 
 const fallbackCatalogue = importedCatalogue as Product[];
@@ -23,7 +28,7 @@ export const hasSupabaseConfig = Boolean(
 
 export async function getPublicCatalogue(): Promise<Product[]> {
   const supabase = createSupabasePublicClient();
-  if (!supabase) return fallbackCatalogue;
+  if (!supabase) return fallbackCatalogue.filter(hasApprovedProductImage);
 
   const { data, error } = await supabase
     .from('products')
@@ -35,32 +40,34 @@ export async function getPublicCatalogue(): Promise<Product[]> {
   if (error) {
     if (localDevelopment) {
       console.warn('Supabase catalogue unavailable in local development; using bundled catalogue.');
-      return fallbackCatalogue;
+      return fallbackCatalogue.filter(hasApprovedProductImage);
     }
     throw new Error(`Catalogue inaccessible: ${error.message}`);
   }
   if (!Array.isArray(data)) throw new Error('Catalogue invalide.');
-  return data as Product[];
+  return withCuratedProductImages(data as Product[]);
 }
 
 export async function getPublicProductsByIds(ids: string[]): Promise<Product[]> {
   const uniqueIds = [...new Set(ids.filter(Boolean))];
   if (!uniqueIds.length) return [];
+  const eligibleIds = uniqueIds.filter((id) => publicProductImageIds.includes(id));
+  if (!eligibleIds.length) return [];
   const supabase = createSupabasePublicClient();
   if (!supabase)
-    return uniqueIds.flatMap((id) => fallbackCatalogue.filter((product) => product.id === id));
+    return eligibleIds.flatMap((id) => fallbackCatalogue.filter((product) => product.id === id));
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .in('id', uniqueIds)
+    .in('id', eligibleIds)
     .eq('is_published', true)
     .eq('show_on_website', true);
   if (error) {
     if (localDevelopment)
-      return uniqueIds.flatMap((id) => fallbackCatalogue.filter((product) => product.id === id));
+      return eligibleIds.flatMap((id) => fallbackCatalogue.filter((product) => product.id === id));
     throw new Error(`Références du catalogue inaccessibles: ${error.message}`);
   }
-  return (data || []) as Product[];
+  return withCuratedProductImages((data || []) as Product[]);
 }
 
 export async function getPublicHomeProducts(): Promise<Product[]> {
@@ -104,7 +111,7 @@ export async function getPublicProductContext(product: Product): Promise<Product
         candidate.viscosite === product.viscosite,
     );
   if (!supabase) {
-    const all = fallbackCatalogue;
+    const all = fallbackCatalogue.filter(hasApprovedProductImage);
     return [
       ...new Map(
         [...variants(all), ...related(all).slice(0, 5)].map((item) => [item.id, item]),
@@ -117,6 +124,7 @@ export async function getPublicProductContext(product: Product): Promise<Product
       .select('*')
       .eq('is_published', true)
       .eq('show_on_website', true)
+      .in('id', publicProductImageIds)
       .eq('marque', product.marque);
   const [variantResult, relatedResult] = await Promise.all([
     base()
@@ -131,9 +139,10 @@ export async function getPublicProductContext(product: Product): Promise<Product
     if (localDevelopment)
       return [
         ...new Map(
-          [...variants(fallbackCatalogue), ...related(fallbackCatalogue).slice(0, 5)].map(
-            (item) => [item.id, item],
-          ),
+          [
+            ...variants(fallbackCatalogue.filter(hasApprovedProductImage)),
+            ...related(fallbackCatalogue.filter(hasApprovedProductImage)).slice(0, 5),
+          ].map((item) => [item.id, item]),
         ).values(),
       ];
     throw new Error(
@@ -143,8 +152,8 @@ export async function getPublicProductContext(product: Product): Promise<Product
   return [
     ...new Map(
       [
-        ...((variantResult.data || []) as Product[]),
-        ...((relatedResult.data || []) as Product[]),
+        ...withCuratedProductImages((variantResult.data || []) as Product[]),
+        ...withCuratedProductImages((relatedResult.data || []) as Product[]),
       ].map((item) => [item.id, item]),
     ).values(),
   ];
@@ -168,15 +177,34 @@ export async function getPublicCatalogueFacets(): Promise<CatalogueFacets> {
   const supabase = createSupabasePublicClient();
   if (!supabase) {
     return {
-      brands: [...new Set(fallbackCatalogue.map((product) => product.marque))].sort(),
+      brands: [
+        ...new Set(
+          fallbackCatalogue.filter(hasApprovedProductImage).map((product) => product.marque),
+        ),
+      ].sort(),
       ranges: [
-        ...new Set(fallbackCatalogue.map((product) => product.gamme).filter(Boolean)),
+        ...new Set(
+          fallbackCatalogue
+            .filter(hasApprovedProductImage)
+            .map((product) => product.gamme)
+            .filter(Boolean),
+        ),
       ].sort(),
       viscosities: [
-        ...new Set(fallbackCatalogue.map((product) => product.viscosite).filter(Boolean)),
+        ...new Set(
+          fallbackCatalogue
+            .filter(hasApprovedProductImage)
+            .map((product) => product.viscosite)
+            .filter(Boolean),
+        ),
       ].sort(),
       volumes: [
-        ...new Set(fallbackCatalogue.map((product) => product.litrage).filter(Boolean)),
+        ...new Set(
+          fallbackCatalogue
+            .filter(hasApprovedProductImage)
+            .map((product) => product.litrage)
+            .filter(Boolean),
+        ),
       ].sort(),
     };
   }
@@ -195,13 +223,34 @@ export async function getPublicCatalogueFacets(): Promise<CatalogueFacets> {
 
 function getPublicCatalogueFacetsFallback(): CatalogueFacets {
   return {
-    brands: [...new Set(fallbackCatalogue.map((product) => product.marque))].sort(),
-    ranges: [...new Set(fallbackCatalogue.map((product) => product.gamme).filter(Boolean))].sort(),
+    brands: [
+      ...new Set(
+        fallbackCatalogue.filter(hasApprovedProductImage).map((product) => product.marque),
+      ),
+    ].sort(),
+    ranges: [
+      ...new Set(
+        fallbackCatalogue
+          .filter(hasApprovedProductImage)
+          .map((product) => product.gamme)
+          .filter(Boolean),
+      ),
+    ].sort(),
     viscosities: [
-      ...new Set(fallbackCatalogue.map((product) => product.viscosite).filter(Boolean)),
+      ...new Set(
+        fallbackCatalogue
+          .filter(hasApprovedProductImage)
+          .map((product) => product.viscosite)
+          .filter(Boolean),
+      ),
     ].sort(),
     volumes: [
-      ...new Set(fallbackCatalogue.map((product) => product.litrage).filter(Boolean)),
+      ...new Set(
+        fallbackCatalogue
+          .filter(hasApprovedProductImage)
+          .map((product) => product.litrage)
+          .filter(Boolean),
+      ),
     ].sort(),
   };
 }
@@ -227,6 +276,7 @@ export async function getPublicCataloguePage(options: {
     const q = searchText(options.query || '');
     let matched = fallbackCatalogue.filter(
       (product) =>
+        hasApprovedProductImage(product) &&
         (!q ||
           searchText(
             [
@@ -296,7 +346,12 @@ export async function getPublicCataloguePage(options: {
   }
   const payload = data as { rows?: unknown; total?: number } | null;
   if (!payload || !Array.isArray(payload.rows)) throw new Error('Catalogue invalide.');
-  return { rows: payload.rows as Product[], total: Number(payload.total || 0), page, pageSize };
+  return {
+    rows: withCuratedProductImages(payload.rows as Product[]),
+    total: Number(payload.total || 0),
+    page,
+    pageSize,
+  };
 }
 
 async function getPublicCataloguePageFromTable(
@@ -322,7 +377,8 @@ async function getPublicCataloguePageFromTable(
     .from('products')
     .select('*', { count: 'exact' })
     .eq('is_published', true)
-    .eq('show_on_website', true);
+    .eq('show_on_website', true)
+    .in('id', publicProductImageIds);
   if (options.categoryId) request = request.eq('category_id', options.categoryId);
   if (options.brand) request = request.eq('marque', options.brand);
   if (options.range) request = request.eq('gamme', options.range);
@@ -354,7 +410,7 @@ async function getPublicCataloguePageFromTable(
   const { data, error, count } = await request.range(from, from + options.pageSize - 1);
   if (error) throw new Error(`Catalogue inaccessible: ${error.message}`);
   return {
-    rows: (data || []) as Product[],
+    rows: withCuratedProductImages((data || []) as Product[]),
     total: count || 0,
     page: options.page,
     pageSize: options.pageSize,
@@ -375,6 +431,7 @@ async function getPublicCataloguePageFallback(options: {
   const q = searchText(options.query || '');
   let matched = fallbackCatalogue.filter(
     (product) =>
+      hasApprovedProductImage(product) &&
       (!q ||
         searchText(
           [
@@ -417,6 +474,8 @@ async function getPublicCataloguePageFallback(options: {
 export async function getPublicProductBySlug(slug: string): Promise<Product | null> {
   const id = productIdFromSlug(slug);
   if (!id) return null;
+  const candidateIds = [...new Set([id, id.toUpperCase()])];
+  if (!candidateIds.some((candidateId) => publicProductImageIds.includes(candidateId))) return null;
   const supabase = createSupabasePublicClient();
   if (!supabase)
     return (
@@ -431,6 +490,7 @@ export async function getPublicProductBySlug(slug: string): Promise<Product | nu
       .from('products')
       .select('*')
       .eq('id', candidateId)
+      .in('id', publicProductImageIds)
       .eq('is_published', true)
       .eq('show_on_website', true)
       .maybeSingle();
@@ -443,18 +503,20 @@ export async function getPublicProductBySlug(slug: string): Promise<Product | nu
         );
       throw new Error(`Référence inaccessible: ${error.message}`);
     }
-    if (data) return data as Product;
+    if (data) return withCuratedProductImages([data as Product])[0] ?? null;
   }
   return null;
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
+  if (!publicProductImageIds.includes(id)) return null;
   const supabase = createSupabasePublicClient();
   if (!supabase) return fallbackCatalogue.find((product) => product.id === id) ?? null;
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .eq('id', id)
+    .in('id', publicProductImageIds)
     .eq('is_published', true)
     .eq('show_on_website', true)
     .maybeSingle();
@@ -462,7 +524,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     if (localDevelopment) return fallbackCatalogue.find((product) => product.id === id) ?? null;
     throw new Error(`Référence inaccessible: ${error.message}`);
   }
-  return (data as Product | null) ?? null;
+  return data ? (withCuratedProductImages([data as Product])[0] ?? null) : null;
 }
 
 export async function getPublicCategories(): Promise<Category[]> {
@@ -491,5 +553,5 @@ export function searchText(value: string): string {
 }
 
 export function getFallbackCatalogue(): Product[] {
-  return fallbackCatalogue;
+  return fallbackCatalogue.filter(hasApprovedProductImage);
 }
