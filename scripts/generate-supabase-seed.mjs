@@ -62,8 +62,8 @@ const rows = catalogue.map((product) =>
     product.url_verso,
     product.photo_revendeur_url,
     product.note,
-    true,
-    true,
+    product.is_published !== false,
+    product.show_on_website !== false,
   ].map(sqlValue),
 );
 
