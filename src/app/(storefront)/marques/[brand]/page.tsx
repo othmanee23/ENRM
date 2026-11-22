@@ -116,7 +116,7 @@ export default async function BrandPage({ params }: Props) {
   };
 
   return (
-    <main id="main" className="section collection">
+    <main id="main" className="section brand-page collection">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -131,22 +131,26 @@ export default async function BrandPage({ params }: Props) {
         <span>{brandName(brand.name)}</span>
       </nav>
 
-      <header className="section-heading">
-        <p className="eyebrow">Catalogue ENRM · Maroc</p>
-        <h1>Huiles moteur {brandName(brand.name)}</h1>
-        <p>{brand.intro}</p>
-        <p>
-          Choisissez votre huile selon les prescriptions du constructeur. La viscosité seule ne
-          suffit pas : contrôlez aussi les normes et homologations demandées. Les prix et la
-          disponibilité sont confirmés par ENRM.
-        </p>
-        <a href={brand.sourceUrl} target="_blank" rel="noreferrer">
-          Consulter la {brand.source} ↗
-        </a>
-      </header>
+      <div className="brand-page-intro">
+        <div className="brand-page-title">
+          <p className="eyebrow">Catalogue ENRM · Maroc</p>
+          <h1>Huiles moteur {brandName(brand.name)}</h1>
+        </div>
+        <div className="brand-page-copy">
+          <p>{brand.intro}</p>
+          <p>
+            Choisissez votre huile selon les prescriptions du constructeur. La viscosité seule ne
+            suffit pas : contrôlez aussi les normes et homologations demandées. Les prix et la
+            disponibilité sont confirmés par ENRM.
+          </p>
+          <a href={brand.sourceUrl} target="_blank" rel="noreferrer">
+            Consulter la {brand.source} ↗
+          </a>
+        </div>
+      </div>
 
       <section aria-labelledby="brand-products-title">
-        <div className="section-heading">
+        <div className="brand-products-heading">
           <h2 id="brand-products-title">Références {brandName(brand.name)} au catalogue</h2>
           <p>
             {products.length} référence{products.length > 1 ? 's' : ''} actuellement affichée

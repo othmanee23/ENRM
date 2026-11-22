@@ -114,6 +114,61 @@ h3 {
 .collection-controls > p:empty {
   display: none;
 }
+.brand-page {
+  padding-top: 56px;
+}
+.brand-page .product-breadcrumb {
+  justify-content: flex-start;
+  padding: 0;
+  margin-bottom: 58px;
+  gap: 16px;
+}
+.brand-page-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(340px, 1.1fr);
+  align-items: end;
+  gap: clamp(40px, 7vw, 120px);
+  padding-bottom: 48px;
+  margin-bottom: 72px;
+  border-bottom: 1px solid var(--line);
+}
+.brand-page-title .eyebrow {
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.brand-page-title h1 {
+  max-width: 720px;
+  font-size: clamp(48px, 5.2vw, 82px);
+  line-height: 0.98;
+}
+.brand-page-copy {
+  display: grid;
+  gap: 20px;
+  max-width: 760px;
+  color: var(--muted);
+  font-size: clamp(17px, 1.35vw, 21px);
+  line-height: 1.5;
+}
+.brand-page-copy a {
+  width: fit-content;
+  color: var(--ink);
+  border-bottom: 1px solid currentColor;
+}
+.brand-products-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 28px;
+  margin-bottom: 42px;
+}
+.brand-products-heading h2 {
+  font-size: clamp(34px, 3.5vw, 54px);
+}
+.brand-products-heading p {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
 .collection-controls {
   justify-content: flex-end;
 }
@@ -336,6 +391,37 @@ footer.footer-v5 {
   }
 }
 @media (max-width: 760px) {
+  .brand-page {
+    padding-top: 36px;
+  }
+  .brand-page .product-breadcrumb {
+    margin-bottom: 38px;
+    gap: 10px;
+    font-size: 14px;
+  }
+  .brand-page-intro {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-bottom: 34px;
+    margin-bottom: 48px;
+  }
+  .brand-page-title .eyebrow {
+    margin-bottom: 16px;
+  }
+  .brand-page-title h1 {
+    font-size: clamp(44px, 11vw, 64px);
+  }
+  .brand-page-copy {
+    font-size: 17px;
+  }
+  .brand-products-heading {
+    display: block;
+    margin-bottom: 28px;
+  }
+  .brand-products-heading h2 {
+    font-size: clamp(34px, 9vw, 48px);
+    margin-bottom: 14px;
+  }
   .single-hero {
     min-height: 700px;
     --brand-height: 0px;
