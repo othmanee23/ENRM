@@ -3,6 +3,8 @@ export interface VerifiedProductSpecifications {
   approvals?: string[];
   meets?: string[];
   recommendations?: string[];
+  suitableFor?: string[];
+  backwardCompatible?: string[];
   performance?: string[];
   sourceLabel: string;
   sourceUrl: string;
@@ -11,7 +13,377 @@ export interface VerifiedProductSpecifications {
 const castrolEdgeUrl =
   'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-edge-oils/castrol-edge.html';
 
+const familySpecifications = (
+  productIds: string[],
+  specifications: VerifiedProductSpecifications,
+) => Object.fromEntries(productIds.map((productId) => [productId, specifications]));
+
 const verifiedSpecifications: Record<string, VerifiedProductSpecifications> = {
+  ...familySpecifications(['ENRM-HM-003'], {
+    standards: ['ACEA C3', 'API SP'],
+    approvals: [
+      'BMW Longlife-04',
+      'BMW Longlife-19 FE',
+      'Opel OV 040 1547-D30',
+      'Opel OV 040 1547-G30',
+      'MB-Approval 226.5',
+      'MB-Approval 229.31',
+      'MB-Approval 229.51',
+      'Renault RN0700',
+      'Renault RN0710',
+    ],
+    sourceLabel: 'Castrol France · EDGE 0W-30',
+    sourceUrl: castrolEdgeUrl,
+  }),
+  ...familySpecifications(['ENRM-HM-007'], {
+    standards: ['ACEA A1/B1', 'ACEA A5/B5', 'API SL/CF', 'Volvo 95200377'],
+    sourceLabel: 'Castrol France · EDGE 0W-30 A5/B5',
+    sourceUrl: castrolEdgeUrl,
+  }),
+  ...familySpecifications(['ENRM-HM-014', 'ENRM-HM-015'], {
+    standards: ['ACEA C3', 'API SN/CF'],
+    approvals: [
+      'Opel OV 040 1547-D40',
+      'MB-Approval 226.5',
+      'MB-Approval 229.31',
+      'MB-Approval 229.51',
+      'Renault RN0700',
+      'Renault RN0710',
+      'VW 505 00',
+      'VW 505 01',
+    ],
+    meets: ['Fiat 9.55535-S2', 'Ford WSS-M2C917-A'],
+    sourceLabel: 'Castrol France · EDGE Turbo Diesel 5W-40',
+    sourceUrl: castrolEdgeUrl,
+  }),
+  ...familySpecifications(['ENRM-HM-016', 'ENRM-HM-017'], {
+    standards: ['ACEA A3/B4', 'API SP'],
+    approvals: [
+      'MB-Approval 226.5',
+      'MB-Approval 229.3',
+      'Renault RN0700',
+      'Renault RN0710',
+      'VW 501 01',
+      'VW 505 00',
+    ],
+    meets: ['Fiat 9.55535-D2', 'Fiat 9.55535-G2'],
+    sourceLabel: 'Castrol France · GTX 10W-40 A3/B4',
+    sourceUrl:
+      'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-gtx-oils/castrol-gtx.html',
+  }),
+  ...familySpecifications(['ENRM-HM-018', 'ENRM-HM-019'], {
+    standards: ['ACEA C3'],
+    approvals: ['MB-Approval 226.52', 'Renault RN17'],
+    sourceLabel: 'Castrol France · GTX 5W-30 RN17',
+    sourceUrl:
+      'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-gtx-oils/castrol-gtx.html',
+  }),
+  ...familySpecifications(['ENRM-HM-020'], {
+    standards: ['ACEA A3/B4', 'API SP'],
+    approvals: [
+      'MB-Approval 226.5',
+      'MB-Approval 229.3',
+      'Renault RN0700',
+      'Renault RN0710',
+      'VW 501 01',
+      'VW 505 00',
+    ],
+    meets: ['Fiat 9.55535-D2'],
+    sourceLabel: 'Castrol France · MAGNATEC 10W-40 A/B',
+    sourceUrl:
+      'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-magnatec-engine-oils/castrol-magnatec.html',
+  }),
+  ...familySpecifications(['ENRM-HM-021', 'ENRM-HM-022'], {
+    standards: ['ACEA A5/B5', 'API SP', 'ILSAC GF-6'],
+    meets: ['Ford WSS-M2C913-A', 'Ford WSS-M2C913-B', 'Ford WSS-M2C913-C', 'Ford WSS-M2C913-D'],
+    sourceLabel: 'Castrol France · MAGNATEC 5W-30 A5',
+    sourceUrl:
+      'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-magnatec-engine-oils/castrol-magnatec.html',
+  }),
+  ...familySpecifications(['ENRM-HM-023', 'ENRM-HM-024'], {
+    standards: ['ACEA C2', 'ACEA C3', 'API SQ'],
+    approvals: ['BMW Longlife-04'],
+    meets: [
+      'Fiat 9.55535-S3',
+      'MB 229.31',
+      'MB 229.51',
+      'MB 229.52',
+      'Opel OV 040 1547-D30',
+      'Opel OV 040 1547-G30',
+    ],
+    sourceLabel: 'Castrol France · MAGNATEC 5W-30 C3',
+    sourceUrl:
+      'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-magnatec-engine-oils/castrol-magnatec.html',
+  }),
+  ...familySpecifications(['ENRM-HM-025', 'ENRM-HM-026'], {
+    standards: ['ACEA C3', 'API SQ'],
+    approvals: ['BMW Longlife-04'],
+    meets: ['Fiat 9.55535-S2', 'MB 229.31', 'MB 229.51', 'MB 229.52'],
+    sourceLabel: 'Castrol France · MAGNATEC 5W-40 C3',
+    sourceUrl:
+      'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-magnatec-engine-oils/castrol-magnatec.html',
+  }),
+  ...familySpecifications(['ENRM-HM-027', 'ENRM-HM-028'], {
+    standards: ['API SP', 'ILSAC GF-6B'],
+    sourceLabel: 'Castrol France · MAGNATEC Hybrid 0W-16',
+    sourceUrl:
+      'https://www.castrol.com/fr_fr/france/home/products/our-brands/automotive/castrol-magnatec-engine-oils/castrol-magnatec-hybrid.html',
+  }),
+  ...familySpecifications(
+    ['ENRM-HM-153', 'ENRM-HM-154', 'ENRM-HM-155', 'ENRM-HM-156', 'ENRM-HM-157'],
+    {
+      standards: ['API CF', 'API SL'],
+      meets: ['MB 229.1', 'PSA B71 2295', 'VW 501.01', 'VW 505.00'],
+      sourceLabel: 'TotalEnergies · Quartz 5000 15W-40',
+      sourceUrl:
+        'https://lubricants.catalog.totalenergies.com/catalogue-b2b-fr/fr_FR/976_quartz-5000-15w40',
+    },
+  ),
+  ...familySpecifications(['ENRM-HM-163', 'ENRM-HM-164', 'ENRM-HM-165'], {
+    standards: ['ACEA A3/B4', 'API CF', 'API SN'],
+    approvals: ['VW 501.01', 'VW 505.00'],
+    suitableFor: ['Fiat 9.55535-G2', 'PSA B71 2300', 'Renault RN0700', 'Renault RN0710'],
+    backwardCompatible: ['PSA B71 2294'],
+    meets: ['MB 229.1'],
+    sourceLabel: 'TotalEnergies · Quartz 7000 S 10W-40',
+    sourceUrl: 'https://lubricants.catalog.totalenergies.com/maroc/en_UK/v7g_quartz-7000-s-10w-40',
+  }),
+  ...familySpecifications(
+    ['ENRM-HM-166', 'ENRM-HM-167', 'ENRM-HM-168', 'ENRM-HM-169', 'ENRM-HM-170'],
+    {
+      standards: ['ACEA A3/B4', 'API CF', 'API SP'],
+      approvals: [
+        'MB-Approval 229.5',
+        'Renault RN0700',
+        'Renault RN0710',
+        'Stellantis FPW9.55535/10',
+        'VW 502.00',
+        'VW 505.00',
+      ],
+      recommendations: ['BMW LL-01', 'Porsche A40'],
+      backwardCompatible: [
+        'Fiat 9.55535-G2',
+        'Fiat 9.55535-M2',
+        'Fiat 9.55535-N2',
+        'Fiat 9.55535-S3',
+        'Fiat 9.55535-Z2',
+        'Opel OV 040 1547-D40',
+        'PSA B71 2296',
+      ],
+      suitableFor: ['BMW LL-01', 'Porsche A40'],
+      meets: ['Chrysler MS-12991'],
+      sourceLabel: 'TotalEnergies Maroc · Quartz 9000 5W-40',
+      sourceUrl: 'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/714_quartz-9000-5w40',
+    },
+  ),
+  ...familySpecifications(['ENRM-HM-171', 'ENRM-HM-172', 'ENRM-HM-173'], {
+    standards: ['ACEA A3/B4', 'API SP'],
+    approvals: [
+      'Aston Martin',
+      'Ford WSS-M2C-937-A',
+      'MB-Approval 229.5',
+      'VW 502.00',
+      'VW 505.00',
+    ],
+    sourceLabel: 'TotalEnergies · Quartz 9000 Energy 0W-40',
+    sourceUrl:
+      'https://lubricants.catalog.totalenergies.com/tlsa-fr/fr_FR/by3_quartz-9000-energy-0w-40',
+  }),
+  ...familySpecifications(['ENRM-HM-181', 'ENRM-HM-182'], {
+    standards: ['ACEA C5'],
+    approvals: ['PSA B71 2010'],
+    sourceLabel: 'TotalEnergies · Quartz INEO FIRST 0W-20 (TOT)',
+    sourceUrl:
+      'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/slj_quartz-ineo-first-0w20-tot',
+  }),
+  ...familySpecifications(
+    ['ENRM-HM-183', 'ENRM-HM-184', 'ENRM-HM-185', 'ENRM-HM-186', 'ENRM-HM-187'],
+    {
+      standards: ['ACEA C2', 'API SN PLUS'],
+      approvals: ['PSA B71 2302', 'PSA B71 2312'],
+      suitableFor: ['Fiat 9.55535-DS1', 'Fiat 9.55535-GS1', 'Toyota'],
+      meets: ['Jaguar Land Rover STJLR.03.5007'],
+      sourceLabel: 'TotalEnergies · Quartz INEO FIRST 0W-30',
+      sourceUrl:
+        'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/7bj_quartz-ineo-first-0w-30',
+    },
+  ),
+  'ENRM-HM-194': {
+    standards: ['ACEA C5'],
+    approvals: ['Porsche C20', 'VW 508.00', 'VW 509.00'],
+    sourceLabel: 'TotalEnergies · Quartz INEO Long Life 0W-20',
+    sourceUrl:
+      'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/fm9_quartz-ineo-long-life-0w20',
+  },
+  ...familySpecifications(['ENRM-HM-195', 'ENRM-HM-196', 'ENRM-HM-197'], {
+    standards: ['ACEA C3'],
+    approvals: [
+      'BMW Longlife-04',
+      'BMW Longlife-19 FE',
+      'MB-Approval 229.31',
+      'MB-Approval 229.51',
+      'MB-Approval 229.52',
+      'Porsche C30',
+      'VW 504.00',
+      'VW 507.00',
+    ],
+    sourceLabel: 'TotalEnergies · Quartz INEO Long Life 0W-30',
+    sourceUrl:
+      'https://lubricants.catalog.totalenergies.com/corporate/en_UK/fm2_quartz-ineo-long-life-0w-30',
+  }),
+  ...familySpecifications(['ENRM-HM-198', 'ENRM-HM-199', 'ENRM-HM-200', 'ENRM-HM-201'], {
+    standards: ['ACEA C3', 'API SP'],
+    approvals: ['BMW LL-04', 'MB-Approval 229.51', 'MB-Approval 229.52'],
+    recommendations: [
+      'Chrysler MS-11106',
+      'Fiat 9.55535-S3',
+      'Hyundai Motors',
+      'Kia Engine Oil',
+      'Opel OV 040 1547-D30',
+      'Opel OV 040 1547-G30',
+      'VW 505.00',
+      'VW 505.01',
+    ],
+    sourceLabel: 'TotalEnergies Maroc · Quartz INEO MC3 5W-30',
+    sourceUrl: 'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/lky_quartz-ineo-mc3-5w-30',
+  }),
+  ...familySpecifications(['ENRM-HM-202', 'ENRM-HM-203'], {
+    standards: ['ACEA C3', 'API CF', 'API SN'],
+    approvals: ['GM dexos2', 'MB-Approval 229.51', 'Porsche A40', 'VW 502.00', 'VW 505.01'],
+    meets: ['Fiat 9.55535-GH2', 'Fiat 9.55535-S2', 'Ford WSS-M2C-917-A'],
+    backwardCompatible: ['MB-Approval 229.31'],
+    sourceLabel: 'TotalEnergies · Quartz INEO MC3 5W-40',
+    sourceUrl: 'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/3t6_quartz-ineo-mc3-5w40',
+  }),
+  ...familySpecifications(['ENRM-HM-204', 'ENRM-HM-205', 'ENRM-HM-206'], {
+    standards: ['ACEA C5', 'API SN', 'ILSAC GF-5'],
+    approvals: ['Aston Martin', 'BMW LL-17 FE+'],
+    meets: ['Ford WSS-M2C-952-A1'],
+    sourceLabel: 'TotalEnergies Maroc · Quartz INEO Xtra Dynamics 0W-20',
+    sourceUrl:
+      'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/trp_quartz-ineo-xtra-dynamics-0w-20',
+  }),
+  ...familySpecifications(['ENRM-HM-207', 'ENRM-HM-208', 'ENRM-HM-209', 'ENRM-HM-210'], {
+    standards: ['ACEA C5', 'ACEA C6', 'API SP', 'ILSAC GF-6A'],
+    approvals: ['Ford WSS-M2C-956-A1', 'Porsche C20', 'VW 508.00', 'VW 509.00'],
+    sourceLabel: 'TotalEnergies Maroc · Quartz INEO Xtra Long Life 0W-20',
+    sourceUrl:
+      'https://lubricants.catalog.totalenergies.com/maroc/fr_MA/trr_quartz-ineo-xtra-long-life-0w-20',
+  }),
+  ...familySpecifications(['ENRM-HM-030', 'ENRM-HM-031'], {
+    standards: ['ACEA C2', 'ACEA C3', 'API SQ'],
+    approvals: ['BMW Longlife-04', 'MB-Approval 229.51'],
+    recommendations: [
+      'Fiat 9.55535-S1',
+      'Fiat 9.55535-S3',
+      'Ford WSS-M2C 917-A',
+      'GM dexos2',
+      'MB 229.31',
+      'MB 229.52',
+      'Opel OV 040 1547-G30',
+      'Opel OV 040 1547-D30',
+      'VW 505 00',
+      'VW 505 01',
+    ],
+    sourceLabel: 'LIQUI MOLY · Longtime High Tech 5W-30',
+    sourceUrl: 'https://www.liqui-moly.com/fr/fr/longtime-high-tech-5w-30-p000312.html',
+  }),
+  ...familySpecifications(['ENRM-HM-034', 'ENRM-HM-035'], {
+    standards: ['API SQ', 'ILSAC GF-7A'],
+    recommendations: [
+      'Chrysler MS-6395',
+      'Daihatsu',
+      'Fiat 9.55535-CR1',
+      'Ford WSS-M2C 946-A/946-B1/961-A1/971-A1',
+      'GM 6094 M/dexos1 Gen 3',
+      'Honda',
+      'Hyundai',
+      'Isuzu',
+      'Kia',
+      'Mazda',
+      'Mitsubishi',
+      'Nissan',
+      'Subaru',
+      'Suzuki',
+      'Toyota',
+      'Wuling',
+    ],
+    sourceLabel: 'LIQUI MOLY · Molygen New Generation 5W-30',
+    sourceUrl: 'https://www.liqui-moly.com/fr/fr/molygen-new-generation-5w-30-p001757.html',
+  }),
+  ...familySpecifications(['ENRM-HM-041', 'ENRM-HM-042'], {
+    standards: ['ACEA A5/B5', 'API SL'],
+    approvals: ['Ford WSS-M2C 913-D', 'Jaguar / Land Rover STJLR.03.5003', 'VWC 53036'],
+    recommendations: ['Fiat 9.55535-G1', 'Ford WSS-M2C 913-A/913-B/913-C', 'IVECO 18-1811 S1'],
+    sourceLabel: 'LIQUI MOLY · Special Tec F 5W-30',
+    sourceUrl: 'https://www.liqui-moly.com/fr/special-tec-f-5w-30-p000329.html',
+  }),
+  ...familySpecifications(['ENRM-HM-051'], {
+    standards: ['ACEA C3'],
+    approvals: [
+      'BMW Longlife-04',
+      'BMW Longlife-19FE',
+      'MB-Approval 229.51',
+      'MB-Approval 229.52',
+      'Porsche C30',
+      'VW 504 00',
+      'VW 507 00',
+    ],
+    recommendations: ['API SN', 'Iveco 18-1811 SC1 LV 21'],
+    sourceLabel: 'LIQUI MOLY · Top Tec 4210',
+    sourceUrl: 'https://www.liqui-moly.com/fr/be/top-tec-4210-0w-30-p005106.html',
+  }),
+  ...familySpecifications(['ENRM-HM-052', 'ENRM-HM-053'], {
+    standards: ['ACEA C2/C3', 'API SP'],
+    approvals: ['PSA B71 2290', 'MB-Approval 226.52', 'MB-Approval 229.52', 'Renault RN 17'],
+    recommendations: [
+      'Fiat 9.55535-S1',
+      'Honda',
+      'Hyundai',
+      'Infiniti',
+      'IVECO 18-1811 SC1',
+      'Kia',
+      'Lexus',
+      'MB 229.31',
+      'MB 229.51',
+      'Mitsubishi',
+      'Nissan',
+      'Subaru',
+      'Suzuki',
+      'Toyota',
+      'Renault RN 0700',
+      'Renault RN 0710',
+    ],
+    sourceLabel: 'LIQUI MOLY · Top Tec 4300',
+    sourceUrl: 'https://www.liqui-moly.com/fr/ch/top-tec-4300-5w-30-p000325.html',
+  }),
+  ...familySpecifications(['ENRM-HM-054'], {
+    standards: ['ACEA C2', 'API SQ'],
+    approvals: ['PSA B71 2312'],
+    recommendations: ['Fiat 9.55535-DS1', 'Fiat 9.55535-GS1', 'PSA B71 2302'],
+    sourceLabel: 'LIQUI MOLY · Top Tec 4310',
+    sourceUrl: 'https://www.liqui-moly.com/fr/be/top-tec-4310-0w-30-p003590.html',
+  }),
+  ...familySpecifications(['ENRM-HM-055', 'ENRM-HM-056'], {
+    standards: ['ACEA C4'],
+    approvals: ['Renault RN 0720'],
+    recommendations: ['Fiat 9.55535-S4', 'MB 226.51', 'MB 229.51'],
+    sourceLabel: 'LIQUI MOLY · Top Tec 4400',
+    sourceUrl: 'https://www.liqui-moly.com/fr/ch/top-tec-4400-5w-30-p000326.html',
+  }),
+  ...familySpecifications(['ENRM-HM-058'], {
+    standards: ['ACEA C2', 'API SP'],
+    approvals: ['BMW Longlife-12 FE', 'DTFR 15D100', 'MB-Approval 229.61'],
+    recommendations: [
+      'BMW 83 21 2 365 935',
+      'BMW 83 21 2 405 097',
+      'BMW 83 21 2 405 666',
+      'Ford WSS-M2C 957-A1',
+      'MB 227.61',
+    ],
+    sourceLabel: 'LIQUI MOLY · Top Tec 6100',
+    sourceUrl: 'https://www.liqui-moly.com/fr/top-tec-6100-0w-30-p004099.html',
+  }),
   // Castrol EDGE 0W-20 LL IV C5/C6; exact match to the catalogue title.
   'ENRM-HM-002': {
     standards: ['ACEA C5', 'ACEA C6'],
@@ -181,6 +553,86 @@ const verifiedSpecifications: Record<string, VerifiedProductSpecifications> = {
     sourceLabel: 'LIQUI MOLY · Top Tec 6200',
     sourceUrl: 'https://www.liqui-moly.com/fr/fr/top-tec-6200-0w-20-p004100.html',
   },
+  ...familySpecifications(['ENRM-HM-068', 'ENRM-HM-069'], {
+    standards: ['ACEA C2', 'API SERVICE SN'],
+    performance: ['Fiat 9.55535-S1', 'PSA B71 2290'],
+    recommendations: ['Honda', 'Subaru', 'Toyota'],
+    sourceLabel: 'Motul Maroc · 8100 ECO-CLEAN 5W-30',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/17000',
+  }),
+  ...familySpecifications(['ENRM-HM-070'], {
+    standards: ['ACEA C1'],
+    approvals: ['Ford WSS-M2C934-B', 'Jaguar STJLR.03.5005'],
+    performance: ['JALOS DL-1'],
+    recommendations: ['Mazda'],
+    sourceLabel: 'Motul Maroc · 8100 ECO-CLEAN+ 5W-30',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/17100',
+  }),
+  ...familySpecifications(['ENRM-HM-071', 'ENRM-HM-072', 'ENRM-HM-073'], {
+    standards: ['API SERVICE SP-RC', 'ILSAC GF-6A'],
+    performance: [
+      'MS 6395',
+      'WSS-M2C947-A',
+      'WSS-M2C947-B1',
+      'Fiat 9.55535-CR1',
+      'WSS-M2C962-A1',
+      'GM dexos1 GEN3',
+    ],
+    sourceLabel: 'Motul Maroc · 8100 ECO-LITE 0W-20',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/17200',
+  }),
+  ...familySpecifications(['ENRM-HM-074'], {
+    standards: ['API SERVICE SQ-RC', 'ILSAC GF-7A'],
+    performance: [
+      'MS 6395',
+      'WSS-M2C929-A',
+      'WSS-M2C946-A',
+      'GM 6094 M',
+      'GM 4718 M',
+      'Fiat 9.55535-CR1',
+      'WSS-M2C946-B1',
+      'WSS-M2C961-A1',
+      'GM dexos1 GEN3',
+      'VWC 530 34',
+    ],
+    sourceLabel: 'Motul Maroc · 8100 ECO-LITE 5W-30',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/17201',
+  }),
+  ...familySpecifications(['ENRM-HM-085', 'ENRM-HM-086'], {
+    standards: ['ACEA C3', 'API PERFORMANCE SN'],
+    approvals: ['Mercedes-Benz MB-Approval 229.52'],
+    sourceLabel: 'Motul · SPECIFIC 229.52 5W-30',
+    sourceUrl: 'https://www.motul.com/fr-FR/products/59002',
+  }),
+  ...familySpecifications(['ENRM-HM-087'], {
+    standards: ['ACEA C3'],
+    approvals: ['VW 504 00', 'VW 507 00'],
+    sourceLabel: 'Motul Maroc · SPECIFIC 504 00 507 00 5W-30',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/59100',
+  }),
+  ...familySpecifications(['ENRM-HM-088', 'ENRM-HM-089'], {
+    standards: ['API PERFORMANCE SP', 'ACEA C5'],
+    approvals: ['VW 508 00', 'VW 509 00', 'Porsche C20', 'Ford WSS-M2C956-A1'],
+    sourceLabel: 'Motul Maroc · SPECIFIC 508 00 509 00 0W-20',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/59310',
+  }),
+  ...familySpecifications(['ENRM-HM-090'], {
+    standards: ['ACEA C5'],
+    approvals: ['Jaguar STJLR.51.5122'],
+    sourceLabel: 'Motul Maroc · SPECIFIC 5122 0W-20',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/59610',
+  }),
+  ...familySpecifications(['ENRM-HM-091', 'ENRM-HM-092'], {
+    standards: ['ACEA C5', 'Ford WSS-M2C952-A1'],
+    sourceLabel: 'Motul Maroc · SPECIFIC 952-A1 0W-20',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/59716',
+  }),
+  ...familySpecifications(['ENRM-HM-094', 'ENRM-HM-095'], {
+    standards: ['ACEA C5'],
+    approvals: ['Volvo VCC RBS0-2AE'],
+    sourceLabel: 'Motul Maroc · SPECIFIC RBS0-2AE 0W-20',
+    sourceUrl: 'https://www.motul.com/fr-MA/products/59780',
+  }),
   'ENRM-HM-077': {
     standards: ['ACEA A3/B4', 'API SERVICE SN'],
     performance: [

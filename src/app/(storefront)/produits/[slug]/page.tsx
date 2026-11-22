@@ -163,6 +163,8 @@ export default async function ProductPage({ params }: Props) {
         ['Homologations fabricant', verifiedSpecifications.approvals],
         ['Répond aux exigences', verifiedSpecifications.meets],
         ['Recommandations fabricant', verifiedSpecifications.recommendations],
+        ['Convient pour', verifiedSpecifications.suitableFor],
+        ['Rétrocompatibilité indiquée', verifiedSpecifications.backwardCompatible],
         ['Performances indiquées', verifiedSpecifications.performance],
       ].flatMap(
         ([name, values]) =>
@@ -390,6 +392,26 @@ export default async function ProductPage({ params }: Props) {
                         <h4>Recommandations du fabricant</h4>
                         <ul>
                           {verifiedSpecifications.recommendations.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {verifiedSpecifications.suitableFor && (
+                      <div>
+                        <h4>Convient pour</h4>
+                        <ul>
+                          {verifiedSpecifications.suitableFor.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {verifiedSpecifications.backwardCompatible && (
+                      <div>
+                        <h4>Rétrocompatibilité indiquée</h4>
+                        <ul>
+                          {verifiedSpecifications.backwardCompatible.map((value) => (
                             <li key={value}>{value}</li>
                           ))}
                         </ul>
