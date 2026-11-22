@@ -20,6 +20,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/credits',
   ];
   const products = await getPublicCatalogue();
+  const brands = new Set(products.map((product) => product.marque.toLowerCase()));
+  const brandRoutes = ['shell', 'totalenergies'].filter((brand) => brands.has(brand));
   return [
     ...staticRoutes.map((route) => ({
       url: new URL(route, siteUrl).href,
@@ -27,6 +29,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...products.map((product) => ({
       url: new URL(`/produits/${productSlug(product)}`, siteUrl).href,
+      changeFrequency: 'weekly' as const,
+    })),
+    ...brandRoutes.map((brand) => ({
+      url: new URL(`/marques/${brand}`, siteUrl).href,
       changeFrequency: 'weekly' as const,
     })),
     ...blogPosts.map((post) => ({
