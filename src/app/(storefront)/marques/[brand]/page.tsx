@@ -28,6 +28,47 @@ const brands = {
     source: 'Gamme officielle TotalEnergies Quartz',
     sourceUrl: 'https://lubricants.totalenergies.com/quartz-range',
   },
+  castrol: {
+    name: 'Castrol',
+    title: 'Huiles moteur Castrol au Maroc — ENRM',
+    description:
+      'Parcourez les huiles moteur Castrol disponibles au catalogue ENRM au Maroc. Comparez les références, viscosités et contenances; prix à confirmer.',
+    intro:
+      'Castrol propose plusieurs familles d’huiles moteur, notamment EDGE, MAGNATEC et GTX. Chaque référence répond à des spécifications particulières : vérifiez les exigences du constructeur avant de choisir.',
+    source: 'gamme officielle Castrol',
+    sourceUrl:
+      'https://www.castrol.com/en_gb/united-kingdom/home/products/our-brands/automotive.html',
+  },
+  motul: {
+    name: 'Motul',
+    title: 'Huiles moteur Motul au Maroc — ENRM',
+    description:
+      'Consultez les huiles moteur Motul du catalogue ENRM au Maroc. Comparez les références, viscosités et contenances; prix à confirmer.',
+    intro:
+      'Motul propose des huiles moteur pour différentes applications automobiles. Les recommandations, viscosités et homologations dépendent de chaque référence et du véhicule : consultez son manuel pour choisir.',
+    source: 'sélecteur officiel Motul',
+    sourceUrl: 'https://www.motul.com/en-GB/lubricants',
+  },
+  'liqui-moly': {
+    name: 'Liqui_Moly',
+    title: 'Huiles moteur LIQUI MOLY au Maroc — ENRM',
+    description:
+      'Parcourez les huiles moteur LIQUI MOLY disponibles au catalogue ENRM au Maroc. Comparez les références, viscosités et contenances; prix à confirmer.',
+    intro:
+      'LIQUI MOLY présente des huiles moteur avec différentes viscosités, applications et homologations. Vérifiez les spécifications de la référence et les recommandations du constructeur pour votre véhicule.',
+    source: 'huiles moteur officielles LIQUI MOLY',
+    sourceUrl: 'https://www.liqui-moly.com/en/engine-oils.html',
+  },
+  petrom: {
+    name: 'Petrom',
+    title: 'Huiles moteur Petrom au Maroc — ENRM',
+    description:
+      'Découvrez les lubrifiants moteur Petrom disponibles au catalogue ENRM au Maroc. Comparez les références, viscosités et contenances; prix à confirmer.',
+    intro:
+      'Au Maroc, Petrom présente sa marque de lubrifiants XPRO pour les professionnels et les particuliers. Consultez les informations de chaque référence et vérifiez les préconisations du constructeur avant votre choix.',
+    source: 'gamme officielle des lubrifiants Petrom',
+    sourceUrl: 'https://petrom.ma/produits-et-services/lubrifiants/',
+  },
 } as const;
 
 type BrandSlug = keyof typeof brands;
@@ -87,12 +128,12 @@ export default async function BrandPage({ params }: Props) {
         <span aria-hidden="true">/</span>
         <a href="/catalogue">Produits</a>
         <span aria-hidden="true">/</span>
-        <span>{brand.name}</span>
+        <span>{brandName(brand.name)}</span>
       </nav>
 
       <header className="section-heading">
         <p className="eyebrow">Catalogue ENRM · Maroc</p>
-        <h1>Huiles moteur {brand.name}</h1>
+        <h1>Huiles moteur {brandName(brand.name)}</h1>
         <p>{brand.intro}</p>
         <p>
           Choisissez votre huile selon les prescriptions du constructeur. La viscosité seule ne
@@ -106,7 +147,7 @@ export default async function BrandPage({ params }: Props) {
 
       <section aria-labelledby="brand-products-title">
         <div className="section-heading">
-          <h2 id="brand-products-title">Références {brand.name} au catalogue</h2>
+          <h2 id="brand-products-title">Références {brandName(brand.name)} au catalogue</h2>
           <p>
             {products.length} référence{products.length > 1 ? 's' : ''} actuellement affichée
             {products.length > 1 ? 's' : ''}.

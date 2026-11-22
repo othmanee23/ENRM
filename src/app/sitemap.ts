@@ -20,8 +20,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/credits',
   ];
   const products = await getPublicCatalogue();
-  const brands = new Set(products.map((product) => product.marque.toLowerCase()));
-  const brandRoutes = ['shell', 'totalenergies'].filter((brand) => brands.has(brand));
+  const brandRouteByName: Record<string, string> = {
+    Castrol: 'castrol',
+    Liqui_Moly: 'liqui-moly',
+    Motul: 'motul',
+    Petrom: 'petrom',
+    Shell: 'shell',
+    TotalEnergies: 'totalenergies',
+  };
+  const brandRoutes = [
+    ...new Set(products.map((product) => brandRouteByName[product.marque]).filter(Boolean)),
+  ];
   return [
     ...staticRoutes.map((route) => ({
       url: new URL(route, siteUrl).href,

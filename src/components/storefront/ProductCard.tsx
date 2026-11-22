@@ -12,9 +12,15 @@ export function ProductCard({ product }: { product: Product }) {
   const bundledProduct = getBundledProductById(product.id);
   const imageProduct = bundledProduct?.recto ? bundledProduct : product;
   const image = imageProduct ? resolveMediaUrl(imageProduct.recto) : null;
-  const brandSlug = ['shell', 'totalenergies'].includes(product.marque.toLowerCase())
-    ? `/marques/${product.marque.toLowerCase()}`
-    : null;
+  const brandSlugs: Record<string, string> = {
+    castrol: 'castrol',
+    liqui_moly: 'liqui-moly',
+    motul: 'motul',
+    petrom: 'petrom',
+    shell: 'shell',
+    totalenergies: 'totalenergies',
+  };
+  const brandSlug = brandSlugs[product.marque.toLowerCase()];
   return (
     <article className="product-card">
       <a className="product-image" href={href}>
@@ -35,7 +41,7 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="card-copy">
         <p className="product-brand">
           {brandSlug ? (
-            <a href={brandSlug}>{brandName(product.marque)}</a>
+            <a href={`/marques/${brandSlug}`}>{brandName(product.marque)}</a>
           ) : (
             brandName(product.marque)
           )}
