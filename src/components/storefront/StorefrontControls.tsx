@@ -19,11 +19,11 @@ export function MobileMenu() {
         {open ? '×' : '☰'}
       </button>
       <nav className="mobile-nav" id="mobile-nav" aria-label="Navigation mobile" hidden={!open}>
-        <a href="/catalogue">Toutes les huiles ↗</a>
-        <a href="/#marques">Les marques ↗</a>
-        <a href="/conseil">Trouver mon huile ↗</a>
-        <a href="/a-propos">À propos d’ENRM ↗</a>
-        <a href="/contact">Nous contacter ↗</a>
+        <a href="/">Accueil</a>
+        <a href="/catalogue">Produits</a>
+        <a href="/a-propos">À propos</a>
+        <a href="/blogs">Blogs</a>
+        <a href="/contact">Contact</a>
       </nav>
     </>
   );

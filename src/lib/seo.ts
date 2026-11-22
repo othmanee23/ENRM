@@ -19,7 +19,9 @@ export function getSiteUrl(): string {
 
 export function shouldIndexSite(): boolean {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (!configured) return false;
+  // A missing build variable should use the canonical production domain.
+  // Preview deployments can opt out by setting their own non-production URL.
+  if (!configured) return true;
 
   try {
     const url = new URL(configured);

@@ -38,7 +38,7 @@ export function ProductCard({ product }: { product: Product }) {
           {product.viscosite} <span>·</span> {product.litrage}
         </p>
         <div className="product-price">
-          <span>{formatMad(product.price)} MAD</span>
+          <span>{product.price > 0 ? `${formatMad(product.price)} MAD` : 'Prix à confirmer'}</span>
           <AddToCartButton id={product.id} label={`Ajouter ${title} à ma demande`} />
         </div>
       </div>

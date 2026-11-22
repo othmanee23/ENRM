@@ -32,10 +32,10 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
           />
         </a>
         <nav aria-label="Navigation principale">
-          <a href="/catalogue">Les huiles</a>
-          <a href="/#marques">Les marques</a>
-          <a href="/conseil">Le conseil</a>
+          <a href="/">Accueil</a>
+          <a href="/catalogue">Produits</a>
           <a href="/a-propos">À propos</a>
+          <a href="/blogs">Blogs</a>
           <a href="/contact">Contact</a>
         </nav>
         <div className="header-actions">
@@ -86,7 +86,7 @@ export function StorefrontChrome({ children }: { children: ReactNode }) {
           </div>
           <div className="footer-column">
             <h2>Vous accompagner</h2>
-            <a href="/conseil">Trouver mon huile</a>
+            <a href="/blogs">Conseils et guides</a>
             <a href="/contact">Nous contacter</a>
             <a href="/livraison">Livraison</a>
             <a href="/a-propos">À propos</a>

@@ -130,8 +130,22 @@ export default async function ProductPage({ params }: Props) {
   const related = relatedContext
     .filter(
       (candidate) =>
-        candidate.id !== product.id && candidate.marque === product.marque && candidate.recto,
+        candidate.id !== product.id &&
+        candidate.marque === product.marque &&
+        candidate.recto &&
+        !(
+          candidate.gamme === product.gamme &&
+          candidate.sous_reference === product.sous_reference &&
+          candidate.viscosite === product.viscosite
+        ),
     )
+    .sort((a, b) => {
+      const score = (candidate: (typeof relatedContext)[number]) =>
+        Number(candidate.gamme === product.gamme) * 4 +
+        Number(candidate.viscosite === product.viscosite) * 2 +
+        Number(candidate.sous_reference === product.sous_reference);
+      return score(b) - score(a);
+    })
     .slice(0, 4);
   const bundledProduct = getBundledProductById(product.id);
   const staticImageProduct = bundledProduct ?? product;
@@ -147,8 +161,25 @@ export default async function ProductPage({ params }: Props) {
     name: productName,
     description: product.designation || undefined,
     sku: product.id,
+    category: 'Huiles moteur',
     brand: { '@type': 'Brand', name: brandName(product.marque) },
     image: image ? [new URL(image, siteUrl).href] : undefined,
+    additionalProperty: [
+      { '@type': 'PropertyValue', name: 'Grade SAE', value: product.viscosite },
+      { '@type': 'PropertyValue', name: 'Contenance', value: product.litrage },
+      ...(product.gamme ? [{ '@type': 'PropertyValue', name: 'Gamme', value: product.gamme }] : []),
+    ],
+    ...(product.price > 0
+      ? {
+          offers: {
+            '@type': 'Offer',
+            url: new URL(`/produits/${canonicalSlug}`, siteUrl).href,
+            priceCurrency: 'MAD',
+            price: product.price,
+            seller: { '@type': 'Organization', name: 'ENRM Solutions & Services' },
+          },
+        }
+      : {}),
   };
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -161,7 +192,12 @@ export default async function ProductPage({ params }: Props) {
         name: 'Catalogue',
         item: new URL('/catalogue', siteUrl).href,
       },
-      { '@type': 'ListItem', position: 3, name: product.sous_reference },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.sous_reference,
+        item: new URL(`/produits/${canonicalSlug}`, siteUrl).href,
+      },
     ],
   };
   const source = safeSource(product.source_recto || product.preuves_maroc);
@@ -204,7 +240,9 @@ export default async function ProductPage({ params }: Props) {
                 <span>{product.viscosite}</span>
               </h1>
               <p className="detail-reference">{product.id} · Disponibilité à confirmer</p>
-              <p className="detail-price">{formatMad(product.price)} MAD</p>
+              <p className="detail-price">
+                {product.price > 0 ? `${formatMad(product.price)} MAD` : 'Prix à confirmer'}
+              </p>
               <fieldset className="variant-fieldset">
                 <legend>Votre contenance</legend>
                 <div className="volume-options">
@@ -245,7 +283,7 @@ export default async function ProductPage({ params }: Props) {
                 Prix indicatif. ENRM confirmera le prix final et la disponibilité. Aucun paiement en
                 ligne n’est demandé.
               </p>
-              <a href="/#conseil" className="detail-advice">
+              <a href="/contact" className="detail-advice">
                 Un doute sur votre moteur ? <span>Parlons-en ↗</span>
               </a>
               <div className="product-service">
@@ -305,15 +343,55 @@ export default async function ProductPage({ params }: Props) {
               </p>
             </div>
           </section>
+          <section className="product-faq section" aria-labelledby="product-faq-title">
+            <p className="eyebrow">QUESTIONS FRÉQUENTES</p>
+            <h2 id="product-faq-title">À savoir avant de choisir.</h2>
+            <div className="product-faq-list">
+              <details>
+                <summary>Comment vérifier que cette huile convient à mon véhicule&nbsp;?</summary>
+                <p>
+                  Comparez le grade SAE et les normes ou homologations indiqués ici avec le manuel
+                  d’entretien de votre véhicule. La viscosité seule ne confirme pas la
+                  compatibilité. Si vous avez un doute, transmettez-nous la marque, le modèle,
+                  l’année et la motorisation.
+                </p>
+              </details>
+              <details>
+                <summary>Comment choisir la bonne contenance&nbsp;?</summary>
+                <p>
+                  La capacité requise dépend du moteur et de l’opération d’entretien. Vérifiez le
+                  manuel de votre véhicule, puis sélectionnez un format proposé dans les variantes
+                  de cette référence.
+                </p>
+              </details>
+              <details>
+                <summary>Le prix et la disponibilité affichés sont-ils définitifs&nbsp;?</summary>
+                <p>
+                  Les prix du catalogue sont mis à jour à partir des informations saisies par ENRM.
+                  Notre équipe confirme le prix final et la disponibilité lorsque vous envoyez votre
+                  demande. Aucun paiement en ligne n’est demandé.
+                </p>
+              </details>
+            </div>
+            <a className="button primary" href="/contact">
+              Demander conseil
+            </a>
+          </section>
           <section className="section related-section">
             <div className="section-heading">
-              <h2>Poursuivre la découverte.</h2>
+              <h2>
+                {related.some((item) => item.gamme === product.gamme)
+                  ? 'Dans la même gamme.'
+                  : 'Autres huiles de la marque.'}
+              </h2>
               <a href="/catalogue" className="text-link">
                 Toutes les huiles ↗
               </a>
             </div>
             <p className="muted">
-              Autres références de la marque. Ces produits ne sont pas des substituts techniques.
+              Les références proches facilitent la comparaison, mais ne garantissent pas une
+              compatibilité avec votre véhicule. Vérifiez toujours les préconisations du
+              constructeur.
             </p>
             <div className="product-rail">
               {related.map((item) => (
