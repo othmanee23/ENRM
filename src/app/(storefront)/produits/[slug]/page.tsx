@@ -18,6 +18,7 @@ import { ProductGallery } from '../../../../components/storefront/StorefrontCont
 import { getBundledProductById } from '../../../../shared/catalogue-assets';
 import { productIdFromSlug } from '../../../../shared/slugs';
 import { hasApprovedProductImage } from '../../../../lib/catalogue-image-policy';
+import { getVerifiedProductSpecifications } from '../../../../lib/verified-product-specs';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -155,6 +156,23 @@ export default async function ProductPage({ params }: Props) {
   const image = bundledImage;
   const siteUrl = getSiteUrl();
   const productName = `${brandName(product.marque)} ${product.sous_reference} ${product.viscosite} — ${product.litrage}`;
+  const verifiedSpecifications = getVerifiedProductSpecifications(product.id);
+  const specificationProperties = verifiedSpecifications
+    ? [
+        ['Normes industrielles', verifiedSpecifications.standards],
+        ['Homologations fabricant', verifiedSpecifications.approvals],
+        ['Répond aux exigences', verifiedSpecifications.meets],
+        ['Recommandations fabricant', verifiedSpecifications.recommendations],
+        ['Performances indiquées', verifiedSpecifications.performance],
+      ].flatMap(
+        ([name, values]) =>
+          (values as string[] | undefined)?.map((value) => ({
+            '@type': 'PropertyValue',
+            name: name as string,
+            value,
+          })) ?? [],
+      )
+    : [];
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -168,6 +186,7 @@ export default async function ProductPage({ params }: Props) {
       { '@type': 'PropertyValue', name: 'Grade SAE', value: product.viscosite },
       { '@type': 'PropertyValue', name: 'Contenance', value: product.litrage },
       ...(product.gamme ? [{ '@type': 'PropertyValue', name: 'Gamme', value: product.gamme }] : []),
+      ...specificationProperties,
     ],
     ...(product.price > 0
       ? {
@@ -328,10 +347,85 @@ export default async function ProductPage({ params }: Props) {
                   <dd>{product.references_articles || 'À confirmer'}</dd>
                 </div>
               </dl>
+              <section className="verified-specifications" aria-labelledby="verified-specs-title">
+                <h3 id="verified-specs-title">Normes et homologations fabricant</h3>
+                {verifiedSpecifications ? (
+                  <>
+                    <p className="muted">
+                      Relevées sur la fiche officielle du fabricant. Vérifiez toujours les exigences
+                      exactes indiquées dans le manuel de votre véhicule.
+                    </p>
+                    {verifiedSpecifications.standards.length > 0 && (
+                      <div>
+                        <h4>Normes industrielles</h4>
+                        <ul>
+                          {verifiedSpecifications.standards.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {verifiedSpecifications.approvals && (
+                      <div>
+                        <h4>Homologations fabricant</h4>
+                        <ul>
+                          {verifiedSpecifications.approvals.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {verifiedSpecifications.meets && (
+                      <div>
+                        <h4>Répond aux exigences</h4>
+                        <ul>
+                          {verifiedSpecifications.meets.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {verifiedSpecifications.recommendations && (
+                      <div>
+                        <h4>Recommandations du fabricant</h4>
+                        <ul>
+                          {verifiedSpecifications.recommendations.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {verifiedSpecifications.performance && (
+                      <div>
+                        <h4>Performances indiquées par le fabricant</h4>
+                        <ul>
+                          {verifiedSpecifications.performance.map((value) => (
+                            <li key={value}>{value}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <a
+                      className="text-link"
+                      href={verifiedSpecifications.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Source officielle : {verifiedSpecifications.sourceLabel}
+                    </a>
+                  </>
+                ) : (
+                  <p className="muted">
+                    Les données fabricant de cette référence sont en cours de vérification. ENRM
+                    peut confirmer les spécifications à partir de l’emballage et de la fiche
+                    technique.
+                  </p>
+                )}
+              </section>
               <p>{product.designation}</p>
               <p className="muted">
-                La viscosité seule ne prouve pas la compatibilité. Vérifiez les normes et
-                homologations avec la documentation du constructeur et du fabricant.
+                La viscosité seule ne prouve pas la compatibilité. Lorsque des normes sont
+                affichées, comparez-les avec les exigences du manuel de votre véhicule.
               </p>
               {source && (
                 <a className="text-link" href={source} target="_blank" rel="noopener noreferrer">

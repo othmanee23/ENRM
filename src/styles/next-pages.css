@@ -143,6 +143,46 @@
   max-width: 1280px;
   margin-inline: auto;
 }
+
+.verified-specifications {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--line, #dce2df);
+  border-radius: 1rem;
+  background: var(--surface-soft, #f7f8f6);
+}
+
+.verified-specifications h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+}
+
+.verified-specifications h4 {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.92rem;
+}
+
+.verified-specifications ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.verified-specifications li {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line, #dce2df);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.82rem;
+}
+
+.verified-specifications .text-link {
+  display: inline-block;
+  margin-top: 1rem;
+}
 .product-faq > h2 {
   max-width: 760px;
   margin-bottom: 34px;
