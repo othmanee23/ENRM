@@ -12,6 +12,15 @@ import type { Category } from '../../../shared/types';
 
 export const dynamic = 'force-dynamic';
 
+const brandLandingSlugs: Record<string, string> = {
+  Castrol: 'castrol',
+  Liqui_Moly: 'liqui-moly',
+  Motul: 'motul',
+  Petrom: 'petrom',
+  Shell: 'shell',
+  TotalEnergies: 'totalenergies',
+};
+
 type SearchParams = Record<string, string | string[] | undefined>;
 
 function value(params: SearchParams, ...keys: string[]): string {
@@ -204,6 +213,9 @@ export default async function CataloguePage({
   const page = Math.min(requestedPage, pageCount);
   if (page !== requestedPage) result = await getPublicCataloguePage({ ...filters, page });
   const selectedBrand = value(params, 'brand', 'marque');
+  const brandLinks = facets.brands
+    .filter((brand) => brandLandingSlugs[brand])
+    .map((brand) => ({ name: brand, slug: brandLandingSlugs[brand] }));
 
   return (
     <>
@@ -223,6 +235,18 @@ export default async function CataloguePage({
               les viscosités et choisissez le conditionnement adapté à vos besoins.
             </p>
           </div>
+          {brandLinks.length > 0 && (
+            <nav className="brand-directory" aria-label="Parcourir les huiles par marque">
+              <p>Parcourir par marque</p>
+              <ul>
+                {brandLinks.map(({ name, slug }) => (
+                  <li key={slug}>
+                    <a href={`/marques/${slug}`}>{brandName(name)} ↗</a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
           <form id="catalogue-filters" action="/catalogue" method="get">
             <div className="catalogue-toolbar">
               <label className="search">
