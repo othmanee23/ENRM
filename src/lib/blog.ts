@@ -19,6 +19,68 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'huile-moteur-chaleur-maroc-viscosite',
+    category: 'Guide pratique',
+    title: 'Chaleur au Maroc : faut-il choisir une huile moteur plus épaisse ?',
+    excerpt:
+      'La température extérieure ne suffit pas pour choisir un grade. Voici comment vérifier les viscosités autorisées et les spécifications de votre moteur.',
+    readingTime: '4 min',
+    publishedAt: '2026-11-22',
+    introduction:
+      'Quand il fait chaud, on peut être tenté de remplacer une huile 5W-30 par une 5W-40. Ce changement n’est pertinent que si le constructeur autorise ce grade pour le moteur et les conditions d’utilisation concernés.',
+    sections: [
+      {
+        heading: 'Le grade SAE ne se résume pas à la température de la journée',
+        paragraphs: [
+          'Dans un grade multigrade, le nombre avant le W décrit le comportement mesuré à basse température. Le nombre après le tiret indique une classe de viscosité à température élevée. Ces repères aident à comparer les huiles, mais ne disent pas à eux seuls si une huile convient à un moteur.',
+          'La viscosité de fonctionnement dépend aussi de la conception du moteur et des exigences fixées par son constructeur. Une huile plus épaisse n’est donc pas automatiquement une meilleure protection contre la chaleur.',
+        ],
+      },
+      {
+        heading: 'Vérifiez les grades autorisés pour votre motorisation',
+        paragraphs: [
+          'Consultez le manuel d’entretien ou la documentation officielle du véhicule. Certains constructeurs indiquent plusieurs grades possibles selon la plage de température extérieure ou l’utilisation. Utilisez uniquement une option autorisée pour votre moteur précis.',
+          'Si le manuel ne donne qu’un grade, ne le remplacez pas par un grade plus élevé sur la seule base du climat local. En cas d’incertitude, demandez confirmation au constructeur ou à un professionnel qualifié.',
+        ],
+      },
+      {
+        heading: 'Contrôlez aussi les normes et homologations',
+        paragraphs: [
+          'Deux huiles de même viscosité peuvent répondre à des exigences différentes. Après avoir vérifié le grade, comparez les normes API ou ACEA et les homologations constructeur mentionnées dans le manuel avec celles de la fiche technique du produit.',
+          'Les mentions « recommandé pour » et « homologué par » ne sont pas toujours équivalentes. Lorsque le constructeur exige une homologation précise, cherchez cette homologation dans la documentation officielle du lubrifiant.',
+        ],
+      },
+      {
+        heading: 'Gardez l’intervalle d’entretien prévu',
+        paragraphs: [
+          'Les trajets courts, les embouteillages et les conditions de conduite sévères peuvent être pris en compte dans le plan d’entretien du véhicule. Suivez les intervalles applicables à votre usage tels qu’ils sont définis dans le manuel; une huile annoncée pour un intervalle prolongé ne modifie pas, à elle seule, les consignes du constructeur.',
+        ],
+        bullets: [
+          'Relever la motorisation exacte, pas seulement le modèle de voiture',
+          'Noter les grades SAE permis et la plage de température indiquée',
+          'Vérifier les normes et homologations demandées',
+          'Respecter l’échéance d’entretien prévue pour votre usage',
+        ],
+      },
+    ],
+    conclusion:
+      'Avant de choisir une huile pour l’été ou pour un trajet exigeant, partez des consignes correspondant à votre moteur. ENRM peut vous aider à comparer une référence du catalogue avec les informations du manuel; la compatibilité reste à confirmer selon les préconisations du constructeur.',
+    sources: [
+      {
+        label: 'Castrol — quelle huile moteur choisir pour sa voiture ?',
+        url: 'https://www.castrol.com/en_us/united-states/home/learn/car-maintenance/what-kind-of-oil-does-my-car-need.html',
+      },
+      {
+        label: 'Castrol — comprendre les grades de viscosité',
+        url: 'https://www.castrol.com/en_nz/new-zealand/home/products/our-brands/viscosity-grades.html',
+      },
+      {
+        label: 'API — catégories et classifications des huiles moteur',
+        url: 'https://www.api.org/products-and-services/engine-oil/eolcs-categories-and-classifications/oil-categories',
+      },
+    ],
+  },
+  {
     slug: 'comprendre-viscosite-huile-moteur',
     category: 'Comprendre',
     title: 'Comment lire la viscosité d’une huile moteur, comme 5W-30 ?',

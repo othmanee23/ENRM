@@ -4,7 +4,7 @@ import { blogPosts } from '../../../lib/blog';
 
 export const metadata: Metadata = publicPageMetadata(
   'Guides et conseils auto',
-  'Guides pratiques ENRM pour comprendre les grades, choisir une huile moteur et suivre l’entretien de votre véhicule au Maroc.',
+  'Guides pratiques ENRM pour comprendre les grades, choisir une huile moteur adaptée à votre moteur et suivre l’entretien de votre véhicule au Maroc.',
   '/blogs',
 );
 
