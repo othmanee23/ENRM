@@ -1,7 +1,13 @@
 import catalogueData from '../../public/catalogue.json';
+import additionalBrandData from '../../public/catalogue-2026-brands.json';
 import type { Product } from '../shared/types';
 
-const bundledProducts = catalogueData as Product[];
+// Valvoline rows in the original catalogue stay as drafts without images. Overlay
+// them with audited packshots and add Ravenol without duplicating existing IDs.
+const bundledProducts = [
+  ...(catalogueData as Product[]).filter((product) => product.marque !== 'Valvoline'),
+  ...(additionalBrandData as Product[]),
+];
 const bundledById = new Map(bundledProducts.map((product) => [product.id, product]));
 
 /** Products without an approved front packshot stay available to admins, never the storefront. */
