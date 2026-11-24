@@ -466,10 +466,29 @@ body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
 }
-.contact-call-cta {
-  display: inline-block;
-  margin: 22px 0 0 18px;
-  color: var(--ink);
+.contact-whatsapp-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin-top: 22px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.contact-whatsapp-icon:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgb(37 211 102 / 24%);
+}
+.contact-whatsapp-icon:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+}
+.contact-whatsapp-icon svg {
+  width: 34px;
+  height: 34px;
+  fill: currentColor;
 }
 .footer-return {
   width: 54px;
@@ -694,10 +713,6 @@ body[data-page='home']:not(.header-scrolled):not(.menu-open) header .logo-dark {
   .site-contact-row {
     grid-template-columns: 1fr;
     gap: 20px;
-  }
-  .contact-call-cta {
-    display: block;
-    margin: 18px 0 0;
   }
   .advice-studio-form .button {
     margin-top: 30px;
